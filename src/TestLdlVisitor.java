@@ -1,0 +1,332 @@
+/***
+ * Excerpted from "The Definitive ANTLR 4 Reference",
+ * published by The Pragmatic Bookshelf.
+ * Copyrights apply to this code. It may not be used to create training material, 
+ * courses, books, articles, and the like. Contact us if you are in doubt.
+ * We make no guarantees that this code is fit for any purpose. 
+ * Visit http://www.pragmaticprogrammer.com/titles/tpantlr2 for more book information.
+***/
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
+
+public class TestLdlVisitor {
+    public static String getTokenLiteralName(int tokenType) {
+        return LDLParser.VOCABULARY.getLiteralName(tokenType).replace("'", "");
+    }
+
+    public  static String stringSingleQuotes2Parentheses(String s) {
+        // In the string s, single quotes must occur in pairs
+        return s.replaceAll("'(.*?)'", "($1)");
+    }
+
+    // 获得自定义的LDL语法树
+    public static class LdlGetTreeVisitor extends LDLBaseVisitor<LDL> {
+        public LDL visitLdl(LDLParser.LdlContext ctx) {
+            return visit(ctx.ldlFormula());
+        }
+
+        public LDL visitLdlFormula(LDLParser.LdlFormulaContext ctx) {
+            if ( ctx.getChildCount()==4 ) { // operations have 4 children
+                if ( ctx.op.getType()==LDLParser.ANGLE_OPEN ) {
+                    LDL pe=visit(ctx.pathExpr()); // path expression
+                    LDL sf=visit(ctx.ldlFormula(0)); // subformula
+                    //return "<" + pe + ">" + sf;
+                    return new LDL(LDL.Operators.DIAMOND, pe, sf);
+                }
+                else { // ctx.op.getType()==LDLParser.SQUARE_OPEN
+                    LDL pe=visit(ctx.pathExpr()); // path expression
+                    LDL sf=visit(ctx.ldlFormula(0)); // subformula
+                    //return "[" + pe + "]" + sf;
+                    return new LDL(LDL.Operators.BOX, pe, sf);
+                }
+            }
+            else if ( ctx.getChildCount()==3 ) { // operations have 3 children
+                if ( ctx.op.getType()==LDLParser.PAREN_OPEN ) {
+                    return visit(ctx.ldlFormula(0));
+                }
+                else if ( ctx.op.getType()==LDLParser.AND ) {
+                    LDL l=visit(ctx.ldlFormula(0));
+                    LDL r=visit(ctx.ldlFormula(1));
+                    return new LDL(LDL.Operators.AND, l, r);
+                }
+                else if (ctx.op.getType()==LDLParser.OR) {
+                    LDL l=visit(ctx.ldlFormula(0));
+                    LDL r=visit(ctx.ldlFormula(1));
+                    return new LDL(LDL.Operators.OR, l, r);
+                }
+                else if (ctx.op.getType()==LDLParser.BIIMPLY) {
+                    LDL l=visit(ctx.ldlFormula(0));
+                    LDL r=visit(ctx.ldlFormula(1));
+                    return new LDL(LDL.Operators.BIIMPLY, l, r);
+                }
+                else { // ctx.op.getType()==LDLParser.IMPLY
+                    LDL l=visit(ctx.ldlFormula(0));
+                    LDL r=visit(ctx.ldlFormula(1));
+                    return new LDL(LDL.Operators.IMPLY, l, r);
+                }
+            }
+            else if ( ctx.getChildCount()==2 ) { // operations have 2 children: NOT subformula
+                LDL sf=visit(ctx.ldlFormula(0));
+                return new LDL(LDL.Operators.NOT, sf);
+            }
+            else {
+                return visitChildren(ctx);   // must be atomicFormula
+            }
+        }
+
+        public LDL visitPathExpr(LDLParser.PathExprContext ctx) {
+            if ( ctx.getChildCount()==3 ) { // operations have 3 children
+                if ( ctx.op.getType()==LDLParser.PAREN_OPEN ) {
+                    return visit(ctx.pathExpr(0));
+                }
+                else if ( ctx.op.getType()==LDLParser.SEMI ) {
+                    LDL l=visit(ctx.pathExpr(0));
+                    LDL r=visit(ctx.pathExpr(1));
+                    return new LDL(LDL.Operators.CONCAT, l, r);
+                }
+                else { // ctx.op.getType()==LDLParser.PLUS
+                    LDL l=visit(ctx.pathExpr(0));
+                    LDL r=visit(ctx.pathExpr(1));
+                    return new LDL(LDL.Operators.UNION, l, r);
+                }
+            }
+            else if ( ctx.getChildCount()==2 ) { // operations have 2 children
+                if ( ctx.op.getType()==LDLParser.STAR ) {
+                    LDL sf=visit(ctx.pathExpr(0));
+                    return new LDL(LDL.Operators.REPETITION, sf);
+                }
+                else { //ctx.op.getType()==LDLParser.QUESTION
+                    LDL sf=visit(ctx.ldlFormula());
+                    return new LDL(LDL.Operators.TEST, sf);
+                }
+            }
+            else {
+                return visitChildren(ctx);   // must be atomicFormula
+            }
+        }
+
+        public LDL visitPropFormula(LDLParser.PropFormulaContext ctx) {
+            if ( ctx.getChildCount()==3 ) { // operations have 3 children
+                if ( ctx.op.getType()==LDLParser.PAREN_OPEN ) {
+                    return visit(ctx.propFormula(0));
+                }
+                else if ( ctx.op.getType()==LDLParser.AND ) {
+                    LDL l=visit(ctx.propFormula(0));
+                    LDL r=visit(ctx.propFormula(1));
+                    return new LDL(LDL.Operators.AND, l, r);
+                }
+                else if ( ctx.op.getType()==LDLParser.OR ) {
+                    LDL l=visit(ctx.propFormula(0));
+                    LDL r=visit(ctx.propFormula(1));
+                    return new LDL(LDL.Operators.OR, l, r);
+                }
+                else if (ctx.op.getType()==LDLParser.BIIMPLY) {
+                    LDL l=visit(ctx.propFormula(0));
+                    LDL r=visit(ctx.propFormula(1));
+                    return new LDL(LDL.Operators.BIIMPLY, l, r);
+                }
+                else { // ctx.op.getType()==LDLParser.IMPLY
+                    LDL l=visit(ctx.propFormula(0));
+                    LDL r=visit(ctx.propFormula(1));
+                    return new LDL(LDL.Operators.IMPLY, l, r);
+                }
+            }
+            else if ( ctx.getChildCount()==2 ) { // operations have 2 children: NOT subformula
+                LDL sf=visit(ctx.propFormula(0));
+                return new LDL(LDL.Operators.NOT, sf);
+            }
+            else {
+                return visitChildren(ctx);   // must be atomicFormula
+            }
+        }
+
+        public LDL visitAtomicFormula(LDLParser.AtomicFormulaContext ctx) {
+            return new LDL(ctx.getText());
+        }
+
+        @Override
+        public LDL visitTerminal(TerminalNode node) {
+            return null;
+        }
+    }
+
+    public static class LdlGetTextVisitor extends LDLBaseVisitor<String> {
+        public String visitLdl(LDLParser.LdlContext ctx) {
+            return visit(ctx.ldlFormula());
+        }
+
+        public String visitLdlFormula(LDLParser.LdlFormulaContext ctx) {
+            if ( ctx.getChildCount()==4 ) { // operations have 4 children
+                if ( ctx.op.getType()==LDLParser.ANGLE_OPEN ) {
+                    String pe=visit(ctx.pathExpr()); // path expression
+                    String sf=visit(ctx.ldlFormula(0)); // subformula
+                    //return "<" + pe + ">" + sf;
+                    return getTokenLiteralName(LDLParser.ANGLE_OPEN) + pe +
+                            getTokenLiteralName(LDLParser.ANGLE_CLOSE) + sf;
+                }
+                else { // ctx.op.getType()==LDLParser.SQUARE_OPEN
+                    String pe=visit(ctx.pathExpr()); // path expression
+                    String sf=visit(ctx.ldlFormula(0)); // subformula
+                    return getTokenLiteralName(LDLParser.SQUARE_OPEN) + pe +
+                            getTokenLiteralName(LDLParser.SQUARE_CLOSE) + sf;
+                }
+            }
+            else if ( ctx.getChildCount()==3 ) { // operations have 3 children
+                if ( ctx.op.getType()==LDLParser.PAREN_OPEN ) {
+                    return visit(ctx.ldlFormula(0));
+                }
+                else if ( ctx.op.getType()==LDLParser.AND ) {
+                    String l=visit(ctx.ldlFormula(0));
+                    String r=visit(ctx.ldlFormula(1));
+                    return l + getTokenLiteralName(LDLParser.AND) + r;
+                }
+                else { // ctx.op.getType()==LDLParser.OR
+                    String l=visit(ctx.ldlFormula(0));
+                    String r=visit(ctx.ldlFormula(1));
+                    return l + getTokenLiteralName(LDLParser.OR) + r;
+                }
+            }
+            else if ( ctx.getChildCount()==2 ) { // operations have 2 children: NOT subformula
+                return getTokenLiteralName(LDLParser.NOT) + "(" + visit(ctx.ldlFormula(0)) + ")";
+            }
+            else {
+                return visitChildren(ctx);   // must be atomicFormula
+            }
+        }
+
+        public String visitPathExpr(LDLParser.PathExprContext ctx) {
+            if ( ctx.getChildCount()==3 ) { // operations have 3 children
+                if ( ctx.op.getType()==LDLParser.PAREN_OPEN ) {
+                    return visit(ctx.pathExpr(0));
+                }
+                else if ( ctx.op.getType()==LDLParser.SEMI ) {
+                    String l=visit(ctx.pathExpr(0));
+                    String r=visit(ctx.pathExpr(1));
+                    return l + getTokenLiteralName(LDLParser.SEMI) + r;
+                }
+                else { // ctx.op.getType()==LDLParser.PLUS
+                    String l=visit(ctx.pathExpr(0));
+                    String r=visit(ctx.pathExpr(1));
+                    return l + getTokenLiteralName(LDLParser.PLUS) + r;
+                }
+            }
+            else if ( ctx.getChildCount()==2 ) { // operations have 2 children
+                if ( ctx.op.getType()==LDLParser.STAR ) {
+                    return "(" + visit(ctx.pathExpr(0)) + ")" + getTokenLiteralName(LDLParser.STAR);
+                }
+                else { //ctx.op.getType()==LDLParser.QUESTION
+                    return "(" + visit(ctx.ldlFormula()) + ")" + getTokenLiteralName(LDLParser.QUESTION);
+                }
+            }
+            else {
+                return visitChildren(ctx);   // must be atomicFormula
+            }
+        }
+
+        public String visitPropFormula(LDLParser.PropFormulaContext ctx) {
+            if ( ctx.getChildCount()==3 ) { // operations have 3 children
+                if ( ctx.op.getType()==LDLParser.PAREN_OPEN ) {
+                    return visit(ctx.propFormula(0));
+                }
+                else if ( ctx.op.getType()==LDLParser.AND ) {
+                    String l=visit(ctx.propFormula(0));
+                    String r=visit(ctx.propFormula(1));
+                    return l + getTokenLiteralName(LDLParser.AND) + r;
+                }
+                else { // ctx.op.getType()==LDLParser.OR
+                    String l=visit(ctx.propFormula(0));
+                    String r=visit(ctx.propFormula(1));
+                    return l + getTokenLiteralName(LDLParser.OR) + r;
+                }
+            }
+            else if ( ctx.getChildCount()==2 ) { // operations have 2 children: NOT subformula
+                return getTokenLiteralName(LDLParser.NOT) + "(" + visit(ctx.propFormula(0)) + ")";
+            }
+            else {
+                return visitChildren(ctx);   // must be atomicFormula
+            }
+        }
+
+        public String visitAtomicFormula(LDLParser.AtomicFormulaContext ctx) {
+            return ctx.getText();
+        }
+
+        @Override
+        public String visitTerminal(TerminalNode node) {
+            return node.getText();
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+/*        String inputFile = null;
+        if ( args.length>0 ) inputFile = args[0];
+        InputStream is = System.in;
+        if ( inputFile!=null ) {
+            is = new FileInputStream(inputFile);
+        }
+        ANTLRInputStream input = new ANTLRInputStream(is);
+        LDLLexer lexer = new LDLLexer(input);
+*/
+//        String input = "(<((a));(!!!!!['b[6]<3';b]a?+!('c>5'->d<->c)*)*>b)";
+//        String input = "<((a+b+c)*+d)>c";
+//        String input = "<a+(b+c)*+d>c";
+//        String input = "<((a+b)*;c)*>d";
+//        String input = "<a+(<b>c)?>d";
+//        String input = "<(a;b)*>c";
+//        String input = "(<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)";
+        String input = "[true*]<true*>a";
+        LDLLexer lexer = new LDLLexer(CharStreams.fromString(input));
+
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        LDLParser parser = new LDLParser(tokens);
+        parser.setBuildParseTree(true);      // tell ANTLR to build a parse tree
+        ParseTree tree = parser.ldl(); // parse
+        // show tree in text form
+        //System.out.println(tree.toStringTree(parser));
+
+        System.out.println("Input LDL formula: " + input);
+
+        /*
+        LdlGetTextVisitor ldlGetTextVisitor = new LdlGetTextVisitor();
+        String ldlText = ldlGetTextVisitor.visit(tree);
+        System.out.println("Output LDL formula: " + stringSingleQuotes2Parentheses(ldlText));
+         */
+
+        LdlGetTreeVisitor ldlGetTreeVisitor = new LdlGetTreeVisitor();
+        LDL ldlTree = ldlGetTreeVisitor.visit(tree);
+        System.out.println("Output LDL formula: " + ldlTree.getText());
+        ldlTree = ldlTree.box2diamond();
+        System.out.println("box2diamond: " + ldlTree.getText());
+        ldlTree = ldlTree.reduceRedundantNotOperator();
+        System.out.println("Redundant NOT operators reduced: " + ldlTree.getText());
+
+        //test path grammar
+        //LDL pe = new LDL(LDL.LDL_Operator.DIAMOND, new LDL("a"), new LDL("b")); // pe = <a>b
+        //LDL pe = new LDL(LDL.LDL_Operator.REPETITION, new LDL(LDL.LDL_Operator.UNION, new LDL("a"), new LDL("b")));
+      //  LDL pe = new LDL(LDL.LDL_Operator.CONCAT, new LDL("a"), new LDL("b"));
+      //  LDL pe = new LDL(LDL.LDL_Operator.UNION, new LDL("a"), new LDL("b"));
+        //System.out.println(pe.getText());
+
+        /*if (ldlTree.operator != LDL.Operators.DIAMOND && ldlTree.operator != LDL.Operators.BOX) return;
+        Tester T = new Tester(ldlTree);
+        T.print();*/
+
+
+        /*StackMap<LDL, Tester> stack = new StackMap<>();
+        Tester.cacheSubFormulas(ldlTree, stack);
+
+        System.out.println("All principally temporal sub-formulas:");
+        Iterator<LDL> it = stack.getKeyIterator(true);
+        while (it.hasNext()) {
+            LDL f = it.next();
+            if(f.operator==LDL.Operators.DIAMOND)
+                System.out.println(f.getText());
+        }*/
+
+        Tester tester = new Tester("", ldlTree);
+        String smvOutput = tester.toSMV();
+        System.out.println(smvOutput);
+
+    }
+}
