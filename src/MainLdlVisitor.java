@@ -10,6 +10,13 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
 public class MainLdlVisitor {
     public static String getTokenLiteralName(int tokenType) {
         return LDLParser.VOCABULARY.getLiteralName(tokenType).replace("'", "");
@@ -259,45 +266,79 @@ public class MainLdlVisitor {
     }
 
     public static void main(String[] args) throws Exception {
-/*        String inputFile = null;
-        if ( args.length>0 ) inputFile = args[0];
-        InputStream is = System.in;
-        if ( inputFile!=null ) {
-            is = new FileInputStream(inputFile);
-        }
-        ANTLRInputStream input = new ANTLRInputStream(is);
-        LDLLexer lexer = new LDLLexer(input);
-*/
-//        String input = "(<((a));(!!!!!['b[6]<3';b]a?+!('c>5'->d<->c)*)*>b)";
-//        String input = "<((a+b+c)*+d)>c";
-//        String input = "<a+(b+c)*+d>c";
-//        String input = "<((a+b)*;c)*>d";
-//        String input = "<a+(<b>c)?>d";
-//        String input = "<(a;b)*>c";
-        String input = "(<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)";
-//        String input = "[true*]<true*>a";
-        LDLLexer lexer = new LDLLexer(CharStreams.fromString(input));
+        LDLLexer lexer=null;
+        String input="";
+        if (args.length > 0) {
+            if(args[0].equals("-ldl")){
+                if(args.length<2){
+                    System.out.println("An LDL formula must be inputted after '-ldl'.");
+                    return;
+                }
+                input=args[1];
+            }else if(args[0].equals("-file")){
+                if(args.length<2){
+                    System.out.println("An filename must be inputted after '-file'.");
+                    return;
+                }
+                String inputFile = null;
+                inputFile = args[1];
+                try {
+                    // 读取所有行到List中
+                    List<String> lines = Files.readAllLines(Paths.get(inputFile));
 
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        LDLParser parser = new LDLParser(tokens);
-        parser.setBuildParseTree(true);      // tell ANTLR to build a parse tree
-        ParseTree tree = parser.ldl(); // parse
+                    // 逐行处理
+                    int i=1;
+                    for (String line : lines) {
+                        line=line.trim();
+                        if(line.length()>=2 && line.substring(0,2).equals("//"))
+                            continue;
+                        else{
+                            input = line;
+                            //System.out.println(input);
+                            lexer = new LDLLexer(CharStreams.fromString(input));
 
-        System.out.println("----------------------------------------------");
+                            CommonTokenStream tokens = new CommonTokenStream(lexer);
+                            LDLParser parser = new LDLParser(tokens);
+                            parser.setBuildParseTree(true);      // tell ANTLR to build a parse tree
+                            ParseTree tree = parser.ldl(); // parse
 
-        LdlGetTreeVisitor ldlGetTreeVisitor = new LdlGetTreeVisitor();
-        LDL ldlTree = ldlGetTreeVisitor.visit(tree);
-        System.out.println("--The LDL formula to be verified: " + ldlTree.getText());
-        ldlTree = ldlTree.box2diamond().reduceRedundantNotOperator();
-        System.out.println("--The LDL formula without DIAMOND operators: " + ldlTree.getText());
+                            System.out.println("---------------------------("+(i++)+")---------------------------");
+
+                            LdlGetTreeVisitor ldlGetTreeVisitor = new LdlGetTreeVisitor();
+                            LDL ldlTree = ldlGetTreeVisitor.visit(tree);
+                            System.out.println("--The LDL formula to be verified: " + ldlTree.getText());
+                            ldlTree = ldlTree.box2diamond().reduceRedundantNotOperator();
+                            System.out.println("--The LDL formula without DIAMOND operators: " + ldlTree.getText());
 //        ldlTree = ldlTree.reduceRedundantNotOperator();
 //        System.out.println("--The LDL formula without redundant NOT operators: " + ldlTree.getText());
 
-        Tester tester = new Tester("", ldlTree);
-        String smvOutput = tester.toSMV();
-        System.out.print(smvOutput);
+                            Tester tester = new Tester("", ldlTree);
+                            String smvOutput = tester.toSMV();
+                            System.out.println(smvOutput);
 
-        System.out.println("----------------------------------------------");
+//                            System.out.println("----------------------------------------------");
+                        }
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                System.out.println("Usage: 'LDLTester -ldl formula' or 'LDLTester -file filename'");
+                return;
+            }
+        } else {
+            System.out.println("Usage: 'LDLTester -ldl formula' or 'LDLTester -file filename'");
+            return;
+//        input = "(<((a));(!!!!!['b[6]<3';b]a?+!('c>5'->d<->c)*)*>b)";
+//        input = "<((a+b+c)*+d)>c";
+//        input = "<a+(b+c)*+d>e";
+//        input = "<((a+b)*;c)*>d";
+//        input = "<a+(<b>c)?>d";
+//        input = "<(a;b)*>c";
+//            input = "(<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)";
+//        input = "[true*]<true*>a";
+        }
 
 
     }
