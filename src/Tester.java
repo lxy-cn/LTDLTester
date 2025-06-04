@@ -106,7 +106,7 @@ public class Tester {
         public String toSMV() {
             String s="";
             s+="--No." + this.ID + " sub-tester for " + this.fmla.getText() + "\r\n";
-            s+="--Output assertion: " + this.out.getText() + "\r\n";
+            s+="--Output variable: " + this.out.getText() + "\r\n";
 
             // 输出变量定义
             s+="VAR\r\n";
@@ -399,22 +399,23 @@ public class Tester {
 
     //生成smv刻画的tester，并将其插入main模块尾部
     public String toSMV() {
-        String s="----------------------------------------------\r\n";
-        s+="--The LDL tester of "+this.fmla.getText()+"\r\n";
+        String s="";
+        s+="--The tester of "+this.fmla.getText()+"\r\n";
         s+="--Output assertion: "+this.out.getText()+"\r\n";
 
         if(this.principalTemporalTesters.size()>0){
-            s+="--There exists " + TesterNumber + " sub-tester(s) for principally temporal sub-formula(s):\r\n";
+            s+="--The output variables for " + TesterNumber + " principally temporal sub-formula(s):\r\n";
             Iterator<LDL> it = this.principalTemporalTesters.getKeyIterator(true);
+            String smvCode="";
+            int i=1;
             while (it.hasNext()){
                 LDL f = it.next();
                 TesterContainer T = this.principalTemporalTesters.get(f);
-
-                s+="\r\n"+T.toSMV();
+                s += "  " + (i++) + ". " + T.out.getText() + ": " + f.getText() + "\r\n";
+                smvCode += "\r\n"+T.toSMV();
             }
+            s += smvCode;
         }
-
-        s+="----------------------------------------------\r\n";
 
         return s;
     }

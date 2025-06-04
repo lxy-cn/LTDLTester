@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-public class TestLdlVisitor {
+public class MainLdlVisitor {
     public static String getTokenLiteralName(int tokenType) {
         return LDLParser.VOCABULARY.getLiteralName(tokenType).replace("'", "");
     }
@@ -274,59 +274,31 @@ public class TestLdlVisitor {
 //        String input = "<((a+b)*;c)*>d";
 //        String input = "<a+(<b>c)?>d";
 //        String input = "<(a;b)*>c";
-//        String input = "(<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)";
-        String input = "[true*]<true*>a";
+        String input = "(<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)";
+//        String input = "[true*]<true*>a";
         LDLLexer lexer = new LDLLexer(CharStreams.fromString(input));
 
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         LDLParser parser = new LDLParser(tokens);
         parser.setBuildParseTree(true);      // tell ANTLR to build a parse tree
         ParseTree tree = parser.ldl(); // parse
-        // show tree in text form
-        //System.out.println(tree.toStringTree(parser));
 
-        System.out.println("Input LDL formula: " + input);
-
-        /*
-        LdlGetTextVisitor ldlGetTextVisitor = new LdlGetTextVisitor();
-        String ldlText = ldlGetTextVisitor.visit(tree);
-        System.out.println("Output LDL formula: " + stringSingleQuotes2Parentheses(ldlText));
-         */
+        System.out.println("----------------------------------------------");
 
         LdlGetTreeVisitor ldlGetTreeVisitor = new LdlGetTreeVisitor();
         LDL ldlTree = ldlGetTreeVisitor.visit(tree);
-        System.out.println("Output LDL formula: " + ldlTree.getText());
-        ldlTree = ldlTree.box2diamond();
-        System.out.println("box2diamond: " + ldlTree.getText());
-        ldlTree = ldlTree.reduceRedundantNotOperator();
-        System.out.println("Redundant NOT operators reduced: " + ldlTree.getText());
-
-        //test path grammar
-        //LDL pe = new LDL(LDL.LDL_Operator.DIAMOND, new LDL("a"), new LDL("b")); // pe = <a>b
-        //LDL pe = new LDL(LDL.LDL_Operator.REPETITION, new LDL(LDL.LDL_Operator.UNION, new LDL("a"), new LDL("b")));
-      //  LDL pe = new LDL(LDL.LDL_Operator.CONCAT, new LDL("a"), new LDL("b"));
-      //  LDL pe = new LDL(LDL.LDL_Operator.UNION, new LDL("a"), new LDL("b"));
-        //System.out.println(pe.getText());
-
-        /*if (ldlTree.operator != LDL.Operators.DIAMOND && ldlTree.operator != LDL.Operators.BOX) return;
-        Tester T = new Tester(ldlTree);
-        T.print();*/
-
-
-        /*StackMap<LDL, Tester> stack = new StackMap<>();
-        Tester.cacheSubFormulas(ldlTree, stack);
-
-        System.out.println("All principally temporal sub-formulas:");
-        Iterator<LDL> it = stack.getKeyIterator(true);
-        while (it.hasNext()) {
-            LDL f = it.next();
-            if(f.operator==LDL.Operators.DIAMOND)
-                System.out.println(f.getText());
-        }*/
+        System.out.println("--The LDL formula to be verified: " + ldlTree.getText());
+        ldlTree = ldlTree.box2diamond().reduceRedundantNotOperator();
+        System.out.println("--The LDL formula without DIAMOND operators: " + ldlTree.getText());
+//        ldlTree = ldlTree.reduceRedundantNotOperator();
+//        System.out.println("--The LDL formula without redundant NOT operators: " + ldlTree.getText());
 
         Tester tester = new Tester("", ldlTree);
         String smvOutput = tester.toSMV();
-        System.out.println(smvOutput);
+        System.out.print(smvOutput);
+
+        System.out.println("----------------------------------------------");
+
 
     }
 }
