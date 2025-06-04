@@ -172,7 +172,7 @@ public class Tester {
         LDL f1=null,f2=null;
         switch (f.operator) {
             case ATOM: // f = atom
-                return (LDL)f.clone();
+                return f.clone();
             case NOT: // f = ! f1
                 f1 = f.children.get(0);
                 LDL f1out = buildTesterRecur(f1); // tester of f1
@@ -205,7 +205,7 @@ public class Tester {
 
     public LDL ldlVarX2Y(LDL f) throws CloneNotSupportedException {
         if (f==null) return null;
-        LDL f2 = (LDL)f.clone();
+        LDL f2 = f.clone();
         ldlVarX2Yrecur(f2);
         return f2;
     }

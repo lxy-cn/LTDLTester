@@ -148,13 +148,13 @@ public class PathGrammar {
         PathGrammar[] pg = new PathGrammar[2];
         try {
             pg[0] = new PathGrammar(f.children.get(0));
-            System.out.println(pg[0].toString());
+            System.out.println(pg[0]);
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
         try {
             pg[1] = new PathGrammar(f.children.get(1));
-            System.out.println(pg[1].toString());
+            System.out.println(pg[1]);
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
@@ -190,7 +190,7 @@ public class PathGrammar {
                             if (!prod.leftVariable.equals(prod.rightItem2)) // Si<>w
                                 this.productions.add(new PathGrammarProduction(newVar, (LDL) prod.rightItem1, (String) prod.rightItem2)); // v->LDL?.w
                             else // Si==w
-                                this.productions.add(new PathGrammarProduction(newVar, (LDL) prod.rightItem1, (String) newVar)); // v->LDL?.v
+                                this.productions.add(new PathGrammarProduction(newVar, (LDL) prod.rightItem1, newVar)); // v->LDL?.v
                             eProd = new PathGrammarProduction((String) prod.rightItem2); // w->empty
                             if (pg[i].productions.contains(eProd))
                                 this.productions.add(new PathGrammarProduction(newVar, (LDL) prod.rightItem1)); // v->LDL?
@@ -199,7 +199,7 @@ public class PathGrammar {
                             if (!prod.leftVariable.equals(prod.rightItem2)) // Si<>w
                                 this.productions.add(new PathGrammarProduction(newVar, (LDL) prod.rightItem1, (String) prod.rightItem2)); // v->LDL?.w
                             else // Si==w
-                                this.productions.add(new PathGrammarProduction(newVar, (LDL) prod.rightItem1, (String) newVar)); // v->LDL?.v
+                                this.productions.add(new PathGrammarProduction(newVar, (LDL) prod.rightItem1, newVar)); // v->LDL?.v
                             eProd = new PathGrammarProduction((String) prod.rightItem2); // w->empty
                             if (pg[i].productions.contains(eProd))
                                 this.productions.add(new PathGrammarProduction(newVar, (LDL) prod.rightItem1)); // v->propLDL
@@ -558,7 +558,7 @@ public class PathGrammar {
                     case Test_Variable:
                     case PropFormula_Variable:
                         while(i<prods.size() && prods.get(i).leftVariable.equals(curVar) &&
-                                prods.get(i).type==curType && ((String)prods.get(i).rightItem2).equals(curRightItem2)) i++;
+                                prods.get(i).type==curType && prods.get(i).rightItem2.equals(curRightItem2)) i++;
                         endIdx=i-1;
                         if (endIdx-startIdx>0) {
                             if(curType == PathGrammarProduction.Type.Test) {

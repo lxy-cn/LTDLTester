@@ -46,7 +46,7 @@ public class LDL implements Cloneable {
         }
     }
 
-    public static enum Operators {
+    public enum Operators {
         /*propositional logic operators*/
         ATOM,
         NOT,
@@ -62,8 +62,8 @@ public class LDL implements Cloneable {
         CONCAT,
         UNION,
         REPETITION
-    };
-    
+    }
+
     // return 1 if op1>op2
     // return -1 if op1<op2
     // return 0 if op1=op2
@@ -100,17 +100,13 @@ public class LDL implements Cloneable {
     public boolean operatorIsBinary() {
         switch (this.operator){
             case ATOM:
-                if(this.data.contains("&") ||
+                return this.data.contains("&") ||
                         this.data.contains("|") ||
                         this.data.contains("<->") ||
                         this.data.contains("->") ||
                         this.data.contains("<") ||
                         this.data.contains(">") ||
-                        this.data.contains("=")
-                )
-                    return true;
-                else
-                    return false;
+                        this.data.contains("=");
             case AND:
             case OR:
             case IMPLY:
@@ -317,7 +313,7 @@ public class LDL implements Cloneable {
 
     public LDL box2diamond() throws CloneNotSupportedException {
         if(this.operator== Operators.ATOM){
-            return (LDL) this.clone();
+            return this.clone();
         }
         else if(this.operator== Operators.BOX){  // this=[pe]sf
             LDL pe = this.children.get(0); // path expression

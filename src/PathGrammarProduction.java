@@ -149,20 +149,20 @@ public class PathGrammarProduction {
                 break;
             case Test:
             case PropFormula:
-                if(!((LDL)this.rightItem1).equals(((LDL)inProd.rightItem1))) return false;
+                if(!this.rightItem1.equals(inProd.rightItem1)) return false;
                 break;
             case Variable:
-                if(!((String)this.rightItem1).equals(((String)inProd.rightItem1))) return false;
+                if(!this.rightItem1.equals(inProd.rightItem1)) return false;
                 break;
             case Test_Variable:
             case PropFormula_Variable:
-                if(!((LDL)this.rightItem1).equals(((LDL)inProd.rightItem1))) return false;
-                if(!((String)this.rightItem2).equals(((String)inProd.rightItem2))) return false;
+                if(!this.rightItem1.equals(inProd.rightItem1)) return false;
+                if(!this.rightItem2.equals(inProd.rightItem2)) return false;
                 break;
             case Test_PropFormula:
             case PropFormula_Test:
-                if(!((LDL)this.rightItem1).equals(((LDL)inProd.rightItem1))) return false;
-                if(!((LDL)this.rightItem2).equals(((LDL)inProd.rightItem2))) return false;
+                if(!this.rightItem1.equals(inProd.rightItem1)) return false;
+                if(!this.rightItem2.equals(inProd.rightItem2)) return false;
                 break;
             case Illegal:
                 break;
