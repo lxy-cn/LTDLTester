@@ -42,7 +42,7 @@ TRANS Y2 -> ((c & next(Y1)) | (c & next(d)));
 JUSTICE (X1=Y1) & (X2=Y2);  
 JUSTICE !Y1 & !Y2;  
 
-## 2. The LDL Syntax
+## 2. The LDL Syntax (ANTLR 4)
 
 grammar LDL;
 
