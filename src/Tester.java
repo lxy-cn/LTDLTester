@@ -411,7 +411,7 @@ public class Tester {
             while (it.hasNext()){
                 LDL f = it.next();
                 TesterContainer T = this.principalTemporalTesters.get(f);
-                s += "  " + (i++) + ". " + T.out.getText() + ": " + f.getText() + "\r\n";
+                s += "--" + (i++) + ". " + T.out.getText() + ": " + f.getText() + "\r\n";
                 smvCode += "\r\n"+T.toSMV();
             }
             s += smvCode;

@@ -309,16 +309,31 @@ public class MainLdlVisitor {
                 String inputFile = args[1];
                 try {
                     // 读取所有行到List中
-                    List<String> lines = Files.readAllLines(Paths.get(inputFile));
+                    byte[] bytes = Files.readAllBytes(Paths.get(inputFile));
+                    String content = new String(bytes); // 默认UTF-8
+                    content = content.replaceAll("/\\*[\\s\\S]*?\\*/", ""); // 删除所有/* */界定的子串
+                    String[] lines = content.split("\\r?\\n|\\r"); // 兼容 \n, \r\n, \r
+                    //System.out.println(content);
 
                     // 逐行处理
                     int i=1;
-                    for (String line : lines) {
+                    int l=0; //行号
+                    String f="";
+                    while(l<lines.length){
+                        String line = lines[l++];
                         line=line.trim();
-                        if(!line.startsWith("--")){
+                        if(line.startsWith("--")) continue;
+                        line = line.replaceAll("--.*", ""); //删除以"--"开始的后续子串
+                        line = line.replaceAll("[\\t\\n\\r]", ""); // 删除所有 \t、\n、\r
+                        line = line.trim();
+                        if(line.equals("")) continue;
+                        if(line.endsWith("#")) {
+                            f += line.substring(0,line.length()-1).trim();
                             System.out.println("---------------------------------("+(i++)+")---------------------------------");
-                            line = line.replaceAll("--.*", ""); //删除以"--"开始的后续子串
-                            generateOneTester(line);
+                            generateOneTester(f);
+                            f="";
+                        }else{
+                            f += line;
                         }
                     }
                 } catch (IOException e) {
