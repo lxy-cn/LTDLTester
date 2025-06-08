@@ -315,8 +315,9 @@ public class MainLdlVisitor {
                     int i=1;
                     for (String line : lines) {
                         line=line.trim();
-                        if(!line.startsWith("//")){
+                        if(!line.startsWith("--")){
                             System.out.println("---------------------------------("+(i++)+")---------------------------------");
+                            line = line.replaceAll("--.*", ""); //删除以"--"开始的后续子串
                             generateOneTester(line);
                         }
                     }

@@ -1,9 +1,11 @@
-// (<((a));(!!!!!['b[6]<3';b]a?+!('c>5'->d<->c)*)*>b)
-// <((a+b+c)*+d)>c
-// <a+(b+c)*+d>e
- <((a+b)*;c)*>d
-//  <a+(<b>c)?>d
-// <(a;b)*>c
-//     (<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)
-// [true*]<true*>a
-[(req;(<true*>work)?)*]<(a;b)*>ack
+-- (<((a));(!!!!!['b[6]<3';b]a?+!('c>5'->d<->c)*)*>b)
+-- <((a+b+c)*+d)>c
+-- <a+(b+c)*+d>e
+-- <((a+b)*;c)*>d
+--  <a+(<b>c)?>d
+-- <(a;b)*>c
+--     (<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)
+-- [true*]<true*>a
+-- [(req;(<true*>work)?)*]<(a;b)*>ack
+--[(a;b;c;d;e;f;g;h)*]i
+<('sndr.bit=0'; 'sndr.bit=0'; 'sndr.bit=0'; 'sndr.bit=0'; 'sndr.bit=0'; 'sndr.bit=0'; 'sndr.bit=0'; 'sndr.bit=0'; 'sndr.bit=0'; 'sndr.bit=0'; 'sndr.bit=0'; 'sndr.bit=0')*> 'sndr.ack'    --n=12

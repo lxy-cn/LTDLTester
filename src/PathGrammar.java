@@ -357,7 +357,7 @@ public class PathGrammar {
             //访问var的所有产生式
             Set<PathGrammarProduction> varProds = this.getProds(var);
             for (PathGrammarProduction prod : varProds) {
-                s+="    "+(++j)+". "+prod.getText()+"\r\n";
+                s+="    "+(++j)+": "+prod.getText()+"\r\n";
                 //var的后继变量入队
                 String rightVar = prod.getRightVariable();
                 if(rightVar!=null && !varsVisited.contains(rightVar)) {

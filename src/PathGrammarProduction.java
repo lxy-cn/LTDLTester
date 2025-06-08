@@ -101,7 +101,7 @@ public class PathGrammarProduction {
                 break;
             case Test_Variable:
             case PropFormula_Variable:
-                s += LDL.getTextWithBracketIfNeed(((LDL)this.rightItem1)) + "." + this.rightItem2;
+                s += LDL.getTextWithBracketIfNeed(((LDL)this.rightItem1)) + " " + this.rightItem2;
                 break;
             case Test_PropFormula:
             case PropFormula_Test:

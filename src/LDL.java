@@ -100,13 +100,14 @@ public class LDL implements Cloneable {
     public boolean operatorIsBinary() {
         switch (this.operator){
             case ATOM:
-                return this.data.contains("&") ||
-                        this.data.contains("|") ||
-                        this.data.contains("<->") ||
-                        this.data.contains("->") ||
-                        this.data.contains("<") ||
-                        this.data.contains(">") ||
-                        this.data.contains("=");
+                return this.data.contains("&")
+                        || this.data.contains("|")
+                        || this.data.contains("<->")
+                        || this.data.contains("->")
+//                        || this.data.contains("<")
+//                        || this.data.contains(">")
+//                        || this.data.contains("=")
+                        ;
             case AND:
             case OR:
             case IMPLY:
@@ -264,7 +265,7 @@ public class LDL implements Cloneable {
         String res = "";
         switch (operator) {
             case ATOM:
-                res = data;
+                res = data.replaceAll("^'|'$", ""); // 将两端的单引号去掉（如果有），^'表示首字符为'，'$表示尾字符为'
                 break;
             case AND:
                 res = getTextWithBracketIfNeed(children.get(0)) + " & " + getTextWithBracketIfNeed(children.get(1));
