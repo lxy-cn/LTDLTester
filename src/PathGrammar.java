@@ -1,5 +1,6 @@
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 // Path Grammar Class for a path expression
 public class PathGrammar {
@@ -439,9 +440,15 @@ public class PathGrammar {
         s+="The Path Grammar of "+this.pathExpr.getText()+":\r\n";
         s+="  Start variable: "+this.start+"\r\n";
         String vars = "";
-        for(String var : this.getVariables())
-            vars += var + " ";
-        s+="  Variables: "+vars+"\r\n";
+//        for(String var : this.getVariables())
+//            vars += var + " ";
+//        s+="  Variables: "+vars+"\r\n";
+        s+="  Variables: "+this.getVariables().stream()
+                .map(Integer::parseInt)
+                .sorted()
+                .collect(Collectors.toList())
+                .toString()+"\r\n";
+
         s+="  Productions:\r\n";
         //printProductions();
         s+=productionsToString();

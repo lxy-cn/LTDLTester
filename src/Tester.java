@@ -110,9 +110,16 @@ public class Tester {
 
             // 输出变量定义
             s+="VAR\r\n";
-            Iterator itVars = this.fmla_pathGrammar.getVariables().stream().sorted().iterator();
+//            Iterator itVars = this.fmla_pathGrammar.getVariables().stream().sorted().iterator();
+
+            Iterator itVars = this.fmla_pathGrammar.getVariables()
+                    .stream()
+                    .map(Integer::parseInt)
+                    .sorted()
+                    .collect(Collectors.toList())
+                    .iterator();
             while(itVars.hasNext()){
-                String v = (String)itVars.next();
+                int v = (int)itVars.next();
                 s+="  "+parentTester.nusmvTesterInstanceName+"X"+v+" : boolean;\r\n";
                 s+="  "+parentTester.nusmvTesterInstanceName+"Y"+v+" : boolean;\r\n";
             }
@@ -354,12 +361,15 @@ public class Tester {
 
         // 构造公平性约束
         Set<String> vars = pg.getVariables();
-        Iterator<String> it = vars.stream().sorted().iterator();
+        Iterator<Integer> it = vars.stream().map(Integer::parseInt)
+                .sorted()
+                .collect(Collectors.toList())
+                .iterator();
         boolean firstTime=true;
         LDL justice1=null;
         LDL justice2=null;
         while(it.hasNext()){
-            String v = it.next();
+            int v = it.next();
             LDL conjunct1 = new LDL(this.nusmvTesterInstanceName+"X"+v+"="+this.nusmvTesterInstanceName+"Y"+v);
             LDL conjunct2 = new LDL(LDL.Operators.NOT, new LDL(this.nusmvTesterInstanceName+"Y"+v));
             if(firstTime){
