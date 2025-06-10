@@ -29,7 +29,7 @@ Y2 : boolean;
 --  Start variable: 1  
 --  Variables: 1 2  
 --  Productions:  
---    1. 1 -> c
+--    1. 1 -> c  
 --    2. 1 -> ((b | a) | c).1  
 --    3. 1 -> (b | a).2  
 --    4. 1 -> empty  
