@@ -46,10 +46,17 @@ TRANS Y2 -> ((c & next(d)) | (c & next(Y1)));
 JUSTICE X1=Y1 & X2=Y2;
 JUSTICE !Y1 & !Y2;
 ```
-### (3) The following SMV code will be outputted
+### (3) LDL model checking by NuSMV or nuXmv
+
+1. Insert the above generated SMV code into the main module of the SMV model to be verified.
+2. Take the output assertion `X1` of this tester as an LTL specification and add it to the SMV model.
+3. The model checking result of the LTL specification `X1` exactly is the result of the original LDL specification `<((a + b)* ; c)*>d`.
 
 
 ## 2. Another example for LDL with test
+
+Assume that there is a program `while (F b) do { a then b }; c`, where `F b` denotes that `b` will finally be true. This program can be expressed in the LDL formula `[(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?]c`, whose tester is generated as the following SMV code.
+
 ```
 --The LDL formula to be verified: [(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?]c
 --The LDL formula without DIAMOND operators: !<(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c
