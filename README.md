@@ -15,8 +15,8 @@ College of Computer Science and Technology, Huaqiao University
 --The LDL formula without DIAMOND operators: <((a + b)* ; c)*>d  
 --The tester of <((a + b)* ; c)*>d  
 --Output assertion: X1  
---The output variables for 1 principally temporal sub-formula(s):
-1. X1: <((a + b)* ; c)*>d
+--The output variables for 1 principally temporal sub-formula(s):  
+--1. X1: <((a + b)* ; c)*>d  
 
 --No.1 sub-tester for <((a + b)* ; c)*>d  
 --Output variable: X1  
@@ -27,20 +27,20 @@ X2 : boolean;
 Y2 : boolean;  
 --The Path Grammar of ((a + b)* ; c)*:  
 --  Start variable: 1  
---  Variables: 1 2  
+--  Variables: [1, 2]  
 --  Productions:  
---    1. 1 -> c  
---    2. 1 -> ((b | a) | c).1  
---    3. 1 -> (b | a).2  
---    4. 1 -> empty  
---    5. 2 -> c.1  
---    6. 2 -> c  
-TRANS X1 <-> ((((c & next(d)) | (((b | a) | c) & next(X1))) | ((b | a) & next(X2))) | d);  
-TRANS X2 <-> ((c & next(X1)) | (c & next(d)));  
-TRANS Y1 -> ((((c & next(d)) | (((b | a) | c) & next(Y1))) | ((b | a) & next(Y2))) | d);  
-TRANS Y2 -> ((c & next(Y1)) | (c & next(d)));  
-JUSTICE (X1=Y1) & (X2=Y2);  
-JUSTICE !Y1 & !Y2;  
+--    (1) 1 -> (a | b) 2  
+--    (2) 1 -> c  
+--    (3) 1 -> empty  
+--    (4) 1 -> ((a | b) | c) 1  
+--    (5) 2 -> c  
+--    (6) 2 -> c 1  
+TRANS X1 <-> (((((a | b) & next(X2)) | (c & next(d))) | d) | (((a | b) | c) & next(X1)));  
+TRANS X2 <-> ((c & next(d)) | (c & next(X1)));  
+TRANS Y1 -> (((((a | b) & next(Y2)) | (c & next(d))) | d) | (((a | b) | c) & next(Y1)));  
+TRANS Y2 -> ((c & next(d)) | (c & next(Y1)));  
+JUSTICE X1=Y1 & X2=Y2;  
+JUSTICE !Y1 & !Y2;
 
 ## 2. The LDL Syntax (ANTLR 4)
 

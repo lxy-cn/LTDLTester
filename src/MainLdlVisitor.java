@@ -331,10 +331,17 @@ public class MainLdlVisitor {
                             f += line.substring(0,line.length()-1).trim();
                             System.out.println("---------------------------------("+(i++)+")---------------------------------");
                             generateOneTester(f);
-                            f="";
+                            f = "";
                         }else{
                             f += line;
                         }
+                    }
+                    //没有用'#'结尾
+                    f = f.trim();
+                    if(!f.equals("")) {
+                        System.out.println("---------------------------------("+(i++)+")---------------------------------");
+                        generateOneTester(f);
+                        f = "";
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

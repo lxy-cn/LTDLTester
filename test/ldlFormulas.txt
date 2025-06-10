@@ -9,6 +9,7 @@
 -- [true*]<true*>a
 -- [(req;(<true*>work)?)*]<(a;b)*>ack
 --[(a;b;c;d;e;f;g;h)*]i
+<((a+b)*;c)*>d
 /*
 'sndr.bit=0' -> <(
         'sndr.bit=0';
@@ -603,7 +604,6 @@
         'sndr.bit=0';
         'sndr.bit=0'
         )*> 'sndr.ack'  #  --n=140
-*/
 
 'sndr.bit=0' -> <(
         'sndr.bit=0';
@@ -807,3 +807,4 @@
         'sndr.bit=0';
         'sndr.bit=0'
         )*> 'sndr.ack'  #  --n=200
+*/
