@@ -105,7 +105,7 @@ public class Tester {
 
         public String toSMV() {
             String s="";
-            s+="--No." + this.ID + " sub-tester for " + this.fmla.getText() + "\r\n";
+            s+="--------- No." + this.ID + " sub-tester for " + this.fmla.getText() + " ---------\r\n";
             s+="--Output variable: " + this.out.getText() + "\r\n";
 
             // 输出变量定义
@@ -126,22 +126,25 @@ public class Tester {
 
             if(initCond!=null) s+="INIT " + initCond.getText() + "\r\n";
 
+            s+="\r\n";
             String strPG = this.fmla_pathGrammar.toString();
 
             // 在所有行首（包括第一行）添加注释前缀prefix
             String prefix="--";
             s+=strPG.replaceAll("(?m)^", prefix);
 
+            s+="\r\n";
             TesterTransition t=null;
             for(int i=0; i<this.trans.size(); i+=2) {
                 t = this.trans.get(i);
                 s+="TRANS " + t.trans.getText() + ";\r\n";
             }
+            s+="\r\n";
             for(int i=1; i<this.trans.size(); i+=2) {
                 t = this.trans.get(i);
                 s+="TRANS " + t.trans.getText() + ";\r\n";
             }
-
+            s+="\r\n";
             if(this.justices.size()>0) {
                 for (LDL j : this.justices) {
                     s+="JUSTICE " + j.getText() + ";\r\n";
@@ -421,7 +424,7 @@ public class Tester {
             while (it.hasNext()){
                 LDL f = it.next();
                 TesterContainer T = this.principalTemporalTesters.get(f);
-                s += "--" + (i++) + ". " + T.out.getText() + ": " + f.getText() + "\r\n";
+                s += "--  (" + (i++) + ") " + T.out.getText() + ": " + f.getText() + "\r\n";
                 smvCode += "\r\n"+T.toSMV();
             }
             s += smvCode;

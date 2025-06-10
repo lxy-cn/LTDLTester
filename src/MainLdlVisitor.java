@@ -329,7 +329,7 @@ public class MainLdlVisitor {
                         if(line.equals("")) continue;
                         if(line.endsWith("#")) {
                             f += line.substring(0,line.length()-1).trim();
-                            System.out.println("---------------------------------("+(i++)+")---------------------------------");
+                            System.out.println("--------------------------------- No." +(i++)+ " formula ---------------------------------");
                             generateOneTester(f);
                             f = "";
                         }else{
@@ -339,7 +339,7 @@ public class MainLdlVisitor {
                     //没有用'#'结尾
                     f = f.trim();
                     if(!f.equals("")) {
-                        System.out.println("---------------------------------("+(i++)+")---------------------------------");
+                        System.out.println("--------------------------------- No." +(i++)+ " formula ---------------------------------");
                         generateOneTester(f);
                         f = "";
                     }
