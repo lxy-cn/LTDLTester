@@ -303,7 +303,7 @@ public class MainLdlVisitor {
                 return;
             }else if(args[0].equals("-file")){
                 if(args.length<2){
-                    System.out.println("Warning: an filename must be inputted after '-file'.");
+                    System.out.println("Warning: a file name must be inputted after '-file'.");
                     return;
                 }
                 String inputFile = args[1];
@@ -343,10 +343,11 @@ public class MainLdlVisitor {
                 showUsage();
             }
         }else{ // no any argument
-            Scanner scanner = new Scanner(System.in);
+            /*Scanner scanner = new Scanner(System.in);
             System.out.print("Input an LDL formula: ");
             String input = scanner.nextLine(); // 读取整行
-            generateOneTester(input);
+            generateOneTester(input);*/
+            showUsage();
         }
     }
 }
