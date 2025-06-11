@@ -12,7 +12,7 @@ College of Computer Science and Technology, Huaqiao University
 ### (2) The following SMV code will be outputted
 ```
 --The LDL formula to be verified: <((a + b)* ; c)*>d
---The LDL formula without DIAMOND operators: <((a + b)* ; c)*>d
+--The LDL formula without [] operator: <((a + b)* ; c)*>d
 --The tester of <((a + b)* ; c)*>d
 --Output assertion: X1
 --The output variables for 1 principally temporal sub-formula(s):
@@ -59,7 +59,7 @@ Assume that there is a program `while (F b) do { a then b }; c`, where `F b` den
 
 ```
 --The LDL formula to be verified: [(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?]c
---The LDL formula without DIAMOND operators: !<(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c
+--The LDL formula without [] operator: !<(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c
 --The tester of !<(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c
 --Output assertion: !X1
 --The output variables for 2 principally temporal sub-formula(s):
