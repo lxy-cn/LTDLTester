@@ -16,7 +16,7 @@ College of Computer Science and Technology, Huaqiao University
 ### 2.1 An example for LDL without test
 #### (1) Run the following command:  
 - `java -jar LDLTester.jar -ldl <((a+b)*;c)*>d` or
-- `java -jar LDLTester.jar -file filename` where `filename` is a file name that contains the LDL formulas to be handled. One can refer to the file `ldlFormulas.txt` in the `test` directory for the writting format of this file.
+- `java -jar LDLTester.jar -file filename` where `filename` is the name of a file that contains the LDL formulas to be handled. One can refer to the file `ldlFormulas.txt` in the `test` directory for the writting format of this file.
 
 #### (2) The following SMV code will be outputted
 ```
