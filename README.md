@@ -57,9 +57,9 @@ JUSTICE !Y1 & !Y2;
 ```
 #### (3) LDL model checking by NuSMV or nuXmv
 
-1. Insert the above generated SMV code into the main module of the SMV model to be verified.
-2. Take the output assertion `X1` of this tester as an LTL specification and add it to the SMV model.
-3. The model checking result of the LTL specification `X1` exactly is the result of the original LDL specification `<((a + b)* ; c)*>d`.
+- Insert the above generated SMV code into the main module of the SMV model to be verified. 
+- Take the output assertion `X1` of this tester as an LTL specification and add it to the SMV model. 
+- The model checking result of the LTL specification `X1` exactly is the result of the original LDL specification `<((a + b)* ; c)*>d`.
 
 
 ### 2.2 Another example for LDL with test
