@@ -5,6 +5,12 @@
 Xiangyu Luo  
 College of Computer Science and Technology, Huaqiao University
 
+**Release notes**  
+- Current version 1.0 (June 15, 2025)
+  - Support tester construction for full LDL. The constructed tester is expressed in the SMV language used by nuXmv and NuSMV.
+  - When constructing path grammar, do NOT build productions of the form v->a.f? or v->f?.a. 
+  - When constructing transition relation, create one boolean variable for each variable in a path grammar.
+
 ## 1. An example for LDL without test
 ### (1) Run the following command:  
 `java -jar LDLTester.jar -ldl <((a+b)*;c)*>d`
