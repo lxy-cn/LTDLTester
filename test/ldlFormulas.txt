@@ -9,9 +9,49 @@
 -- [true*]<true*>a
 -- [(req;(<true*>work)?)*]<(a;b)*>ack
 --[(a;b;c;d;e;f;g;h)*]i
-<((a+b)*;c)*>d #
-[ ((<TRUE*>b)? ; a ; b)* ; (!<TRUE*>b)? ] c # -- while (F b) do { a then b }; c, where F b denotes that b will finally be true
+-- <((a+b)*;c)*>d #
+--[ ((<TRUE*>b)? ; a ; b)* ; (!<TRUE*>b)? ] c # -- while (F b) do { a then b }; c, where F b denotes that b will finally be true
+
+<(a?;b;((c?;d)+((!c)?;e)))*;(!a)?>f #
+
 /*
+[(((envworks ; envbroken) + (envbroken ; envworks)) 
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    
+
+    )* ] receiverDone #
+
+
 'sndr.bit=0' -> <(
         'sndr.bit=0';
         'sndr.bit=0';
