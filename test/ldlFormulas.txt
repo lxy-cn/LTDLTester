@@ -1,4 +1,8 @@
---每个公式可以占用多行，但是必须用'#'结尾
+--Writting Format--
+--(1) Every LDL formula can occupy multi lines and must end with '#'
+--(2) Every line starting with '--' is commented out.
+--(3) Multiline text can be commented out by enclosing it within '/*' and '*/'
+
 -- (<((a));(!!!!!['b[6]<3';b]a?+!('c>5'->d<->c)*)*>b)
 -- <((a+b+c)*+d)>c
 -- <a+(b+c)*+d>e
