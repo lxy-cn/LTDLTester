@@ -5,13 +5,14 @@
 Xiangyu Luo  
 College of Computer Science and Technology, Huaqiao University
 
-**Release notes**  
+## 1. Release notes
+
 - Current version 1.0 (June 15, 2025)
   - Support tester construction for full LDL. The constructed tester is expressed in the SMV language used by nuXmv and NuSMV.
   - When constructing path grammar, do NOT build productions of the form v->a.f? or v->f?.a. 
   - When constructing transition relation, create one boolean variable for each variable in a path grammar.
 
-## 1. An example for LDL without test
+## 2. An example for LDL without test
 ### (1) Run the following command:  
 `java -jar LDLTester.jar -ldl <((a+b)*;c)*>d`
 
@@ -59,7 +60,7 @@ JUSTICE !Y1 & !Y2;
 3. The model checking result of the LTL specification `X1` exactly is the result of the original LDL specification `<((a + b)* ; c)*>d`.
 
 
-## 2. Another example for LDL with test
+## 3. Another example for LDL with test
 
 Assume that there is a program `while (F b) do { a then b }; c`, where `F b` denotes that `b` will finally be true. This program can be expressed in the LDL formula `[(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?]c`, whose tester is generated as the following SMV code.
 
@@ -130,7 +131,7 @@ JUSTICE ((X1=Y1 & X2=Y2) & X3=Y3) & X4=Y4;
 JUSTICE ((!Y1 & !Y2) & !Y3) & !Y4;
 ```
 
-## 3. The LDL Syntax (ANTLR 4)
+## 4. The LDL Syntax (ANTLR 4)
 ```antlrv4
 grammar LDL;
 
