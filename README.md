@@ -20,31 +20,29 @@ College of Computer Science and Technology, Huaqiao University
 
 #### (2) The following SMV code will be outputted
 ```
---The LDL formula to be verified: <((a + b)* ; c)*>d
---The LDL formula without [] operator: <((a + b)* ; c)*>d
---The tester of <((a + b)* ; c)*>d
---Output assertion: X1
+--The original LDL formula: <((a + b)* ; c)*>d
+--The LTL formula to be verified: LTLSPEC X1;
+--The following SMV code is the tester for the LDL formula without [] operator: <((a + b)* ; c)*>d
+
 --The output variables for 1 principally temporal sub-formula(s):
 --  (1) X1: <((a + b)* ; c)*>d
 
 --------- No.1 sub-tester for <((a + b)* ; c)*>d ---------
 --Output variable: X1
 VAR
-  X1 : boolean;
-  Y1 : boolean;
-  X2 : boolean;
-  Y2 : boolean;
+  X1 : boolean;		Y1 : boolean;
+  X2 : boolean;		Y2 : boolean;
 
 --The Path Grammar of ((a + b)* ; c)*:
 --  Start variable: 1
 --  Variables: [1, 2]
 --  Productions:
---    (1) 1 -> (a | b) 2
---    (2) 1 -> c
---    (3) 1 -> empty
---    (4) 1 -> ((a | b) | c) 1
---    (5) 2 -> c
---    (6) 2 -> c 1
+--    (1) 1 --> (a | b) 2
+--    (2) 1 --> c
+--    (3) 1 --> empty
+--    (4) 1 --> ((a | b) | c) 1
+--    (5) 2 --> c
+--    (6) 2 --> c 1
 
 TRANS X1 <-> (((((a | b) & next(X2)) | (c & next(d))) | d) | (((a | b) | c) & next(X1)));
 TRANS X2 <-> ((c & next(d)) | (c & next(X1)));
@@ -67,10 +65,10 @@ JUSTICE !Y1 & !Y2;
 Assume that there is a program `while (F b) do { a then b }; c`, where `F b` denotes that `b` will finally be true. This program can be expressed in the LDL formula `[(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?]c`, whose tester is generated as the following SMV code.
 
 ```
---The LDL formula to be verified: [(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?]c
---The LDL formula without [] operator: !<(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c
---The tester of !<(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c
---Output assertion: !X1
+--The original LDL formula: [(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?]c
+--The LTL formula to be verified: LTLSPEC !X1;
+--The following SMV code is the tester for the LDL formula without [] operator: !<(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c
+
 --The output variables for 2 principally temporal sub-formula(s):
 --  (1) X5: <TRUE*>b
 --  (2) X1: <(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c
@@ -78,20 +76,19 @@ Assume that there is a program `while (F b) do { a then b }; c`, where `F b` den
 --------- No.1 sub-tester for <TRUE*>b ---------
 --Output variable: X5
 VAR
-X5 : boolean;
-Y5 : boolean;
+  X5 : boolean;		Y5 : boolean;
 
 --The Path Grammar of TRUE*:
 --  Start variable: 5
 --  Variables: [5]
 --  Productions:
---    (1) 5 -> empty
---    (2) 5 -> TRUE 5
---    (3) 5 -> TRUE
+--    (1) 5 --> TRUE
+--    (2) 5 --> empty
+--    (3) 5 --> TRUE 5
 
-TRANS X5 <-> ((b | (TRUE & next(X5))) | (TRUE & next(b)));
+TRANS X5 <-> (((TRUE & next(b)) | b) | (TRUE & next(X5)));
 
-TRANS Y5 -> ((b | (TRUE & next(Y5))) | (TRUE & next(b)));
+TRANS Y5 -> (((TRUE & next(b)) | b) | (TRUE & next(Y5)));
 
 JUSTICE X5=Y5;
 JUSTICE !Y5;
@@ -99,32 +96,28 @@ JUSTICE !Y5;
 --------- No.2 sub-tester for <(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c ---------
 --Output variable: X1
 VAR
-X1 : boolean;
-Y1 : boolean;
-X2 : boolean;
-Y2 : boolean;
-X3 : boolean;
-Y3 : boolean;
-X4 : boolean;
-Y4 : boolean;
+  X1 : boolean;		Y1 : boolean;
+  X2 : boolean;		Y2 : boolean;
+  X3 : boolean;		Y3 : boolean;
+  X4 : boolean;		Y4 : boolean;
 
 --The Path Grammar of (((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?:
 --  Start variable: 1
 --  Variables: [1, 2, 3, 4]
 --  Productions:
---    (1) 1 -> (!<TRUE*>b)?
---    (2) 1 -> (<TRUE*>b)? 2
---    (3) 2 -> a 3
---    (4) 3 -> b 4
---    (5) 3 -> b 1
---    (6) 4 -> (!<TRUE*>b)?
+--    (1) 1 --> (<TRUE*>b)? 2
+--    (2) 1 --> (!<TRUE*>b)?
+--    (3) 2 --> a 3
+--    (4) 3 --> b 4
+--    (5) 3 --> b 1
+--    (6) 4 --> (!<TRUE*>b)?
 
-TRANS X1 <-> ((!X5 & !c) | (X5 & X2));
+TRANS X1 <-> ((X5 & X2) | (!X5 & !c));
 TRANS X2 <-> (a & next(X3));
 TRANS X3 <-> ((b & next(X4)) | (b & next(X1)));
 TRANS X4 <-> (!X5 & !c);
 
-TRANS Y1 -> ((!Y5 & !c) | (Y5 & Y2));
+TRANS Y1 -> ((Y5 & Y2) | (!Y5 & !c));
 TRANS Y2 -> (a & next(Y3));
 TRANS Y3 -> ((b & next(Y4)) | (b & next(Y1)));
 TRANS Y4 -> (!Y5 & !c);
