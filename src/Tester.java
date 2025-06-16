@@ -120,8 +120,8 @@ public class Tester {
                     .iterator();
             while(itVars.hasNext()){
                 int v = (int)itVars.next();
-                s+="  "+parentTester.nusmvTesterInstanceName+"X"+v+" : boolean;\r\n";
-                s+="  "+parentTester.nusmvTesterInstanceName+"Y"+v+" : boolean;\r\n";
+                s+="  "+parentTester.nusmvTesterInstanceName+"X"+v+" : boolean;\t\t";
+                s+=parentTester.nusmvTesterInstanceName+"Y"+v+" : boolean;\r\n";
             }
 
             if(initCond!=null) s+="INIT " + initCond.getText() + "\r\n";
@@ -413,11 +413,11 @@ public class Tester {
     //生成smv刻画的tester，并将其插入main模块尾部
     public String toSMV() {
         String s="";
-        s+="--The tester of "+this.fmla.getText()+"\r\n";
-        s+="--Output assertion: "+this.out.getText()+"\r\n";
+        s+="--The LTL formula to be verified: LTLSPEC "+this.out.getText()+";\r\n";
+        s+="--The following SMV code is the tester for the LDL formula without [] operator: "+this.fmla.getText()+"\r\n";
 
         if(this.principalTemporalTesters.size()>0){
-            s+="--The output variables for " + TesterNumber + " principally temporal sub-formula(s):\r\n";
+            s+="\n--The output variables for " + TesterNumber + " principally temporal sub-formula(s):\r\n";
             Iterator<LDL> it = this.principalTemporalTesters.getKeyIterator(true);
             String smvCode="";
             int i=1;

@@ -87,7 +87,7 @@ public class PathGrammarProduction {
     }
 
     public String getText() {
-        String s = this.leftVariable + " -> ";
+        String s = this.leftVariable + " --> ";
         switch (this.type) {
             case Empty:
                 s += "empty";

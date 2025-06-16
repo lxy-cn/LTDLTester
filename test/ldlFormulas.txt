@@ -12,11 +12,13 @@
 --     (<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)
 -- [true*]<true*>a
 -- [(req;(<true*>work)?)*]<(a;b)*>ack
-[(a;b;c;(d+e+f);g;h)*]i
+--[(a;b;c;(d+e+f);g;h)*]i
 -- <((a+b)*;c)*>d #
 --[ ((<TRUE*>b)? ; a ; b)* ; (!<TRUE*>b)? ] c # -- while (F b) do { a then b }; c, where F b denotes that b will finally be true
 
 --<(a?;b;((c?;d)+((!c)?;e)))*;(!a)?>f #
+
+[(TRUE;TRUE;TRUE;TRUE)*]b  #
 
 /*
 [(((envworks ; envbroken) + (envbroken ; envworks)) 

@@ -275,11 +275,9 @@ public class MainLdlVisitor {
 
         LdlGetTreeVisitor ldlGetTreeVisitor = new LdlGetTreeVisitor();
         LDL ldlTree = ldlGetTreeVisitor.visit(tree);
-        System.out.println("--The LDL formula to be verified: " + ldlTree.getText());
+        System.out.println("--The original LDL formula: " + ldlTree.getText());
         ldlTree = ldlTree.box2diamond().reduceRedundantNotOperator();
-        System.out.println("--The LDL formula without [] operator: " + ldlTree.getText());
-//        ldlTree = ldlTree.reduceRedundantNotOperator();
-//        System.out.println("--The LDL formula without redundant NOT operators: " + ldlTree.getText());
+//        System.out.println("--Tester construction for " + ldlTree.getText());
 
         Tester tester = new Tester("", ldlTree);
         String smvOutput = tester.toSMV();
