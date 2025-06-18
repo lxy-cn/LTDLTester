@@ -277,18 +277,18 @@ public class Tester {
             String v = Qvars.remove();
             varsVisited.add(v);
             //获得v的所有产生式
-            Set<PathGrammarProduction> prods = pg.getProds(v);
+            List<PathGrammarProduction> prods = pg.getProds(v);
             XvarTrans.clear();
             YvarTrans.clear();
             for (PathGrammarProduction p : prods) {
                 //System.out.println("    "+(++j)+". "+p.getText());
                 //访问产生式p
                 switch (p.type) {
-                    case Empty: // p:v->empty
+                    case Empty: // p:v-->empty
                         XvarTrans.add(new TesterTransition(p, false, f1out)); // T(f1).out
                         YvarTrans.add(new TesterTransition(p, false, ldlVarX2Y(f1out))); // T(f1).out
                         break;
-                    case Test: // p:v->f2?
+                    case Test: // p:v-->f2?
                         test = ((LDL) p.rightItem1); // f2?
                         f2 = test.children.get(0);
                         f2out = buildTesterRecur(f2);
@@ -297,7 +297,7 @@ public class Tester {
                         XvarTrans.add(new TesterTransition(p, false, trX));
                         YvarTrans.add(new TesterTransition(p, false, trY));
                         break;
-                    case PropFormula: // p:v->prop
+                    case PropFormula: // p:v-->prop
                         prop = (LDL) p.rightItem1;
                         LDL next_f1out = new LDL(f1out);
                         next_f1out.prime=true;
@@ -306,12 +306,12 @@ public class Tester {
                         XvarTrans.add(new TesterTransition(p, false, trX));
                         YvarTrans.add(new TesterTransition(p, false, trY));
                         break;
-                    case Variable: // p:v->w
+                    case Variable: // p:v-->w
                         w = (String) p.rightItem1;
                         XvarTrans.add(new TesterTransition(p, false, new LDL(this.nusmvTesterInstanceName+"X"+w))); // "X"+w
                         YvarTrans.add(new TesterTransition(p, false, new LDL(this.nusmvTesterInstanceName+"Y"+w))); // "Y"+w
                         break;
-                    case Test_Variable: // p:v->f2?.w
+                    case Test_Variable: // p:v-->f2?.w
                         test = ((LDL) p.rightItem1); // test=f2?
                         f2 = test.children.get(0);
                         f2out = buildTesterRecur(f2);
@@ -321,7 +321,7 @@ public class Tester {
                         XvarTrans.add(new TesterTransition(p, false, trX));
                         YvarTrans.add(new TesterTransition(p, false, trY));
                         break;
-                    case PropFormula_Variable: // p:v->prop.w
+                    case PropFormula_Variable: // p:v-->prop.w
                         prop = (LDL) p.rightItem1;
                         w = (String) p.rightItem2;
                         LDL nw = new LDL(this.nusmvTesterInstanceName+"X"+w);
@@ -334,6 +334,32 @@ public class Tester {
                         XvarTrans.add(new TesterTransition(p, false, trX));
                         YvarTrans.add(new TesterTransition(p, false, trY));
                         break;
+/*
+                    case Test_PropFormula: // p:v-->f2?.prop
+                        test = (LDL) p.rightItem1; // test=f2?
+                        f2 = test.children.get(0);
+                        f2out = buildTesterRecur(f2);
+                        prop = (LDL) p.rightItem2;
+
+                        trX = new LDL(LDL.Operators.AND, f2out, prop); // trX = T(f2).out & prop
+                        trY = new LDL(LDL.Operators.AND, ldlVarX2Y(f2out), prop); // trY = T(f2).out & prop
+                        XvarTrans.add(new TesterTransition(p, false, trX));
+                        YvarTrans.add(new TesterTransition(p, false, trY));
+                        break;
+                    case PropFormula_Test: // p:v-->prop.f2?
+                        prop = (LDL) p.rightItem1;
+                        test = (LDL) p.rightItem2; // test=f2?
+                        f2 = test.children.get(0);
+                        f2out = buildTesterRecur(f2);
+                        LDL next_f2out = new LDL(f2out);
+                        next_f2out.prime=true;
+
+                        trX = new LDL(LDL.Operators.AND, prop, next_f2out); // trX = prop & next(T(f2).out)
+                        trY = new LDL(LDL.Operators.AND, prop, ldlVarX2Y(next_f2out)); // trX = prop & next(T(f2).out)
+                        XvarTrans.add(new TesterTransition(p, false, trX));
+                        YvarTrans.add(new TesterTransition(p, false, trY));
+                        break;
+*/
                     default:
                         break;
                 }

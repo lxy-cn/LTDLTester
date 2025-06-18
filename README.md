@@ -37,17 +37,17 @@ VAR
 --  Start variable: 1
 --  Variables: [1, 2]
 --  Productions:
---    (1) 1 --> (a | b) 2
---    (2) 1 --> c
---    (3) 1 --> empty
---    (4) 1 --> ((a | b) | c) 1
+--    (1) 1 --> empty
+--    (2) 1 --> 2
+--    (3) 1 --> (a | b) 1
+--    (4) 1 --> (a | b) 2
 --    (5) 2 --> c
 --    (6) 2 --> c 1
 
-TRANS X1 <-> (((((a | b) & next(X2)) | (c & next(d))) | d) | (((a | b) | c) & next(X1)));
+TRANS X1 <-> (((d | X2) | ((a | b) & next(X1))) | ((a | b) & next(X2)));
 TRANS X2 <-> ((c & next(d)) | (c & next(X1)));
 
-TRANS Y1 -> (((((a | b) & next(Y2)) | (c & next(d))) | d) | (((a | b) | c) & next(Y1)));
+TRANS Y1 -> (((d | Y2) | ((a | b) & next(Y1))) | ((a | b) & next(Y2)));
 TRANS Y2 -> ((c & next(d)) | (c & next(Y1)));
 
 JUSTICE X1=Y1 & X2=Y2;
@@ -82,13 +82,13 @@ VAR
 --  Start variable: 5
 --  Variables: [5]
 --  Productions:
---    (1) 5 --> TRUE
---    (2) 5 --> empty
+--    (1) 5 --> empty
+--    (2) 5 --> TRUE
 --    (3) 5 --> TRUE 5
 
-TRANS X5 <-> (((TRUE & next(b)) | b) | (TRUE & next(X5)));
+TRANS X5 <-> ((b | (TRUE & next(b))) | (TRUE & next(X5)));
 
-TRANS Y5 -> (((TRUE & next(b)) | b) | (TRUE & next(Y5)));
+TRANS Y5 -> ((b | (TRUE & next(b))) | (TRUE & next(Y5)));
 
 JUSTICE X5=Y5;
 JUSTICE !Y5;
@@ -105,22 +105,22 @@ VAR
 --  Start variable: 1
 --  Variables: [1, 2, 3, 4]
 --  Productions:
---    (1) 1 --> (<TRUE*>b)? 2
---    (2) 1 --> (!<TRUE*>b)?
---    (3) 2 --> a 3
---    (4) 3 --> b 4
---    (5) 3 --> b 1
---    (6) 4 --> (!<TRUE*>b)?
+--    (1) 1 --> 2
+--    (2) 1 --> (<TRUE*>b)? 3
+--    (3) 2 --> (!<TRUE*>b)?
+--    (4) 3 --> a 4
+--    (5) 4 --> b 1
+--    (6) 4 --> b 2
 
-TRANS X1 <-> ((X5 & X2) | (!X5 & !c));
-TRANS X2 <-> (a & next(X3));
-TRANS X3 <-> ((b & next(X4)) | (b & next(X1)));
-TRANS X4 <-> (!X5 & !c);
+TRANS X1 <-> (X2 | (X5 & X3));
+TRANS X2 <-> (!X5 & !c);
+TRANS X3 <-> (a & next(X4));
+TRANS X4 <-> ((b & next(X1)) | (b & next(X2)));
 
-TRANS Y1 -> ((Y5 & Y2) | (!Y5 & !c));
-TRANS Y2 -> (a & next(Y3));
-TRANS Y3 -> ((b & next(Y4)) | (b & next(Y1)));
-TRANS Y4 -> (!Y5 & !c);
+TRANS Y1 -> (Y2 | (Y5 & Y3));
+TRANS Y2 -> (!Y5 & !c);
+TRANS Y3 -> (a & next(Y4));
+TRANS Y4 -> ((b & next(Y1)) | (b & next(Y2)));
 
 JUSTICE ((X1=Y1 & X2=Y2) & X3=Y3) & X4=Y4;
 JUSTICE ((!Y1 & !Y2) & !Y3) & !Y4;
