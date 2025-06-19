@@ -135,10 +135,12 @@ public class PathGrammar {
         String newVar = addNewVariable(); // v
         this.start = newVar;
 
-        this.productions.add(new PathGrammarProduction(newVar, pg[0].start)); // v->S1
-        this.productions.add(new PathGrammarProduction(newVar, pg[1].start)); // v->S2
         this.productions.addAll(pg[0].productions);
         this.productions.addAll(pg[1].productions);
+
+        this.productions.add(new PathGrammarProduction(newVar, pg[0].start)); // v->S1
+        this.productions.add(new PathGrammarProduction(newVar, pg[1].start)); // v->S2
+
 
     }
 
@@ -1262,6 +1264,7 @@ public class PathGrammar {
                     case PropFormula_Variable: // t:w-->b.w'
                         reserveThisOd1Prod=false;
                         itProds = this.productions.iterator();
+                        pChanged=false;
                         while (itProds.hasNext()) {
                             p = itProds.next();
                             switch (p.type) {
@@ -1270,7 +1273,7 @@ public class PathGrammar {
                                     toRemove.add(p); // remove p
                                     newP = new PathGrammarProduction(p.leftVariable, (LDL) t.rightItem1, (String) t.rightItem2); // v-->b.w'
                                     toAdd.add(newP);
-                                    oneRoundChanged=true;
+                                    pChanged=true;
                                     break;
                                 case Test_Variable: // p:v->f1?.w
                                 case PropFormula_Variable: // p:v-->a.w

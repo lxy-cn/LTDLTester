@@ -12,14 +12,16 @@
 -- <(a;b)*>c #
 --   (<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)  #
 --   <(a?;b)*>c  #
--- [true*]<true*>a
--- [(req;(<TRUE*>work)?)*]<(a;b)*>ack #
+-- [TRUE*]<TRUE*>a
+--[(req;(<TRUE*>work)?)*]<(a;b)*>ack #
 --[(a;b;c;(d+e+f);g;h)*]i #
- --<((a+b)*;c)*>d #
+--<((a+b)*;c)*>d #
 
 --<(a?;b;((c?;d)+((!c)?;e)))*;(!a)?>f #
 
 --[(TRUE;TRUE;TRUE;TRUE)*]b  #
+--<((envworks ; envbroken) + (envbroken ; envworks))* > receiverDone #
+--<(a;b)+c>d #
 
 /*
 [(((envworks ; envbroken) + (envbroken ; envworks)) 
