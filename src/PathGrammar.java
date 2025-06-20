@@ -14,7 +14,7 @@ public class PathGrammar {
     static int builtVariableCount = 0;
 
     PathGrammar(LDL pathExpr) throws CloneNotSupportedException {
-        if (!pathExpr.isPathExpression()) {
+        if (!pathExpr.isPathExpression(true)) {
             System.out.println("Error: the following formula is not path expression: " + pathExpr.getText());
             return;
         }

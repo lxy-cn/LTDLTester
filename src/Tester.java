@@ -238,7 +238,7 @@ public class Tester {
         LDL pathExpr = f.children.get(0);
         LDL f1 = f.children.get(1); // the tester of f1 must already be created and cached, if the operator of f is DIAMOND
         LDL f2 = null;
-        if(!pathExpr.isPathExpression() || !f1.isLDL()) return null;
+        if(!pathExpr.isPathExpression(true) || !f1.isLDL()) return null;
 
         LDL f1out = buildTesterRecur(f1);
         LDL f2out = null;

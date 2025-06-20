@@ -88,7 +88,7 @@ public class LDLLexer extends Lexer {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "LDL.g4"; }
+	public String getGrammarFileName() { return "backup/LDL.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }

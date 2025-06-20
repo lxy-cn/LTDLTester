@@ -54,6 +54,13 @@ public class LDL implements Cloneable {
         OR,
         IMPLY,
         BIIMPLY,
+        /*LTL operators*/
+        NEXT,
+        PREV,
+        GLOBALLY,
+        FINALLY,
+        UNTIL,
+        RELEASE,
         /*LDL operators*/
         DIAMOND,
         BOX,
@@ -112,8 +119,12 @@ public class LDL implements Cloneable {
             case OR:
             case IMPLY:
             case BIIMPLY:
+
             case CONCAT:
             case UNION:
+
+            case UNTIL:
+            case RELEASE:
                 return true;
             default:
                 return false;
@@ -124,7 +135,8 @@ public class LDL implements Cloneable {
         switch (operator) {
             case ATOM:
                 return true;
-            case NOT: return children.get(0).isPropFormula();
+            case NOT:
+                return children.get(0).isPropFormula();
             case AND:
             case OR:
             case IMPLY:
@@ -135,16 +147,20 @@ public class LDL implements Cloneable {
         }
     }
 
-    public boolean isPathExpression() {
+    public boolean isPathExpression( boolean allow_LTL_in_Test) {
         if(this.isPropFormula()) return true;
         switch (operator) {
             case TEST:
-                return children.get(0).isLDL();
+                if(allow_LTL_in_Test)
+                    return children.get(0).isLDL_LTL();
+                else
+                    return children.get(0).isLDL();
             case REPETITION:
-                return children.get(0).isPathExpression();
+                return children.get(0).isPathExpression(allow_LTL_in_Test);
             case CONCAT:
             case UNION:
-                return children.get(0).isPathExpression() && children.get(1).isPathExpression();
+                return children.get(0).isPathExpression(allow_LTL_in_Test)
+                        && children.get(1).isPathExpression(allow_LTL_in_Test);
             default:
                 return false;
         }
@@ -177,7 +193,58 @@ public class LDL implements Cloneable {
                 return children.get(0).isLDL() && children.get(1).isLDL();
             case DIAMOND:
             case BOX:
-                return children.get(0).isPathExpression() && children.get(1).isLDL();
+                return children.get(0).isPathExpression(false) && children.get(1).isLDL();
+            default:
+                return false;
+        }
+    }
+
+    public boolean isLTL() {
+        switch (operator) {
+            case ATOM:
+                return true;
+            case NOT:
+
+            case NEXT:
+            case PREV:
+            case GLOBALLY:
+            case FINALLY:
+                return children.get(0).isLTL();
+            case AND:
+            case OR:
+            case IMPLY:
+            case BIIMPLY:
+
+            case UNTIL:
+            case RELEASE:
+                return children.get(0).isLTL() && children.get(1).isLTL();
+            default:
+                return false;
+        }
+    }
+
+    public boolean isLDL_LTL() {
+        switch (operator) {
+            case ATOM:
+                return true;
+            case NOT:
+
+            case NEXT:
+            case PREV:
+            case GLOBALLY:
+            case FINALLY:
+                return children.get(0).isLDL_LTL();
+            case AND:
+            case OR:
+            case IMPLY:
+            case BIIMPLY:
+
+            case UNTIL:
+            case RELEASE:
+                return children.get(0).isLDL_LTL() && children.get(1).isLDL_LTL();
+            case DIAMOND:
+            case BOX:
+                return children.get(0).isPathExpression(true) && children.get(1).isLDL_LTL();
             default:
                 return false;
         }
@@ -263,6 +330,7 @@ public class LDL implements Cloneable {
 
     public String getText() {
         String res = "";
+        String t="";
         switch (operator) {
             case ATOM:
                 res = data.replaceAll("^'|'$", ""); // 将两端的单引号去掉（如果有），^'表示首字符为'，'$表示尾字符为'
@@ -281,6 +349,40 @@ public class LDL implements Cloneable {
                 break;
             case NOT:
                 res = "!" + getTextWithBracketIfNeed(children.get(0));
+                break;
+            case NEXT:
+                t = getTextWithBracketIfNeed(children.get(0));
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "X" + t;
+                else
+                    res = "X " + t;
+                break;
+            case PREV:
+                t = getTextWithBracketIfNeed(children.get(0));
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "Y" + t;
+                else
+                    res = "Y " + t;
+                break;
+            case GLOBALLY:
+                t = getTextWithBracketIfNeed(children.get(0));
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "G" + t;
+                else
+                    res = "G " + t;
+                break;
+            case FINALLY:
+                t = getTextWithBracketIfNeed(children.get(0));
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "F" + t;
+                else
+                    res = "F " + t;
+                break;
+            case UNTIL:
+                res = getTextWithBracketIfNeed(children.get(0)) + " U " + getTextWithBracketIfNeed(children.get(1));
+                break;
+            case RELEASE:
+                res = getTextWithBracketIfNeed(children.get(0)) + " R " + getTextWithBracketIfNeed(children.get(1));
                 break;
             case DIAMOND:
                 res = "<" + children.get(0).getText() + ">" + getTextWithBracketIfNeed(children.get(1));
@@ -366,37 +468,6 @@ public class LDL implements Cloneable {
                 // System.out.println("Error in reduceRedundantNotOperator(): "+ child_count + " children in the LDL formula " + this.getText());
         }
         return this;
-    }
-
-
-    // this instance must be an LdlFormula
-    public boolean buildTester(){
-        switch (operator) {
-            case ATOM:
-                break;
-            case AND:
-                break;
-            case OR:
-                break;
-            case IMPLY:
-                break;
-            case BIIMPLY:
-                break;
-            case NOT:
-                break;
-            case DIAMOND:
-                break;
-            case BOX:
-                break;
-            default:
-                return false;
-        }
-        return true;
-    }
-
-
-    public LDL getOutputAssertion() {
-        return null;
     }
 
 
