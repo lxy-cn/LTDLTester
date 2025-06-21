@@ -17,9 +17,11 @@
 --[(a;b;c;(d+e+f);g;h)*]i #
 --<((a+b)*;c)*>d #
 
-<(a?;b;((c?;d)+((!c)?;e)))*;(!a)?>f #
+--<(a?;b;((c?;d)+((!c)?;e)))*;(!a)?>f #
 
 --[(TRUE;TRUE;TRUE;TRUE)*]b  #
+
+f U Y <a>b #
 
 /*
 [(((envworks ; envbroken) + (envbroken ; envworks)) 

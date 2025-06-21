@@ -442,7 +442,7 @@ public class MainLdl_ltlVisitor {
 
         Tester tester = new Tester("", ldlTree);
         String smvOutput = tester.toSMV();
-        System.out.println(smvOutput);
+        System.out.print(smvOutput);
 
 //      System.out.println("----------------------------------------------");
     }
