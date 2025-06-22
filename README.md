@@ -9,7 +9,7 @@ College of Computer Science and Technology, Huaqiao University
 
 - **Current version 1.1 (June 22, 2025)**
   - Support tester construction for an extension of LDL with LTL temporal operators. The constructed tester is expressed in the SMV language used by nuXmv and NuSMV. One boolean output variable is built for each LTL temporal operator.
-- **Current version 1.0 (June 15, 2025)**
+- **Version 1.0 (June 15, 2025)**
   - Support tester construction for full LDL. The constructed tester is expressed in the SMV language used by nuXmv and NuSMV.
   - When constructing path grammar, do NOT build productions of the form v->a.f? or v->f?.a. 
   - When constructing transition relation, create one boolean variable for each variable in a path grammar.
