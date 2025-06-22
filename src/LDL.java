@@ -125,6 +125,9 @@ public class LDL implements Cloneable {
 
             case UNTIL:
             case RELEASE:
+            case DIAMOND:
+            case BOX:
+
                 return true;
             default:
                 return false;
