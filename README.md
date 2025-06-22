@@ -1,12 +1,14 @@
 # LDLTester
 
-**LDLTester** is a temporal tester generator for Linear Dynamic Logic (LDL). The generated tester is written in SMV language that is used by NuSMV and nuXmv.
+**LDLTester** is a temporal tester generator for Linear Dynamic Logic (LDL), which is extended with LTL temporal operators. The generated tester is written in SMV language that is used by NuSMV and nuXmv.
 
 Xiangyu Luo  
 College of Computer Science and Technology, Huaqiao University
 
 ## 1. Release notes
 
+- **Current version 1.1 (June 22, 2025)**
+  - Support tester construction for an extension of LDL with LTL temporal operators. The constructed tester is expressed in the SMV language used by nuXmv and NuSMV. One boolean output variable is built for each LTL temporal operator.
 - **Current version 1.0 (June 15, 2025)**
   - Support tester construction for full LDL. The constructed tester is expressed in the SMV language used by nuXmv and NuSMV.
   - When constructing path grammar, do NOT build productions of the form v->a.f? or v->f?.a. 
@@ -54,9 +56,9 @@ JUSTICE !Y1 & !Y2;
 - The model checking result of the LTL specification `X1` exactly is the result of the original LDL specification `<((a + b)* ; c)*>d`.
 
 
-### 2.2 Another example for LDL with test
+### 2.2 Another example for LDL with LTL test
 
-Assume that there is a program `while (F b) do { a then b }; c`, where `F b` denotes that `b` will finally be true. This program can be expressed in the LDL formula `[((F b)? ; a ; b)* ; (!F b)?] c`, whose tester is generated as the following SMV code.
+Assume that there is a program `while (F b) do { a then b }; c`, where `F b` is an LTL sub-formula denoting that `b` will finally be true. This program can be expressed in the LDL formula `[((F b)? ; a ; b)* ; (!F b)?] c`, whose tester is generated as the following SMV code.
 
 ```
 --The original LDL formula: [(((F b)? ; a) ; b)* ; (!F b)?]c
@@ -99,57 +101,68 @@ JUSTICE ((X1=Y1 & X2=Y2) & X3=Y3) & X4=Y4;
 JUSTICE ((!Y1 & !Y2) & !Y3) & !Y4;
 ```
 
-## 3. The LDL Syntax (ANTLR 4)
+## 3. The LDL_LTL Syntax (ANTLR 4)
 ```antlrv4
-grammar LDL;
+grammar LDL_LTL;
 
 ldl : ldlFormula EOF;
 
-ldlFormula:  
-op=PAREN_OPEN ldlFormula PAREN_CLOSE  
-| op=NOT ldlFormula  
-| ldlFormula op=(AND|OR) ldlFormula  
-| ldlFormula op=(IMPLY|BIIMPLY) ldlFormula  
-| op=ANGLE_OPEN pathExpr ANGLE_CLOSE ldlFormula  
-| op=SQUARE_OPEN pathExpr SQUARE_CLOSE ldlFormula  
-| atomicFormula;
+ldlFormula :
+    op=PAREN_OPEN ldlFormula PAREN_CLOSE # PAREN_LDL
+    | atomicFormula # ATOM_LDL
+    | op=NOT ldlFormula # NOT_LDL
+    | op=(NEXT|PREV|GLOBALLY|FINALLY) ldlFormula # UNARY_LTL_OPTR_LDL
+    | ldlFormula op=(UNTIL|RELEASE) ldlFormula # BINARY_LTL_OPTR_LDL
+    | op=ANGLE_OPEN pathExpr ANGLE_CLOSE ldlFormula # DIAMOND_LDL
+    | op=SQUARE_OPEN pathExpr SQUARE_CLOSE ldlFormula # BOX_LDL
+    | ldlFormula op=(AND|OR|IMPLY|BIIMPLY) ldlFormula # BINARY_BOOL_OPTR_LDL
+    ;
 
-pathExpr:  
-pathExpr op=STAR  
-| pathExpr op=(SEMI|PLUS) pathExpr  
-| op=PAREN_OPEN pathExpr PAREN_CLOSE  
-| ldlFormula op=QUESTION  
-| propFormula;
+pathExpr :
+    op=PAREN_OPEN pathExpr PAREN_CLOSE # PAREN_PATHEXPR
+    | propFormula # PROP_PATHEXPR
+    | pathExpr op=STAR # REPETITION_PATHEXPR
+    | ldlFormula op=QUESTION # TEST_PATHEXPR
+    | pathExpr op=(SEMI|PLUS) pathExpr # TWO_OPERANDS_PATHEXPR
+    ;
 
-propFormula: 
-op=PAREN_OPEN propFormula PAREN_CLOSE  
-| op=NOT propFormula  
-| propFormula op=(AND|OR) propFormula  
-| propFormula op=(IMPLY|BIIMPLY) propFormula  
-| atomicFormula;
+propFormula :
+    op=PAREN_OPEN propFormula PAREN_CLOSE # PAREN_PROP
+    | atomicFormula # ATOM_PROP
+    | op=NOT propFormula # NOT_PROP
+    | propFormula op=(AND|OR|IMPLY|BIIMPLY) propFormula # TWO_OPERANDS_PROP
+    ;
 
-atomicFormula:  
-Identifier                               
-| StringExpr;
+atomicFormula :
+    Identifier # ID_ATOM
+    | StringExpr # STREXPR_ATOM
+    ;
 
-Identifier : [a-zA-Z_][a-zA-Z_0-9]* ;  
-StringExpr : '\'' .*? '\'' ;
-
-BIIMPLY : '<->';  
-IMPLY : '->';  
-AND : '&';  
-OR  : '|';  
-NOT : '!';  
-STAR : '*' ;  
-PLUS : '+' ;  
-SEMI : ';' ;  
-QUESTION : '?' ;  
-PAREN_OPEN : '(' ;  
-PAREN_CLOSE : ')' ;  
-ANGLE_OPEN : '<' ;  
-ANGLE_CLOSE : '>' ;  
-SQUARE_OPEN : '[' ;  
+BIIMPLY : '<->';
+IMPLY : '->';
+AND : '&';
+OR  : '|';
+NOT : '!';
+STAR : '*' ;
+PLUS : '+' ;
+SEMI : ';' ;
+QUESTION : '?' ;
+PAREN_OPEN : '(' ;
+PAREN_CLOSE : ')' ;
+ANGLE_OPEN : '<' ;
+ANGLE_CLOSE : '>' ;
+SQUARE_OPEN : '[' ;
 SQUARE_CLOSE : ']' ;
+// LTL operators
+NEXT : 'X' ;
+PREV : 'Y' ;
+GLOBALLY : 'G' ;
+FINALLY : 'F' ;
+UNTIL : 'U' ;
+RELEASE : 'R' ;
+
+Identifier : [a-zA-Z_][a-zA-Z_0-9]* ;
+StringExpr : '\'' .*? '\'' ;
 
 WS : [ \t\r\n]+ -> skip ;
 ```
