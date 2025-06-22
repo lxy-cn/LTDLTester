@@ -137,8 +137,14 @@ public class Tester {
                         leftSpace="";
                         first=false;
                     }else leftSpace="    ";
-                    s += leftSpace + parentTester.NusmvTesterInstanceName + "X" + v + " : boolean;\t";
-                    s += parentTester.NusmvTesterInstanceName + "Y" + v + " : boolean;\r\n";
+                    String varX = this.parentTester.NusmvTesterInstanceName + "X" + v;
+                    s += leftSpace + varX + " : boolean;\t";
+                    s += this.parentTester.NusmvTesterInstanceName + "Y" + v + " : boolean;";
+
+                    if(this.out.getText().equals(varX))
+                        s+=" -- " + varX + " is the output variable\r\n";
+                    else
+                        s+="\r\n";
                 }
             }else{
                 s+="VAR " + this.out.getText() + " : boolean;\r\n";
@@ -269,7 +275,7 @@ public class Tester {
         LDL pathExpr = f.children.get(0);
         LDL f1 = f.children.get(1); // the tester of f1 must already be created and cached, if the operator of f is DIAMOND
         LDL f2 = null;
-        if(!pathExpr.isPathExpression(true) || !f1.isLDL()) return null;
+        if(!pathExpr.isPathExpression(true) || !f1.isLDL_LTL()) return null;
 
         LDL f1out = buildSubTesterRecur(f1);
         LDL f2out = null;

@@ -6,8 +6,8 @@
 -- (<((a));(!!!!!['b[6]<3';b]a?+!('c>5'->d<->c)*)*>b) #
 -- <((a+b+c)*+d)>c #
 -- <a+(b+c)*+d>e #
--- <((a+b)*;c)*>d #  -- the first example in README.md
---[ ((<TRUE*>b)? ; a ; b)* ; (!<TRUE*>b)? ] c # -- while (F b) do { a then b }; c, where F b denotes that b will finally be true  -- the second example in README.md
+ <((a+b)*;c)*>d #  -- the first example in README.md
+[((F b)? ; a ; b)* ; (!F b)?] c # -- while (F b) do { a then b }; c, where F b denotes that b will finally be true  -- the second example in README.md
 --  <a+(<b>c)?>d #
 -- <(a;b)*>c #
 --   (<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)  #
@@ -21,7 +21,10 @@
 
 --[(TRUE;TRUE;TRUE;TRUE)*]b  #
 
-f U Y <a>b #
+--[(a;(b U c)?)*] (Y <d*>(b R c)) #
+
+--a U b #
+--<a*>b #
 
 /*
 [(((envworks ; envbroken) + (envbroken ; envworks)) 

@@ -28,11 +28,8 @@ College of Computer Science and Technology, Huaqiao University
 --  (1) X1: <((a + b)* ; c)*>d
 
 --------- No.1 sub-tester for <((a + b)* ; c)*>d ---------
---Output variable: X1
-VAR
-  X1 : boolean;		Y1 : boolean;
-  X2 : boolean;		Y2 : boolean;
-
+VAR X1 : boolean;	Y1 : boolean; -- X1 is the output variable
+    X2 : boolean;	Y2 : boolean;
 --The Path Grammar of ((a + b)* ; c)*:
 --  Start variable: 1
 --  Variables: [1, 2]
@@ -43,13 +40,10 @@ VAR
 --    (4) 1 --> (a | b) 2
 --    (5) 2 --> c
 --    (6) 2 --> c 1
-
 TRANS X1 <-> (((d | X2) | ((a | b) & next(X1))) | ((a | b) & next(X2)));
 TRANS X2 <-> ((c & next(d)) | (c & next(X1)));
-
 TRANS Y1 -> (((d | Y2) | ((a | b) & next(Y1))) | ((a | b) & next(Y2)));
 TRANS Y2 -> ((c & next(d)) | (c & next(Y1)));
-
 JUSTICE X1=Y1 & X2=Y2;
 JUSTICE !Y1 & !Y2;
 ```
@@ -62,66 +56,45 @@ JUSTICE !Y1 & !Y2;
 
 ### 2.2 Another example for LDL with test
 
-Assume that there is a program `while (F b) do { a then b }; c`, where `F b` denotes that `b` will finally be true. This program can be expressed in the LDL formula `[(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?]c`, whose tester is generated as the following SMV code.
+Assume that there is a program `while (F b) do { a then b }; c`, where `F b` denotes that `b` will finally be true. This program can be expressed in the LDL formula `[((F b)? ; a ; b)* ; (!F b)?] c`, whose tester is generated as the following SMV code.
 
 ```
---The original LDL formula: [(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?]c
+--The original LDL formula: [(((F b)? ; a) ; b)* ; (!F b)?]c
 --The LTL formula to be verified: LTLSPEC !X1;
---The following SMV code is the tester for the LDL formula without [] operator: !<(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c
+--The following SMV code is the tester for the LDL formula without [] operator: !<(((F b)? ; a) ; b)* ; (!F b)?>!c
 
 --The output variables for 2 principally temporal sub-formula(s):
---  (1) X5: <TRUE*>b
---  (2) X1: <(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c
+--  (1) W1: F b
+--  (2) X1: <(((F b)? ; a) ; b)* ; (!F b)?>!c
 
---------- No.1 sub-tester for <TRUE*>b ---------
---Output variable: X5
-VAR
-  X5 : boolean;		Y5 : boolean;
+--------- No.1 sub-tester for F b ---------
+VAR W1 : boolean;
+TRANS W1 <-> (b | next(W1));
+JUSTICE W1 -> b;
 
---The Path Grammar of TRUE*:
---  Start variable: 5
---  Variables: [5]
---  Productions:
---    (1) 5 --> empty
---    (2) 5 --> TRUE
---    (3) 5 --> TRUE 5
-
-TRANS X5 <-> ((b | (TRUE & next(b))) | (TRUE & next(X5)));
-
-TRANS Y5 -> ((b | (TRUE & next(b))) | (TRUE & next(Y5)));
-
-JUSTICE X5=Y5;
-JUSTICE !Y5;
-
---------- No.2 sub-tester for <(((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?>!c ---------
---Output variable: X1
-VAR
-  X1 : boolean;		Y1 : boolean;
-  X2 : boolean;		Y2 : boolean;
-  X3 : boolean;		Y3 : boolean;
-  X4 : boolean;		Y4 : boolean;
-
---The Path Grammar of (((<TRUE*>b)? ; a) ; b)* ; (!<TRUE*>b)?:
+--------- No.2 sub-tester for <(((F b)? ; a) ; b)* ; (!F b)?>!c ---------
+VAR X1 : boolean;	Y1 : boolean; -- X1 is the output variable
+    X2 : boolean;	Y2 : boolean;
+    X3 : boolean;	Y3 : boolean;
+    X4 : boolean;	Y4 : boolean;
+--The Path Grammar of (((F b)? ; a) ; b)* ; (!F b)?:
 --  Start variable: 1
 --  Variables: [1, 2, 3, 4]
 --  Productions:
 --    (1) 1 --> 2
---    (2) 1 --> (<TRUE*>b)? 3
---    (3) 2 --> (!<TRUE*>b)?
+--    (2) 1 --> (F b)? 3
+--    (3) 2 --> (!F b)?
 --    (4) 3 --> a 4
 --    (5) 4 --> b 1
 --    (6) 4 --> b 2
-
-TRANS X1 <-> (X2 | (X5 & X3));
-TRANS X2 <-> (!X5 & !c);
+TRANS X1 <-> (X2 | (W1 & X3));
+TRANS X2 <-> (!W1 & !c);
 TRANS X3 <-> (a & next(X4));
 TRANS X4 <-> ((b & next(X1)) | (b & next(X2)));
-
-TRANS Y1 -> (Y2 | (Y5 & Y3));
-TRANS Y2 -> (!Y5 & !c);
+TRANS Y1 -> (Y2 | (W1 & Y3));
+TRANS Y2 -> (!W1 & !c);
 TRANS Y3 -> (a & next(Y4));
 TRANS Y4 -> ((b & next(Y1)) | (b & next(Y2)));
-
 JUSTICE ((X1=Y1 & X2=Y2) & X3=Y3) & X4=Y4;
 JUSTICE ((!Y1 & !Y2) & !Y3) & !Y4;
 ```
