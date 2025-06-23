@@ -1363,7 +1363,8 @@ public class PathGrammar {
                                 toRemove.add(wp);
                                 toAdd.add(newP);
 
-                                System.out.println(wp.getText() + " is modified as " + newP.getText() );
+                                if (MainLdl_ltlVisitor.OutputLevel >0)
+                                    System.out.println(wp.getText() + " is modified as " + newP.getText() );
 
                             }
 
@@ -1372,8 +1373,10 @@ public class PathGrammar {
                             reduced=true;
                             changed=true;
 
-                            System.out.println("The production removed: " + p.getText());
-                            System.out.println("The variable removed: " + w);
+                            if (MainLdl_ltlVisitor.OutputLevel >0) {
+                                System.out.println("The production removed: " + p.getText());
+                                System.out.println("The variable removed: " + w);
+                            }
 
                             //注意：必须尽可能快地更新集合，否则可能导致集合错误。另外，修改元素也应该采用先删除后添加元素的方式实现
                             this.productions.removeAll(toRemove); toRemove.clear();

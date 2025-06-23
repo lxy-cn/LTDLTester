@@ -269,7 +269,8 @@ public class Tester {
         }
     }
 
-    //Build tester for f = <pathExpr>f1
+    // Build tester for f = <pathExpr>f1
+    // Building method 1: restrict feasible paths to be FINITE by using TWO copies of grammar variables
     public SubTesterContainer buildSubTester4Diamond(LDL f) throws CloneNotSupportedException {
         if(f.operator != LDL.Operators.DIAMOND) return null;
         LDL pathExpr = f.children.get(0);
@@ -287,6 +288,194 @@ public class Tester {
             GrammarVariableNumber+=pg.getVariables().size();
 //            System.out.print("After renaming variables, ");
 //            pg.print();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+
+        SubTesterContainer T = new SubTesterContainer(this); // Tester T will be returned
+        T.fmla = f;
+        T.fmla_pathGrammar = pg;
+
+        Tester tt = null;
+        LDL trX = null;
+        LDL trY = null;
+        String w;
+        LDL prop;
+
+        Set<String> varsVisited = new HashSet<>();
+        Queue<String> Qvars = new ArrayDeque<>();
+        Qvars.add(pg.start);
+
+        List<SubTesterTransition> XvarTrans = new ArrayList<>(); // the transitions for one X variable
+        List<SubTesterTransition> YvarTrans = new ArrayList<>(); // the transitions for one Y variable
+
+        while(!Qvars.isEmpty()) {
+            LDL test; // the LDL formula to be tested
+            //访问队首元素
+            String v = Qvars.remove();
+            varsVisited.add(v);
+            //获得v的所有产生式
+            List<PathGrammarProduction> prods = pg.getProds(v);
+            XvarTrans.clear();
+            YvarTrans.clear();
+            for (PathGrammarProduction p : prods) {
+                //System.out.println("    "+(++j)+". "+p.getText());
+                //访问产生式p
+                switch (p.type) {
+                    case Empty: // p:v-->empty
+                        XvarTrans.add(new SubTesterTransition(p, false, f1out)); // T(f1).out
+                        YvarTrans.add(new SubTesterTransition(p, false, ldlVarX2Y(f1out))); // T(f1).out
+                        break;
+                    case Test: // p:v-->f2?
+                        test = ((LDL) p.rightItem1); // f2?
+                        f2 = test.children.get(0);
+                        f2out = buildSubTesterRecur(f2);
+                        trX = new LDL(LDL.Operators.AND, f2out, f1out); // T(f2).out & T(f1).out
+                        trY = new LDL(LDL.Operators.AND, ldlVarX2Y(f2out), ldlVarX2Y(f1out));
+                        XvarTrans.add(new SubTesterTransition(p, false, trX));
+                        YvarTrans.add(new SubTesterTransition(p, false, trY));
+                        break;
+                    case PropFormula: // p:v-->prop
+                        prop = (LDL) p.rightItem1;
+                        LDL next_f1out = new LDL(f1out);
+                        next_f1out.prime=true;
+                        trX = new LDL(LDL.Operators.AND, prop, next_f1out); // prop & next(T(f1).out)
+                        trY = new LDL(LDL.Operators.AND, prop, ldlVarX2Y(next_f1out));
+                        XvarTrans.add(new SubTesterTransition(p, false, trX));
+                        YvarTrans.add(new SubTesterTransition(p, false, trY));
+                        break;
+                    case Variable: // p:v-->w
+                        w = (String) p.rightItem1;
+                        XvarTrans.add(new SubTesterTransition(p, false, new LDL(this.NusmvTesterInstanceName +"X"+w))); // "X"+w
+                        YvarTrans.add(new SubTesterTransition(p, false, new LDL(this.NusmvTesterInstanceName +"Y"+w))); // "Y"+w
+                        break;
+                    case Test_Variable: // p:v-->f2?.w
+                        test = ((LDL) p.rightItem1); // test=f2?
+                        f2 = test.children.get(0);
+                        f2out = buildSubTesterRecur(f2);
+                        w = (String) p.rightItem2;
+                        trX = new LDL(LDL.Operators.AND, f2out, new LDL(this.NusmvTesterInstanceName +"X"+w)); // T(f2).out & "X"+w
+                        trY = new LDL(LDL.Operators.AND, ldlVarX2Y(f2out), new LDL(this.NusmvTesterInstanceName +"Y"+w)); // T(f2).out & "Y"+w
+                        XvarTrans.add(new SubTesterTransition(p, false, trX));
+                        YvarTrans.add(new SubTesterTransition(p, false, trY));
+                        break;
+                    case PropFormula_Variable: // p:v-->prop.w
+                        prop = (LDL) p.rightItem1;
+                        w = (String) p.rightItem2;
+                        LDL nw = new LDL(this.NusmvTesterInstanceName +"X"+w);
+                        nw.prime=true; // nw=next("X"+w)
+                        LDL nwY = new LDL(this.NusmvTesterInstanceName +"Y"+w);
+                        nwY.prime=true; // nwY=next("Y"+w)
+
+                        trX = new LDL(LDL.Operators.AND, prop, nw); // prop & next("X"+w)
+                        trY = new LDL(LDL.Operators.AND, prop, nwY); // prop & next("Y"+w)
+                        XvarTrans.add(new SubTesterTransition(p, false, trX));
+                        YvarTrans.add(new SubTesterTransition(p, false, trY));
+                        break;
+/*
+                    case Test_PropFormula: // p:v-->f2?.prop
+                        test = (LDL) p.rightItem1; // test=f2?
+                        f2 = test.children.get(0);
+                        f2out = buildTesterRecur(f2);
+                        prop = (LDL) p.rightItem2;
+
+                        trX = new LDL(LDL.Operators.AND, f2out, prop); // trX = T(f2).out & prop
+                        trY = new LDL(LDL.Operators.AND, ldlVarX2Y(f2out), prop); // trY = T(f2).out & prop
+                        XvarTrans.add(new TesterTransition(p, false, trX));
+                        YvarTrans.add(new TesterTransition(p, false, trY));
+                        break;
+                    case PropFormula_Test: // p:v-->prop.f2?
+                        prop = (LDL) p.rightItem1;
+                        test = (LDL) p.rightItem2; // test=f2?
+                        f2 = test.children.get(0);
+                        f2out = buildTesterRecur(f2);
+                        LDL next_f2out = new LDL(f2out);
+                        next_f2out.prime=true;
+
+                        trX = new LDL(LDL.Operators.AND, prop, next_f2out); // trX = prop & next(T(f2).out)
+                        trY = new LDL(LDL.Operators.AND, prop, ldlVarX2Y(next_f2out)); // trX = prop & next(T(f2).out)
+                        XvarTrans.add(new TesterTransition(p, false, trX));
+                        YvarTrans.add(new TesterTransition(p, false, trY));
+                        break;
+*/
+                    default:
+                        break;
+                }
+
+                //v的后继变量入队
+                String rightVar = p.getRightVariable();
+                if(rightVar!=null && !varsVisited.contains(rightVar)) {
+                    Qvars.add(rightVar);
+                    varsVisited.add(rightVar);
+                }
+            }
+
+            // 构造变量v的迁移关系
+            // v <-> the disjunction of all elements in XvarTrans
+            trX = XvarTrans.get(0).trans;
+            trY = YvarTrans.get(0).trans;
+            for(int i=1; i<XvarTrans.size(); i++) {
+                trX = new LDL(LDL.Operators.OR, trX, XvarTrans.get(i).trans);
+                trY = new LDL(LDL.Operators.OR, trY, YvarTrans.get(i).trans);
+            }
+            trX = new LDL(LDL.Operators.BIIMPLY, new LDL(this.NusmvTesterInstanceName +"X"+v), trX);
+            T.trans.add(new SubTesterTransition(null, false, trX));
+
+            trY = new LDL(LDL.Operators.IMPLY, new LDL(this.NusmvTesterInstanceName +"Y"+v), trY);
+            T.trans.add(new SubTesterTransition(null, false, trY));
+
+        }
+
+        // 构造公平性约束
+        Set<String> vars = pg.getVariables();
+        Iterator<Integer> it = vars.stream().map(Integer::parseInt)
+                .sorted()
+                .collect(Collectors.toList())
+                .iterator();
+        boolean firstTime=true;
+        LDL justice1=null;
+        LDL justice2=null;
+        while(it.hasNext()){
+            int v = it.next();
+            LDL conjunct1 = new LDL(this.NusmvTesterInstanceName +"X"+v+"="+this.NusmvTesterInstanceName +"Y"+v);
+            LDL conjunct2 = new LDL(LDL.Operators.NOT, new LDL(this.NusmvTesterInstanceName +"Y"+v));
+            if(firstTime){
+                justice1 = conjunct1;
+                justice2 = conjunct2;
+                firstTime=false;
+            }else {
+                justice1 = new LDL(LDL.Operators.AND, justice1, conjunct1);
+                justice2 = new LDL(LDL.Operators.AND, justice2, conjunct2);
+            }
+        }
+        T.justices.add(justice1);
+        T.justices.add(justice2);
+
+        T.ID = (++SubTesterNumber);
+        T.out = new LDL(NusmvTesterInstanceName + "X" + pg.start);
+
+        return T;
+    }
+
+    // Build tester for f = <pathExpr>f1
+    // Building method 2: restrict feasible paths to be FINITE by using only ONE copy of grammar variables for the following cases:
+    // (1) The main operator of pathExpr is not '*'.
+    // (2) The main operator of pathExpr is '*', and there is only one variable in the path grammar of pathExpr.
+    public SubTesterContainer buildSubTester4Diamond2(LDL f) throws CloneNotSupportedException {
+        if(f.operator != LDL.Operators.DIAMOND) return null;
+        LDL pathExpr = f.children.get(0);
+        LDL f1 = f.children.get(1); // the tester of f1 must already be created and cached, if the operator of f is DIAMOND
+        LDL f2 = null;
+        if(!pathExpr.isPathExpression(true) || !f1.isLDL_LTL()) return null;
+
+        LDL f1out = buildSubTesterRecur(f1);
+        LDL f2out = null;
+
+        PathGrammar pg = null;
+        try {
+            pg = new PathGrammar(pathExpr);
+            pg.renameProductions(GrammarVariableNumber+1);
+            GrammarVariableNumber+=pg.getVariables().size();
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }

@@ -10,13 +10,14 @@
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class MainLdl_ltlVisitor {
+    static int OutputLevel = 0; // 输出显示级别
+
     public static String getTokenLiteralName(int tokenType) {
         return LDL_LTLParser.VOCABULARY.getLiteralName(tokenType).replace("'", "");
     }
@@ -438,7 +439,6 @@ public class MainLdl_ltlVisitor {
         LDL ldlTree = ldlGetTreeVisitor.visit(tree);
         System.out.println("--The original LDL formula: " + ldlTree.getText());
         ldlTree = ldlTree.box2diamond().reduceRedundantNotOperator();
-//        System.out.println("--Tester construction for " + ldlTree.getText());
 
         Tester tester = new Tester("", ldlTree);
         String smvOutput = tester.toSMV();
@@ -449,7 +449,14 @@ public class MainLdl_ltlVisitor {
         System.out.println("Usage: 'java -jar LDLTester.jar -ldl formula' or 'java -jar LDLTester.jar -file filename'");
     }
 
+    public static void showVersion(){
+        System.out.println("*** LDLTester 1.1.0, a SMV temporal tester generator for LDL+LTL");
+        System.out.println("*** Copyright (c) 2025, Xiangyu Luo at Huaqiao University");
+        System.out.println("*** For more information please contact us via luoxy@hqu.edu.cn");
+    }
+
     public static void main(String[] args) throws Exception {
+        showVersion();
         if (args.length > 0) {
             if(args[0].equals("-ldl")){
                 if(args.length<2){
