@@ -426,7 +426,7 @@ public class MainLdl_ltlVisitor {
     }
 */
 
-    public static void generateOneTester(String fmla) throws CloneNotSupportedException {
+    public static void oneFormulaTesterConstruction(String fmla) throws CloneNotSupportedException {
         //System.out.println(fmla);
         LDL_LTLLexer lexer = new LDL_LTLLexer(CharStreams.fromString(fmla));
 
@@ -463,7 +463,7 @@ public class MainLdl_ltlVisitor {
                     System.out.println("Warning: an LDL formula must be inputted after '-ldl'.");
                     return;
                 }
-                generateOneTester(args[1]);
+                oneFormulaTesterConstruction(args[1]);
                 return;
             }else if(args[0].equals("-file")){
                 if(args.length<2){
@@ -494,7 +494,7 @@ public class MainLdl_ltlVisitor {
                         if(line.endsWith("#")) {
                             f += line.substring(0,line.length()-1).trim();
                             System.out.println("--------------------------------- No." +(i++)+ " formula ---------------------------------");
-                            generateOneTester(f);
+                            oneFormulaTesterConstruction(f);
                             f = "";
                         }else{
                             f += line;
@@ -504,7 +504,7 @@ public class MainLdl_ltlVisitor {
                     f = f.trim();
                     if(!f.equals("")) {
                         System.out.println("--------------------------------- No." +(i++)+ " formula ---------------------------------");
-                        generateOneTester(f);
+                        oneFormulaTesterConstruction(f);
                         f = "";
                     }
                 } catch (IOException e) {

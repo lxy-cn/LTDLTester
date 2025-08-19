@@ -4,14 +4,16 @@ import java.util.stream.Collectors;
 
 // Path Grammar Class for a path expression
 public class PathGrammar {
+    static int builtVariableCount = 0;
     LDL pathExpr;
 //    Set<String> variables;
 //    Set<PathGrammarTerminal> terminals;
     Set<PathGrammarProduction> productions;
     String start; // the start symbol in the set variables
-
     String variableNamePrefix = "";
-    static int builtVariableCount = 0;
+
+//    String str_pathGrammar_before_optimization = "";
+
 
     PathGrammar(LDL pathExpr) throws CloneNotSupportedException {
         if (!pathExpr.isPathExpression(true)) {
@@ -24,11 +26,8 @@ public class PathGrammar {
         this.productions = new HashSet<>();
         boolean result = buildPathGrammarRecur(pathExpr);
 
-//        print();
-
-        optimization();
-//        System.out.print("After optimizing, ");
-//        print();
+//        str_pathGrammar_before_optimization = this.toString();
+//        optimization();
 
     }
 
@@ -241,35 +240,46 @@ public class PathGrammar {
             switch (prod1.type) {
                 case Empty: // v->empty in P1
                     if(!prod1.leftVariable.equals(pg1.start)) { // v<>S1
-                        this.productions.add(prod1); //v->empty
-                        this.productions.add(new PathGrammarProduction(prod1.leftVariable, pg1.start)); // v->S1
+                        this.productions.add(prod1); //add v->empty
+                        this.productions.add(new PathGrammarProduction(prod1.leftVariable, pg1.start)); // add v->S1
                     } else // v==S1
-                        this.productions.add(new PathGrammarProduction(pg1.start)); // S1->empty
+                        this.productions.add(new PathGrammarProduction(pg1.start)); // add S1->empty
                     break;
                 case Test: // v->LDL?
                 case PropFormula: // v->propLDL
-                    this.productions.add(prod1); //v->LDL? | v->propLDL
-                    this.productions.add(new PathGrammarProduction(prod1.leftVariable, (LDL) prod1.rightItem1, pg1.start)); //v->LDL?.S1 | v->propLDL.S1
+                    this.productions.add(prod1); //add v->LDL? | v->propLDL
+                    this.productions.add(new PathGrammarProduction(prod1.leftVariable, (LDL) prod1.rightItem1, pg1.start)); //add v->LDL?.S1 | v->propLDL.S1
                     break;
                 case Variable: // v->w
-                    this.productions.add(prod1); // v->w
+                    this.productions.add(prod1); // add v->w
                     eProd1 = new PathGrammarProduction((String) prod1.rightItem1); // w->empty
                     if(pg1.productions.contains(eProd1)) { // w->empty in P1
                         if (!prod1.leftVariable.equals(pg1.start)) { // v<>S1
-                            this.productions.add(new PathGrammarProduction(prod1.leftVariable)); // v->empty
-                            this.productions.add(new PathGrammarProduction(prod1.leftVariable, pg1.start)); // v->S1
+                            this.productions.add(new PathGrammarProduction(prod1.leftVariable)); // add v->empty
+                            this.productions.add(new PathGrammarProduction(prod1.leftVariable, pg1.start)); // add v->S1
                         } else { // v==S1
-                            this.productions.add(new PathGrammarProduction(pg1.start)); // S1->empty
+                            this.productions.add(new PathGrammarProduction(pg1.start)); // add S1->empty
                         }
                     }
                     break;
                 case Test_Variable: // v->LDL?.w
-                case PropFormula_Variable: // v->propLDL.w
-                    this.productions.add(prod1); //  v->LDL?.w | v->propLDL.w
+                    this.productions.add(prod1); // add v->LDL?.w
                     eProd1 = new PathGrammarProduction((String) prod1.rightItem2); // w->empty
                     if(pg1.productions.contains(eProd1)) { // w->empty in P1
-                        this.productions.add(new PathGrammarProduction(prod1.leftVariable, (LDL) prod1.rightItem1)); // v->LDL? | v->propLDL
-                        this.productions.add(new PathGrammarProduction(prod1.leftVariable, (LDL) prod1.rightItem1, pg1.start)); // v->LDL?.S1 | v->propLDL.S1
+                        if (!prod1.leftVariable.equals(pg1.start)) { // v<>S1
+                            this.productions.add(new PathGrammarProduction(prod1.leftVariable, (LDL) prod1.rightItem1)); // add v->LDL?
+                            this.productions.add(new PathGrammarProduction(prod1.leftVariable, (LDL) prod1.rightItem1, pg1.start)); // add v->LDL?.S1
+                        } else { // v==S1
+                            this.productions.add(new PathGrammarProduction(pg1.start, (LDL) prod1.rightItem1)); // add S1->LDL?
+                        }
+                    }
+                    break;
+                case PropFormula_Variable: // v->propLDL.w
+                    this.productions.add(prod1); //  add v->propLDL.w
+                    eProd1 = new PathGrammarProduction((String) prod1.rightItem2); // w->empty
+                    if(pg1.productions.contains(eProd1)) { // w->empty in P1
+                        this.productions.add(new PathGrammarProduction(prod1.leftVariable, (LDL) prod1.rightItem1)); // add v->propLDL
+                        this.productions.add(new PathGrammarProduction(prod1.leftVariable, (LDL) prod1.rightItem1, pg1.start)); // add v->propLDL.S1
                     }
                     break;
                 case Test_PropFormula:
@@ -525,7 +535,7 @@ public class PathGrammar {
                 .toString()+"\r\n";
 
         s+="  Productions:\r\n";
-        //printProductions();
+
         s+=productionsToString();
         return s;
     }

@@ -56,49 +56,59 @@ JUSTICE !Y1 & !Y2;
 - The model checking result of the LTL specification `X1` exactly is the result of the original LDL specification `<((a + b)* ; c)*>d`.
 
 
-### 2.2 Another example for LDL with LTL test
+### 2.2 Another example for LDL with LTL tests
 
-Assume that there is a program `while (F b) do { a then b }; c`, where `F b` is an LTL sub-formula denoting that `b` will finally be true. This program can be expressed in the LDL formula `[((F b)? ; a ; b)* ; (!F b)?] c`, whose tester is generated as the following SMV code.
+Assume that there is a program `while (F b) do { a ; if b then c else d }; e`, where `F b` is an LTL sub-formula denoting that `b` will finally be true. This program can be expressed in the LDL formula `[((F b)? ; a ; ((b?;c)+((!b)?;d)))* ; (!F b)?] e`, whose tester is generated as the following SMV code.
 
 ```
---The original LDL formula: [(((F b)? ; a) ; b)* ; (!F b)?]c
+--The original LDL formula: [(((F b)? ; a) ; ((b? ; c) + ((!b)? ; d)))* ; (!F b)?]e
 --The LTL formula to be verified: LTLSPEC !X1;
---The following SMV code is the tester for the LDL formula without [] operator: !<(((F b)? ; a) ; b)* ; (!F b)?>!c
+--The following SMV code is the tester for the LDL formula without [] operator: !(<(((F b)? ; a) ; ((b? ; c) + ((!b)? ; d)))* ; (!F b)?>!e)
 
 --The output variables for 2 principally temporal sub-formula(s):
 --  (1) W1: F b
---  (2) X1: <(((F b)? ; a) ; b)* ; (!F b)?>!c
+--  (2) X1: <(((F b)? ; a) ; ((b? ; c) + ((!b)? ; d)))* ; (!F b)?>!e
 
 --------- No.1 sub-tester for F b ---------
 VAR W1 : boolean;
 TRANS W1 <-> (b | next(W1));
 JUSTICE W1 -> b;
 
---------- No.2 sub-tester for <(((F b)? ; a) ; b)* ; (!F b)?>!c ---------
+--------- No.2 sub-tester for <(((F b)? ; a) ; ((b? ; c) + ((!b)? ; d)))* ; (!F b)?>!e ---------
 VAR X1 : boolean;	Y1 : boolean; -- X1 is the output variable
     X2 : boolean;	Y2 : boolean;
     X3 : boolean;	Y3 : boolean;
     X4 : boolean;	Y4 : boolean;
---The Path Grammar of (((F b)? ; a) ; b)* ; (!F b)?:
+    X5 : boolean;	Y5 : boolean;
+    X6 : boolean;	Y6 : boolean;
+--The Path Grammar of (((F b)? ; a) ; ((b? ; c) + ((!b)? ; d)))* ; (!F b)?:
 --  Start variable: 1
---  Variables: [1, 2, 3, 4]
+--  Variables: [1, 2, 3, 4, 5, 6]
 --  Productions:
 --    (1) 1 --> 2
 --    (2) 1 --> (F b)? 3
 --    (3) 2 --> (!F b)?
 --    (4) 3 --> a 4
---    (5) 4 --> b 1
---    (6) 4 --> b 2
+--    (5) 4 --> (!b)? 5
+--    (6) 4 --> b? 6
+--    (7) 5 --> d 1
+--    (8) 5 --> d 2
+--    (9) 6 --> c 1
+--    (10) 6 --> c 2
 TRANS X1 <-> (X2 | (W1 & X3));
-TRANS X2 <-> (!W1 & !c);
+TRANS X2 <-> (!W1 & !e);
 TRANS X3 <-> (a & next(X4));
-TRANS X4 <-> ((b & next(X1)) | (b & next(X2)));
+TRANS X4 <-> ((!b & X5) | (b & X6));
+TRANS X5 <-> ((d & next(X1)) | (d & next(X2)));
+TRANS X6 <-> ((c & next(X1)) | (c & next(X2)));
 TRANS Y1 -> (Y2 | (W1 & Y3));
-TRANS Y2 -> (!W1 & !c);
+TRANS Y2 -> (!W1 & !e);
 TRANS Y3 -> (a & next(Y4));
-TRANS Y4 -> ((b & next(Y1)) | (b & next(Y2)));
-JUSTICE ((X1=Y1 & X2=Y2) & X3=Y3) & X4=Y4;
-JUSTICE ((!Y1 & !Y2) & !Y3) & !Y4;
+TRANS Y4 -> ((!b & Y5) | (b & Y6));
+TRANS Y5 -> ((d & next(Y1)) | (d & next(Y2)));
+TRANS Y6 -> ((c & next(Y1)) | (c & next(Y2)));
+JUSTICE ((((X1=Y1 & X2=Y2) & X3=Y3) & X4=Y4) & X5=Y5) & X6=Y6;
+JUSTICE ((((!Y1 & !Y2) & !Y3) & !Y4) & !Y5) & !Y6;
 ```
 
 ## 3. The LDL_LTL Syntax (ANTLR 4)

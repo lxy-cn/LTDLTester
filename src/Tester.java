@@ -40,6 +40,8 @@ public class Tester {
         LDL out; // the output assertion of
         PathGrammar fmla_pathGrammar = null;
 
+        String str_pathGrammar_before_optimization = "";
+
         //Set<String> vars; // the new variables created only for this tester, not for the sub testers
         LDL initCond;
         List<SubTesterTransition> trans; // the whole transition relation is the conjunction of all elements in the list
@@ -57,7 +59,7 @@ public class Tester {
             this.trans = new LinkedList<>();
             this.justices = new LinkedList<>();
         }
-
+/*
         public void print() {
             System.out.println("--The sub-tester " + this.ID + " for " + this.fmla.getText() + ":");
             System.out.println("Output assertion: " + this.out.getText());
@@ -84,6 +86,7 @@ public class Tester {
             }
 
         }
+*/
 
         // 将System.out的输出重定向到String
         // 用法：
@@ -115,7 +118,7 @@ public class Tester {
             return strWriter.toString();
         }
 
-        public String toSMV() {
+        public String toSMV(boolean printPathGrammarBeforeOptimization) {
             String s="";
             s+="--------- No." + this.ID + " sub-tester for " + this.fmla.getText() + " ---------\r\n";
             //s+="--Output variable: " + this.out.getText() + "\r\n";
@@ -152,6 +155,12 @@ public class Tester {
 
             if(initCond!=null) s+="INIT " + initCond.getText() + ";\r\n";
 //            s+="\r\n";
+
+            if(!this.str_pathGrammar_before_optimization.equals("") && printPathGrammarBeforeOptimization){
+                s+="\r\n--Before optimization:\r\n";
+                s+=this.str_pathGrammar_before_optimization.replaceAll("(?m)^", "--");
+                s+="\r\n--After optimization:\r\n";
+            }
 
             if(this.fmla_pathGrammar!=null) {
                 String strPG = this.fmla_pathGrammar.toString();
@@ -281,10 +290,19 @@ public class Tester {
         LDL f1out = buildSubTesterRecur(f1);
         LDL f2out = null;
 
+        SubTesterContainer T = new SubTesterContainer(this); // Tester T will be returned
+        T.fmla = f;
+
         PathGrammar pg = null;
         try {
-            pg = new PathGrammar(pathExpr);
+            pg = new PathGrammar(pathExpr); // pg is the path grammar before optimization
+
+            T.str_pathGrammar_before_optimization = pg.toString();
+
+            //System.out.println("-- The path grammar after optimization:");
+            pg.optimization();
             pg.renameProductions(GrammarVariableNumber+1);
+
             GrammarVariableNumber+=pg.getVariables().size();
 //            System.out.print("After renaming variables, ");
 //            pg.print();
@@ -292,9 +310,7 @@ public class Tester {
             throw new RuntimeException(e);
         }
 
-        SubTesterContainer T = new SubTesterContainer(this); // Tester T will be returned
-        T.fmla = f;
-        T.fmla_pathGrammar = pg;
+        T.fmla_pathGrammar = pg; // the path grammar after optimization
 
         Tester tt = null;
         LDL trX = null;
@@ -833,22 +849,23 @@ public class Tester {
         return T;
     }
 
+    /*
     public void print() {
         System.out.println("--The tester " + this.NusmvTesterInstanceName + " for " + this.fmla.getText() + ":");
         System.out.println("Output assertion: " + this.out.getText());
-        if(this.principalTemporalSubTesters.size()<=0){
+        if (this.principalTemporalSubTesters.size() <= 0) {
             System.out.println("There is not any sub-tester.");
-        }else{
+        } else {
             System.out.println("The sub-testers of " + SubTesterNumber + " principally temporal sub-formulas:");
             Iterator<LDL> it = this.principalTemporalSubTesters.getKeyIterator(true);
-            while (it.hasNext()){
+            while (it.hasNext()) {
                 LDL f = it.next();
                 SubTesterContainer T = this.principalTemporalSubTesters.get(f);
                 T.print();
             }
         }
 
-    }
+    }*/
 
     //生成smv刻画的tester，并将其插入main模块尾部
     public String toSMV() {
@@ -865,7 +882,7 @@ public class Tester {
                 LDL f = it.next();
                 SubTesterContainer T = this.principalTemporalSubTesters.get(f);
                 s += "--  (" + (i++) + ") " + T.out.getText() + ": " + f.getText() + "\r\n";
-                smvCode += "\r\n"+T.toSMV();
+                smvCode += "\r\n"+T.toSMV(true);
             }
             s += smvCode;
         }
