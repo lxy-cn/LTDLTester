@@ -1,13 +1,14 @@
-grammar LDL_LTL;
+// The grammar of Linear Temporal Dynamic Logic (LTDL), a combination of Linear Dynamic Logic (LDL) and Future and Past Linear Temporal Logic (LTL)
+grammar LTDL;
 
-ldl : ldlFormula EOF;
+ldl : ldlFormula EOF; // We are still using LDL instead of LTDL to simplify the grammar.
 
 ldlFormula :
     op=PAREN_OPEN ldlFormula PAREN_CLOSE # PAREN_LDL
     | atomicFormula # ATOM_LDL
     | op=NOT ldlFormula # NOT_LDL
-    | op=(NEXT|PREV|GLOBALLY|FINALLY) ldlFormula # UNARY_LTL_OPTR_LDL
-    | ldlFormula op=(UNTIL|RELEASE) ldlFormula # BINARY_LTL_OPTR_LDL
+    | op=(NEXT|FINALLY|GLOBALLY|PREVIOUS|PAST|HISTORICALLY) ldlFormula # UNARY_LTL_OPTR_LDL
+    | ldlFormula op=(UNTIL|RELEASE|SINCE|TRIGGER) ldlFormula # BINARY_LTL_OPTR_LDL
     | op=ANGLE_OPEN pathExpr ANGLE_CLOSE ldlFormula # DIAMOND_LDL
     | op=SQUARE_OPEN pathExpr SQUARE_CLOSE ldlFormula # BOX_LDL
     | ldlFormula op=(AND|OR|IMPLY|BIIMPLY) ldlFormula # BINARY_BOOL_OPTR_LDL
@@ -48,13 +49,18 @@ ANGLE_OPEN : '<' ;
 ANGLE_CLOSE : '>' ;
 SQUARE_OPEN : '[' ;
 SQUARE_CLOSE : ']' ;
-// LTL operators
+// future LTL operators
 NEXT : 'X' ;
-PREV : 'Y' ;
-GLOBALLY : 'G' ;
-FINALLY : 'F' ;
 UNTIL : 'U' ;
+FINALLY : 'F' ;
+GLOBALLY : 'G' ;
 RELEASE : 'R' ;
+// past LTL operators
+PREVIOUS : 'Y' ;
+SINCE : 'S' ;
+PAST : 'P' ;
+HISTORICALLY : 'H' ;
+TRIGGER : 'T' ;
 
 Identifier : [a-zA-Z_][a-zA-Z_0-9]* ;
 StringExpr : '\'' .*? '\'' ;

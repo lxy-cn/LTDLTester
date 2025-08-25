@@ -12,12 +12,10 @@
 --[TRUE*]<TRUE*>a #
 --  <a+(<b>c)?>d #
 -- <(a;b)*>c #
-   (<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)  #
+--   (<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)  #
 --   <(a?;b)*>c  #
--- [TRUE*]<TRUE*>a
 --[(req;(<TRUE*>work)?)*]<(a;b)*>ack #
 --[(a;b;c;(d+e+f);g;h)*]i #
---<((a+b)*;c)*>d #
 
 --<(a?;b;((c?;d)+((!c)?;e)))*;(!a)?>f #
 
@@ -30,6 +28,20 @@
 --<((F a)?;c+d)*>b #
 
 --<(a + b ; (c -> <a+b> F c & d)?; e)>f #
+
+
+[( (    req? ;
+        working;
+        Serve;
+        !working;
+        (   ((!(!error S working))? ; Rec) +
+            (!error S working)?
+        )
+    ) +
+    (!req? ; true)
+ )*
+] !error #
+
 
 /*
 [(((envworks ; envbroken) + (envbroken ; envworks)) 

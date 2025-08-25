@@ -15,11 +15,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class MainLdl_ltlVisitor {
+public class MainLtdlVisitor {
     static int OutputLevel = 0; // 输出显示级别
 
     public static String getTokenLiteralName(int tokenType) {
-        return LDL_LTLParser.VOCABULARY.getLiteralName(tokenType).replace("'", "");
+        return LTDLParser.VOCABULARY.getLiteralName(tokenType).replace("'", "");
     }
 
     public  static String stringSingleQuotes2Parentheses(String s) {
@@ -28,14 +28,14 @@ public class MainLdl_ltlVisitor {
     }
 
     // 获得自定义的LDL语法树
-    public static class Ldl_ltlGetTreeVisitor extends LDL_LTLBaseVisitor<LDL> {
+    public static class Ldl_ltlGetTreeVisitor extends LTDLBaseVisitor<LDL> {
         /**
          * {@inheritDoc}
          *
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitLdl(LDL_LTLParser.LdlContext ctx) {
+        @Override public LDL visitLdl(LTDLParser.LdlContext ctx) {
             return visit(ctx.ldlFormula());
         }
         /**
@@ -44,18 +44,22 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitUNARY_LTL_OPTR_LDL(LDL_LTLParser.UNARY_LTL_OPTR_LDLContext ctx) {
+        @Override public LDL visitUNARY_LTL_OPTR_LDL(LTDLParser.UNARY_LTL_OPTR_LDLContext ctx) {
             LDL c0 = null;
             c0 = visit(ctx.ldlFormula());
             if(c0 == null) return null;
-            if (ctx.op.getType() == LDL_LTLParser.NEXT)
+            if (ctx.op.getType() == LTDLParser.NEXT)
                 return new LDL(LDL.Operators.NEXT, c0);
-            else if (ctx.op.getType() == LDL_LTLParser.PREV)
-                return new LDL(LDL.Operators.PREV, c0);
-            else if (ctx.op.getType() == LDL_LTLParser.GLOBALLY)
-                return new LDL(LDL.Operators.GLOBALLY, c0);
-            else if (ctx.op.getType() == LDL_LTLParser.FINALLY)
+            else if (ctx.op.getType() == LTDLParser.PREVIOUS)
+                return new LDL(LDL.Operators.PREVIOUS, c0);
+            else if (ctx.op.getType() == LTDLParser.FINALLY)
                 return new LDL(LDL.Operators.FINALLY, c0);
+            else if (ctx.op.getType() == LTDLParser.PAST)
+                return new LDL(LDL.Operators.PAST, c0);
+            else if (ctx.op.getType() == LTDLParser.GLOBALLY)
+                return new LDL(LDL.Operators.GLOBALLY, c0);
+            else if (ctx.op.getType() == LTDLParser.HISTORICALLY)
+                return new LDL(LDL.Operators.HISTORICALLY, c0);
             else
                 return null;
         }
@@ -66,19 +70,19 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitBINARY_BOOL_OPTR_LDL(LDL_LTLParser.BINARY_BOOL_OPTR_LDLContext ctx) {
+        @Override public LDL visitBINARY_BOOL_OPTR_LDL(LTDLParser.BINARY_BOOL_OPTR_LDLContext ctx) {
             LDL c0=null, c1=null;
             c0 = visit(ctx.ldlFormula(0));
             if (c0 == null) return null;
             c1 = visit(ctx.ldlFormula(1));
             if (c1 == null) return null;
-            if (ctx.op.getType() == LDL_LTLParser.AND)
+            if (ctx.op.getType() == LTDLParser.AND)
                 return new LDL(LDL.Operators.AND, c0, c1);
-            else if (ctx.op.getType() == LDL_LTLParser.OR)
+            else if (ctx.op.getType() == LTDLParser.OR)
                 return new LDL(LDL.Operators.OR, c0, c1);
-            else if (ctx.op.getType() == LDL_LTLParser.IMPLY)
+            else if (ctx.op.getType() == LTDLParser.IMPLY)
                 return new LDL(LDL.Operators.IMPLY, c0, c1);
-            else if (ctx.op.getType() == LDL_LTLParser.BIIMPLY)
+            else if (ctx.op.getType() == LTDLParser.BIIMPLY)
                 return new LDL(LDL.Operators.BIIMPLY, c0, c1);
             else
                 return null;
@@ -89,7 +93,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitDIAMOND_LDL(LDL_LTLParser.DIAMOND_LDLContext ctx) {
+        @Override public LDL visitDIAMOND_LDL(LTDLParser.DIAMOND_LDLContext ctx) {
             LDL c0=null, c1=null;
             c0 = visit(ctx.pathExpr());
             if (c0 == null) return null;
@@ -103,7 +107,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitATOM_LDL(LDL_LTLParser.ATOM_LDLContext ctx) {
+        @Override public LDL visitATOM_LDL(LTDLParser.ATOM_LDLContext ctx) {
             return visit(ctx.atomicFormula());
         }
         /**
@@ -112,7 +116,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitNOT_LDL(LDL_LTLParser.NOT_LDLContext ctx) {
+        @Override public LDL visitNOT_LDL(LTDLParser.NOT_LDLContext ctx) {
             LDL c0=null;
             c0 = visit(ctx.ldlFormula());
             if (c0 == null) return null;
@@ -124,16 +128,20 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitBINARY_LTL_OPTR_LDL(LDL_LTLParser.BINARY_LTL_OPTR_LDLContext ctx) {
+        @Override public LDL visitBINARY_LTL_OPTR_LDL(LTDLParser.BINARY_LTL_OPTR_LDLContext ctx) {
             LDL c0=null, c1=null;
             c0 = visit(ctx.ldlFormula(0));
             if (c0 == null) return null;
             c1 = visit(ctx.ldlFormula(1));
             if (c1 == null) return null;
-            if (ctx.op.getType() == LDL_LTLParser.UNTIL)
+            if (ctx.op.getType() == LTDLParser.UNTIL)
                 return new LDL(LDL.Operators.UNTIL, c0, c1);
-            else if (ctx.op.getType() == LDL_LTLParser.RELEASE)
+            else if (ctx.op.getType() == LTDLParser.SINCE)
+                return new LDL(LDL.Operators.SINCE, c0, c1);
+            else if (ctx.op.getType() == LTDLParser.RELEASE)
                 return new LDL(LDL.Operators.RELEASE, c0, c1);
+            else if (ctx.op.getType() == LTDLParser.TRIGGER)
+                return new LDL(LDL.Operators.TRIGGER, c0, c1);
             else
                 return null;
         }
@@ -143,7 +151,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitPAREN_LDL(LDL_LTLParser.PAREN_LDLContext ctx) {
+        @Override public LDL visitPAREN_LDL(LTDLParser.PAREN_LDLContext ctx) {
             return visit(ctx.ldlFormula());
         }
         /**
@@ -152,7 +160,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitBOX_LDL(LDL_LTLParser.BOX_LDLContext ctx) {
+        @Override public LDL visitBOX_LDL(LTDLParser.BOX_LDLContext ctx) {
             LDL c0=null, c1=null;
             c0 = visit(ctx.pathExpr());
             if (c0 == null) return null;
@@ -166,7 +174,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitPROP_PATHEXPR(LDL_LTLParser.PROP_PATHEXPRContext ctx) {
+        @Override public LDL visitPROP_PATHEXPR(LTDLParser.PROP_PATHEXPRContext ctx) {
             return visit(ctx.propFormula());
         }
         /**
@@ -175,7 +183,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitREPETITION_PATHEXPR(LDL_LTLParser.REPETITION_PATHEXPRContext ctx) {
+        @Override public LDL visitREPETITION_PATHEXPR(LTDLParser.REPETITION_PATHEXPRContext ctx) {
             LDL c0=null;
             c0 = visit(ctx.pathExpr());
             if (c0 == null) return null;
@@ -187,7 +195,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitTEST_PATHEXPR(LDL_LTLParser.TEST_PATHEXPRContext ctx) {
+        @Override public LDL visitTEST_PATHEXPR(LTDLParser.TEST_PATHEXPRContext ctx) {
             LDL c0=null;
             c0 = visit(ctx.ldlFormula());
             if (c0 == null) return null;
@@ -199,7 +207,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitPAREN_PATHEXPR(LDL_LTLParser.PAREN_PATHEXPRContext ctx) {
+        @Override public LDL visitPAREN_PATHEXPR(LTDLParser.PAREN_PATHEXPRContext ctx) {
             return visit(ctx.pathExpr());
         }
         /**
@@ -208,15 +216,15 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitTWO_OPERANDS_PATHEXPR(LDL_LTLParser.TWO_OPERANDS_PATHEXPRContext ctx) {
+        @Override public LDL visitTWO_OPERANDS_PATHEXPR(LTDLParser.TWO_OPERANDS_PATHEXPRContext ctx) {
             LDL c0=null, c1=null;
             c0 = visit(ctx.pathExpr(0));
             if (c0 == null) return null;
             c1 = visit(ctx.pathExpr(1));
             if (c1 == null) return null;
-            if (ctx.op.getType() == LDL_LTLParser.SEMI)
+            if (ctx.op.getType() == LTDLParser.SEMI)
                 return new LDL(LDL.Operators.CONCAT, c0, c1);
-            else if (ctx.op.getType() == LDL_LTLParser.PLUS)
+            else if (ctx.op.getType() == LTDLParser.PLUS)
                 return new LDL(LDL.Operators.UNION, c0, c1);
             else
                 return null;
@@ -227,7 +235,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitNOT_PROP(LDL_LTLParser.NOT_PROPContext ctx) {
+        @Override public LDL visitNOT_PROP(LTDLParser.NOT_PROPContext ctx) {
             LDL c0=null;
             c0 = visit(ctx.propFormula());
             if (c0 == null) return null;
@@ -239,19 +247,19 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitTWO_OPERANDS_PROP(LDL_LTLParser.TWO_OPERANDS_PROPContext ctx) {
+        @Override public LDL visitTWO_OPERANDS_PROP(LTDLParser.TWO_OPERANDS_PROPContext ctx) {
             LDL c0=null, c1=null;
             c0 = visit(ctx.propFormula(0));
             if (c0 == null) return null;
             c1 = visit(ctx.propFormula(1));
             if (c1 == null) return null;
-            if (ctx.op.getType() == LDL_LTLParser.AND)
+            if (ctx.op.getType() == LTDLParser.AND)
                 return new LDL(LDL.Operators.AND, c0, c1);
-            else if (ctx.op.getType() == LDL_LTLParser.OR)
+            else if (ctx.op.getType() == LTDLParser.OR)
                 return new LDL(LDL.Operators.OR, c0, c1);
-            else if (ctx.op.getType() == LDL_LTLParser.IMPLY)
+            else if (ctx.op.getType() == LTDLParser.IMPLY)
                 return new LDL(LDL.Operators.IMPLY, c0, c1);
-            else if (ctx.op.getType() == LDL_LTLParser.BIIMPLY)
+            else if (ctx.op.getType() == LTDLParser.BIIMPLY)
                 return new LDL(LDL.Operators.BIIMPLY, c0, c1);
             else
                 return null;
@@ -262,7 +270,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitPAREN_PROP(LDL_LTLParser.PAREN_PROPContext ctx) {
+        @Override public LDL visitPAREN_PROP(LTDLParser.PAREN_PROPContext ctx) {
             return visit(ctx.propFormula());
         }
         /**
@@ -271,7 +279,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitATOM_PROP(LDL_LTLParser.ATOM_PROPContext ctx) {
+        @Override public LDL visitATOM_PROP(LTDLParser.ATOM_PROPContext ctx) {
             return visit(ctx.atomicFormula());
         }
         /**
@@ -280,7 +288,7 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitID_ATOM(LDL_LTLParser.ID_ATOMContext ctx) {
+        @Override public LDL visitID_ATOM(LTDLParser.ID_ATOMContext ctx) {
             return new LDL(ctx.Identifier().getText());
         }
         /**
@@ -289,155 +297,23 @@ public class MainLdl_ltlVisitor {
          * <p>The default implementation returns the result of calling
          * {@link #visitChildren} on {@code ctx}.</p>
          */
-        @Override public LDL visitSTREXPR_ATOM(LDL_LTLParser.STREXPR_ATOMContext ctx) {
+        @Override public LDL visitSTREXPR_ATOM(LTDLParser.STREXPR_ATOMContext ctx) {
             return new LDL(ctx.StringExpr().getText());
         }
     }
 
-/*
-    public static class Ldl_ltlGetTreeVisitor extends LDL_LTLBaseVisitor<LDL> {
-        public LDL visitLdl(LDL_LTLParser.LdlContext ctx) {
-            return visit(ctx.ldlFormula());
-        }
-
-        public LDL visitLdlFormula(LDL_LTLParser.LdlFormulaContext ctx) {
-            if ( ctx.getChildCount()==4 ) { // operations have 4 children
-                if ( ctx. .op.getType()==LDL_LTLParser.ANGLE_OPEN ) {
-                    LDL pe=visit(ctx.pathExpr()); // path expression
-                    LDL sf=visit(ctx.ldlFormula(0)); // subformula
-                    //return "<" + pe + ">" + sf;
-                    return new LDL(LDL.Operators.DIAMOND, pe, sf);
-                }
-                else { // ctx.op.getType()==LDLParser.SQUARE_OPEN
-                    LDL pe=visit(ctx.pathExpr()); // path expression
-                    LDL sf=visit(ctx.ldlFormula(0)); // subformula
-                    //return "[" + pe + "]" + sf;
-                    return new LDL(LDL.Operators.BOX, pe, sf);
-                }
-            }
-            else if ( ctx.getChildCount()==3 ) { // operations have 3 children
-                if ( ctx.op.getType()==LDL_LTLParser.PAREN_OPEN ) {
-                    return visit(ctx.ldlFormula(0));
-                }
-                else if ( ctx.op.getType()==LDL_LTLParser.AND ) {
-                    LDL l=visit(ctx.ldlFormula(0));
-                    LDL r=visit(ctx.ldlFormula(1));
-                    return new LDL(LDL.Operators.AND, l, r);
-                }
-                else if (ctx.op.getType()==LDL_LTLParser.OR) {
-                    LDL l=visit(ctx.ldlFormula(0));
-                    LDL r=visit(ctx.ldlFormula(1));
-                    return new LDL(LDL.Operators.OR, l, r);
-                }
-                else if (ctx.op.getType()==LDL_LTLParser.BIIMPLY) {
-                    LDL l=visit(ctx.ldlFormula(0));
-                    LDL r=visit(ctx.ldlFormula(1));
-                    return new LDL(LDL.Operators.BIIMPLY, l, r);
-                }
-                else { // ctx.op.getType()==LDLParser.IMPLY
-                    LDL l=visit(ctx.ldlFormula(0));
-                    LDL r=visit(ctx.ldlFormula(1));
-                    return new LDL(LDL.Operators.IMPLY, l, r);
-                }
-            }
-            else if ( ctx.getChildCount()==2 ) { // operations have 2 children: NOT subformula
-                LDL sf=visit(ctx.ldlFormula(0));
-                return new LDL(LDL.Operators.NOT, sf);
-            }
-            else {
-                return visitChildren(ctx);   // must be atomicFormula
-            }
-        }
-
-        public LDL visitPathExpr(LDL_LTLParser.PathExprContext ctx) {
-            if ( ctx.getChildCount()==3 ) { // operations have 3 children
-                if ( ctx.op.getType()==LDL_LTLParser.PAREN_OPEN ) {
-                    return visit(ctx.pathExpr(0));
-                }
-                else if ( ctx.op.getType()==LDL_LTLParser.SEMI ) {
-                    LDL l=visit(ctx.pathExpr(0));
-                    LDL r=visit(ctx.pathExpr(1));
-                    return new LDL(LDL.Operators.CONCAT, l, r);
-                }
-                else { // ctx.op.getType()==LDLParser.PLUS
-                    LDL l=visit(ctx.pathExpr(0));
-                    LDL r=visit(ctx.pathExpr(1));
-                    return new LDL(LDL.Operators.UNION, l, r);
-                }
-            }
-            else if ( ctx.getChildCount()==2 ) { // operations have 2 children
-                if ( ctx.op.getType()==LDL_LTLParser.STAR ) {
-                    LDL sf=visit(ctx.pathExpr(0));
-                    return new LDL(LDL.Operators.REPETITION, sf);
-                }
-                else { //ctx.op.getType()==LDLParser.QUESTION
-                    LDL sf=visit(ctx.ldlFormula());
-                    return new LDL(LDL.Operators.TEST, sf);
-                }
-            }
-            else {
-                return visitChildren(ctx);   // must be atomicFormula
-            }
-        }
-
-        public LDL visitPropFormula(LDL_LTLParser.PropFormulaContext ctx) {
-            if ( ctx.getChildCount()==3 ) { // operations have 3 children
-                if ( ctx.op.getType()==LDL_LTLParser.PAREN_OPEN ) {
-                    return visit(ctx.propFormula(0));
-                }
-                else if ( ctx.op.getType()==LDL_LTLParser.AND ) {
-                    LDL l=visit(ctx.propFormula(0));
-                    LDL r=visit(ctx.propFormula(1));
-                    return new LDL(LDL.Operators.AND, l, r);
-                }
-                else if ( ctx.op.getType()==LDL_LTLParser.OR ) {
-                    LDL l=visit(ctx.propFormula(0));
-                    LDL r=visit(ctx.propFormula(1));
-                    return new LDL(LDL.Operators.OR, l, r);
-                }
-                else if (ctx.op.getType()==LDL_LTLParser.BIIMPLY) {
-                    LDL l=visit(ctx.propFormula(0));
-                    LDL r=visit(ctx.propFormula(1));
-                    return new LDL(LDL.Operators.BIIMPLY, l, r);
-                }
-                else { // ctx.op.getType()==LDLParser.IMPLY
-                    LDL l=visit(ctx.propFormula(0));
-                    LDL r=visit(ctx.propFormula(1));
-                    return new LDL(LDL.Operators.IMPLY, l, r);
-                }
-            }
-            else if ( ctx.getChildCount()==2 ) { // operations have 2 children: NOT subformula
-                LDL sf=visit(ctx.propFormula(0));
-                return new LDL(LDL.Operators.NOT, sf);
-            }
-            else {
-                return visitChildren(ctx);   // must be atomicFormula
-            }
-        }
-
-        public LDL visitAtomicFormula(LDL_LTLParser.AtomicFormulaContext ctx) {
-            return new LDL(ctx.getText());
-        }
-
-        @Override
-        public LDL visitTerminal(TerminalNode node) {
-            return null;
-        }
-    }
-*/
-
     public static void oneFormulaTesterConstruction(String fmla) throws CloneNotSupportedException {
         //System.out.println(fmla);
-        LDL_LTLLexer lexer = new LDL_LTLLexer(CharStreams.fromString(fmla));
+        LTDLLexer lexer = new LTDLLexer(CharStreams.fromString(fmla));
 
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        LDL_LTLParser parser = new LDL_LTLParser(tokens);
+        LTDLParser parser = new LTDLParser(tokens);
         parser.setBuildParseTree(true);      // tell ANTLR to build a parse tree
         ParseTree tree = parser.ldl(); // parse
 
         Ldl_ltlGetTreeVisitor ldlGetTreeVisitor = new Ldl_ltlGetTreeVisitor();
         LDL ldlTree = ldlGetTreeVisitor.visit(tree);
-        System.out.println("--The original LDL formula: " + ldlTree.getText());
+        System.out.println("--The original LTDL formula: " + ldlTree.getText(true));
         ldlTree = ldlTree.box2diamond().reduceRedundantNotOperator();
 
         Tester tester = new Tester("", ldlTree);
@@ -446,11 +322,11 @@ public class MainLdl_ltlVisitor {
     }
 
     public static void showUsage(){
-        System.out.println("Usage: 'java -jar LDLTester.jar -ldl formula' or 'java -jar LDLTester.jar -file filename'");
+        System.out.println("Usage: 'java -jar LTDLTester.jar -ldl formula' or 'java -jar LTDLTester.jar -file filename'");
     }
 
     public static void showVersion(){
-        System.out.println("*** LDLTester 1.1.0, a SMV temporal tester generator for LDL+LTL");
+        System.out.println("*** LTDLTester 1.2.0 is a temporal tester generator for Linear Temporal Dynamic Logic (LTDL), which is a combination ofLinear Dynamic Logic (LDL) and Future and Past Linear Temporal Logic (LTL). The generated tester is written in SMV language that is used by NuSMV and nuXmv.");
         System.out.println("*** Copyright (c) 2025, Xiangyu Luo at Huaqiao University");
         System.out.println("*** For more information please contact us via luoxy@hqu.edu.cn");
     }
@@ -460,7 +336,7 @@ public class MainLdl_ltlVisitor {
         if (args.length > 0) {
             if(args[0].equals("-ldl")){
                 if(args.length<2){
-                    System.out.println("Warning: an LDL formula must be inputted after '-ldl'.");
+                    System.out.println("Warning: an LTDL formula must be inputted after '-ldl'.");
                     return;
                 }
                 oneFormulaTesterConstruction(args[1]);
@@ -515,7 +391,7 @@ public class MainLdl_ltlVisitor {
             }
         }else{ // no any argument
             /*Scanner scanner = new Scanner(System.in);
-            System.out.print("Input an LDL formula: ");
+            System.out.print("Input an LTDL formula: ");
             String input = scanner.nextLine(); // 读取整行
             generateOneTester(input);*/
             showUsage();

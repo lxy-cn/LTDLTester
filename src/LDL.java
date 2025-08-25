@@ -1,6 +1,7 @@
 import java.util.Objects;
 import java.util.Vector;
 
+// We are still using LDL instead of LTDL to simplify the source code.
 public class LDL implements Cloneable {
     Operators operator=null;
     String data=""; // "data" is used to record the atom name only when operator==ATOM
@@ -37,6 +38,13 @@ public class LDL implements Cloneable {
         switch (this.operator) {
             case ATOM:
                 return this.data.equals(inLdl.data);
+            case AND:
+            case OR:
+            case BIIMPLY:
+            case UNION:
+                boolean res1=this.children.get(0).equals(inLdl.children.get(0)) && this.children.get(1).equals(inLdl.children.get(1));
+                boolean res2=this.children.get(0).equals(inLdl.children.get(1)) && this.children.get(1).equals(inLdl.children.get(0));
+                return res1 || res2;
             default:
                 for (int i=0; i<this.children.size(); i++) {
                     if (!this.children.get(i).equals(inLdl.children.get(i)))
@@ -54,13 +62,18 @@ public class LDL implements Cloneable {
         OR,
         IMPLY,
         BIIMPLY,
-        /*LTL operators*/
+        /*future LTL operators*/
         NEXT,
-        PREV,
-        GLOBALLY,
-        FINALLY,
         UNTIL,
+        FINALLY,
+        GLOBALLY,
         RELEASE,
+        // past LTL operators
+        PREVIOUS,
+        SINCE,
+        PAST,
+        HISTORICALLY,
+        TRIGGER,
         /*LDL operators*/
         DIAMOND,
         BOX,
@@ -71,6 +84,7 @@ public class LDL implements Cloneable {
         REPETITION
     }
 
+/*
     // return 1 if op1>op2
     // return -1 if op1<op2
     // return 0 if op1=op2
@@ -103,7 +117,7 @@ public class LDL implements Cloneable {
 
         return 0;
     }
-
+*/
     public boolean operatorIsBinary() {
         switch (this.operator){
             case ATOM:
@@ -125,9 +139,12 @@ public class LDL implements Cloneable {
 
             case UNTIL:
             case RELEASE:
+
+            case SINCE:
+            case TRIGGER:
+
             case DIAMOND:
             case BOX:
-
                 return true;
             default:
                 return false;
@@ -209,10 +226,14 @@ public class LDL implements Cloneable {
             case NOT:
 
             case NEXT:
-            case PREV:
-            case GLOBALLY:
             case FINALLY:
+            case GLOBALLY:
+
+            case PREVIOUS:
+            case PAST:
+            case HISTORICALLY:
                 return children.get(0).isLTL();
+
             case AND:
             case OR:
             case IMPLY:
@@ -220,6 +241,9 @@ public class LDL implements Cloneable {
 
             case UNTIL:
             case RELEASE:
+
+            case SINCE:
+            case TRIGGER:
                 return children.get(0).isLTL() && children.get(1).isLTL();
             default:
                 return false;
@@ -233,10 +257,15 @@ public class LDL implements Cloneable {
             case NOT:
 
             case NEXT:
-            case PREV:
-            case GLOBALLY:
             case FINALLY:
+            case GLOBALLY:
+
+            case PREVIOUS:
+            case PAST:
+            case HISTORICALLY:
                 return children.get(0).isLDL_LTL();
+
+
             case AND:
             case OR:
             case IMPLY:
@@ -244,6 +273,9 @@ public class LDL implements Cloneable {
 
             case UNTIL:
             case RELEASE:
+
+            case SINCE:
+            case TRIGGER:
                 return children.get(0).isLDL_LTL() && children.get(1).isLDL_LTL();
             case DIAMOND:
             case BOX:
@@ -254,83 +286,177 @@ public class LDL implements Cloneable {
     }
 
     // 如果公式f的主算子是二目运算符&、|、->、<->、';'、+，则用圆括号将f的文本括起来，否则没有圆括号
-    public static String getTextWithBracketIfNeed(LDL f) {
-        String ftext = f.getText().trim();
+    public static String getTextWithBracketIfNeed(LDL f, boolean sortChildren) {
+        String ftext = f.getText(sortChildren).trim();
         if(f.operatorIsBinary()) // && !ftext.matches("\\(.*\\)"))
             return "(" + ftext + ")";
         else
             return ftext;
     }
 
-    public LDL(String atomicData) {
-        prime=false;
-        operator= Operators.ATOM;
-        data=atomicData;
-        children=new Vector<>();
+    public LDL(boolean prime, String atomicData) {
+        this.prime=prime;
+        this.operator= Operators.ATOM;
+        this.data=atomicData;
+        this.children=new Vector<>();
     }
-    public LDL(Operators op, LDL child0) {
-        prime=false;
-        operator=op;
-        data="";
-        children=new Vector<>();
-        children.add(child0);
+    public LDL(String atomicData) { this(false, atomicData); }
+
+    public LDL(boolean prime, Operators op, LDL child0) {
+        this.prime=prime;
+        this.operator=op;
+        this.data="";
+        this.children=new Vector<>();
+        this.children.add(child0);
     }
-    public LDL(Operators op, LDL child0, LDL child1) {
-        prime=false;
-        operator=op;
-        data="";
-        children=new Vector<>();
-        children.add(child0);
-        children.add(child1);
+    public LDL(Operators op, LDL child0) { this(false, op, child0); }
+
+    public LDL(boolean prime, Operators op, LDL child0, LDL child1) {
+        this.prime=prime;
+        this.operator=op;
+        this.data="";
+        this.children=new Vector<>();
+        this.children.add(child0);
+        this.children.add(child1);
     }
+    public LDL(Operators op, LDL child0, LDL child1) { this(false, op, child0, child1); }
+
     public LDL(Operators op, LDL child0, LDL child1, LDL child2) {
-        prime=false;
-        operator=op;
-        data="";
-        children=new Vector<>();
-        children.add(child0);
-        children.add(child1);
-        children.add(child2);
+        this.prime=false;
+        this.operator=op;
+        this.data="";
+        this.children=new Vector<>();
+        this.children.add(child0);
+        this.children.add(child1);
+        this.children.add(child2);
     }
-    //new reference of an LDL
-    public LDL(LDL f) {
-        this.prime = f.prime;
+
+    //new reference of an LDL with prime setup
+    public LDL(boolean prime, LDL f) {
+        this.prime = prime;
         this.operator = f.operator;
         this.children = f.children;
         this.data = f.data;
     }
 
-/*    public String getText() {
+    //new reference of an LDL
+    public LDL(LDL f) {
+        this(f.prime, f);
+    }
+
+    public String getText(boolean sortChildren) {
+        String res = "";
+        String t="",c0="",c1="";
         switch (operator) {
             case ATOM:
-                return data;
+                res = data.replaceAll("^'|'$", ""); // 将两端的单引号去掉（如果有），^'表示首字符为'，'$表示尾字符为'
+                break;
             case AND:
-                return children.get(0).getText() + "&" + getTextWithBracketIfNeed(children.get(1));
             case OR:
-                return children.get(0).getText() + "|" + getTextWithBracketIfNeed(children.get(1));
-            case IMPLY:
-                return children.get(0).getText() + "->" + getTextWithBracketIfNeed(children.get(1));
             case BIIMPLY:
-                return children.get(0).getText() + "<->" + getTextWithBracketIfNeed(children.get(1));
-            case NOT:
-                return "!" + getTextWithBracketIfNeed(children.get(0));
-            case DIAMOND:
-                return "<" + children.get(0).getText() + ">" + getTextWithBracketIfNeed(children.get(1));
-            case BOX:
-                return "[" + children.get(0).getText() + "]" + getTextWithBracketIfNeed(children.get(1));
-            case TEST:
-                return getTextWithBracketIfNeed(children.get(0)) + "?";
             case UNION:
-                return children.get(0).getText() + "+" + getTextWithBracketIfNeed(children.get(1));
+                switch (operator){
+                    case AND: t=" & "; break;
+                    case OR: t=" | "; break;
+                    case BIIMPLY: t=" <-> "; break;
+                    case UNION: t=" + "; break;
+                }
+                c0 = getTextWithBracketIfNeed(children.get(0), sortChildren);
+                c1 = getTextWithBracketIfNeed(children.get(1), sortChildren);
+                if(c0.compareTo(c1)>0 && sortChildren){
+                    res=c1+t+c0;
+                }else{ // c0<=c1
+                    res=c0+t+c1;
+                }
+                break;
+            case IMPLY:
+                res = getTextWithBracketIfNeed(children.get(0), sortChildren) + " -> " + getTextWithBracketIfNeed(children.get(1), sortChildren);
+                break;
+            case NOT:
+                res = "!" + getTextWithBracketIfNeed(children.get(0), sortChildren);
+                break;
+            case NEXT:
+                t = getTextWithBracketIfNeed(children.get(0), sortChildren);
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "X" + t;
+                else
+                    res = "X " + t;
+                break;
+            case PREVIOUS:
+                t = getTextWithBracketIfNeed(children.get(0), sortChildren);
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "Y" + t;
+                else
+                    res = "Y " + t;
+                break;
+            case FINALLY:
+                t = getTextWithBracketIfNeed(children.get(0), sortChildren);
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "F" + t;
+                else
+                    res = "F " + t;
+                break;
+            case PAST:
+                t = getTextWithBracketIfNeed(children.get(0), sortChildren);
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "P" + t;
+                else
+                    res = "P " + t;
+                break;
+            case GLOBALLY:
+                t = getTextWithBracketIfNeed(children.get(0), sortChildren);
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "G" + t;
+                else
+                    res = "G " + t;
+                break;
+            case HISTORICALLY:
+                t = getTextWithBracketIfNeed(children.get(0), sortChildren);
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "H" + t;
+                else
+                    res = "H " + t;
+                break;
+            case UNTIL:
+                res = getTextWithBracketIfNeed(children.get(0), sortChildren) + " U " + getTextWithBracketIfNeed(children.get(1), sortChildren);
+                break;
+            case SINCE:
+                res = getTextWithBracketIfNeed(children.get(0), sortChildren) + " S " + getTextWithBracketIfNeed(children.get(1), sortChildren);
+                break;
+            case RELEASE:
+                res = getTextWithBracketIfNeed(children.get(0), sortChildren) + " R " + getTextWithBracketIfNeed(children.get(1), sortChildren);
+                break;
+            case TRIGGER:
+                res = getTextWithBracketIfNeed(children.get(0), sortChildren) + " T " + getTextWithBracketIfNeed(children.get(1), sortChildren);
+                break;
+            case DIAMOND:
+                res = "<" + children.get(0).getText(sortChildren) + ">" + getTextWithBracketIfNeed(children.get(1), sortChildren);
+                break;
+            case BOX:
+                res = "[" + children.get(0).getText(sortChildren) + "]" + getTextWithBracketIfNeed(children.get(1), sortChildren);
+                break;
+            case TEST:
+                if (children.get(0).operator!=Operators.ATOM)
+                    res = "("+children.get(0).getText(sortChildren)+")?";
+                else
+                    res = children.get(0).getText(sortChildren)+"?";
+                break;
             case CONCAT:
-                return children.get(0).getText() + ";" + getTextWithBracketIfNeed(children.get(1));
+                res = getTextWithBracketIfNeed(children.get(0), sortChildren) + " ; " + getTextWithBracketIfNeed(children.get(1), sortChildren);
+                break;
             case REPETITION:
-                return getTextWithBracketIfNeed(children.get(0)) + "*";
+                res = getTextWithBracketIfNeed(children.get(0), sortChildren) + "*";
+                break;
             default:
-                return null;
+                break;
         }
-    }*/
 
+        if(this.prime) res = "next(" + res + ")";
+
+        return res;
+    }
+
+/*
     public String getText() {
         String res = "";
         String t="";
@@ -360,19 +486,12 @@ public class LDL implements Cloneable {
                 else
                     res = "X " + t;
                 break;
-            case PREV:
+            case PREVIOUS:
                 t = getTextWithBracketIfNeed(children.get(0));
                 if(t.length()>0 && t.substring(0,1).equals("("))
                     res = "Y" + t;
                 else
                     res = "Y " + t;
-                break;
-            case GLOBALLY:
-                t = getTextWithBracketIfNeed(children.get(0));
-                if(t.length()>0 && t.substring(0,1).equals("("))
-                    res = "G" + t;
-                else
-                    res = "G " + t;
                 break;
             case FINALLY:
                 t = getTextWithBracketIfNeed(children.get(0));
@@ -381,11 +500,38 @@ public class LDL implements Cloneable {
                 else
                     res = "F " + t;
                 break;
+            case PAST:
+                t = getTextWithBracketIfNeed(children.get(0));
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "P" + t;
+                else
+                    res = "P " + t;
+                break;
+            case GLOBALLY:
+                t = getTextWithBracketIfNeed(children.get(0));
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "G" + t;
+                else
+                    res = "G " + t;
+                break;
+            case HISTORICALLY:
+                t = getTextWithBracketIfNeed(children.get(0));
+                if(t.length()>0 && t.substring(0,1).equals("("))
+                    res = "H" + t;
+                else
+                    res = "H " + t;
+                break;
             case UNTIL:
                 res = getTextWithBracketIfNeed(children.get(0)) + " U " + getTextWithBracketIfNeed(children.get(1));
                 break;
+            case SINCE:
+                res = getTextWithBracketIfNeed(children.get(0)) + " S " + getTextWithBracketIfNeed(children.get(1));
+                break;
             case RELEASE:
                 res = getTextWithBracketIfNeed(children.get(0)) + " R " + getTextWithBracketIfNeed(children.get(1));
+                break;
+            case TRIGGER:
+                res = getTextWithBracketIfNeed(children.get(0)) + " T " + getTextWithBracketIfNeed(children.get(1));
                 break;
             case DIAMOND:
                 res = "<" + children.get(0).getText() + ">" + getTextWithBracketIfNeed(children.get(1));
@@ -416,6 +562,7 @@ public class LDL implements Cloneable {
 
         return res;
     }
+*/
 
     public LDL box2diamond() throws CloneNotSupportedException {
         if(this.operator== Operators.ATOM){
@@ -431,7 +578,7 @@ public class LDL implements Cloneable {
         else{
             int child_count = this.children.size();
             if(child_count<=0 || child_count>2){
-                System.out.println("Error in box2diamond(): "+ child_count + " children in the LDL formula " + this.getText());
+                System.out.println("Error in box2diamond(): "+ child_count + " children in the LDL formula " + this.getText(true));
                 return null;
             }
             if(child_count==1){

@@ -15,8 +15,9 @@ public class LDL_LTLParser extends Parser {
 	public static final int
 		BIIMPLY=1, IMPLY=2, AND=3, OR=4, NOT=5, STAR=6, PLUS=7, SEMI=8, QUESTION=9, 
 		PAREN_OPEN=10, PAREN_CLOSE=11, ANGLE_OPEN=12, ANGLE_CLOSE=13, SQUARE_OPEN=14, 
-		SQUARE_CLOSE=15, NEXT=16, PREV=17, GLOBALLY=18, FINALLY=19, UNTIL=20, 
-		RELEASE=21, Identifier=22, StringExpr=23, WS=24;
+		SQUARE_CLOSE=15, NEXT=16, UNTIL=17, FINALLY=18, GLOBALLY=19, RELEASE=20, 
+		PREVIOUS=21, SINCE=22, PAST=23, HISTORICALLY=24, TRIGGER=25, Identifier=26, 
+		StringExpr=27, WS=28;
 	public static final int
 		RULE_ldl = 0, RULE_ldlFormula = 1, RULE_pathExpr = 2, RULE_propFormula = 3, 
 		RULE_atomicFormula = 4;
@@ -30,8 +31,8 @@ public class LDL_LTLParser extends Parser {
 	private static String[] makeLiteralNames() {
 		return new String[] {
 			null, "'<->'", "'->'", "'&'", "'|'", "'!'", "'*'", "'+'", "';'", "'?'", 
-			"'('", "')'", "'<'", "'>'", "'['", "']'", "'X'", "'Y'", "'G'", "'F'", 
-			"'U'", "'R'"
+			"'('", "')'", "'<'", "'>'", "'['", "']'", "'X'", "'U'", "'F'", "'G'", 
+			"'R'", "'Y'", "'S'", "'P'", "'H'", "'T'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
@@ -39,8 +40,9 @@ public class LDL_LTLParser extends Parser {
 		return new String[] {
 			null, "BIIMPLY", "IMPLY", "AND", "OR", "NOT", "STAR", "PLUS", "SEMI", 
 			"QUESTION", "PAREN_OPEN", "PAREN_CLOSE", "ANGLE_OPEN", "ANGLE_CLOSE", 
-			"SQUARE_OPEN", "SQUARE_CLOSE", "NEXT", "PREV", "GLOBALLY", "FINALLY", 
-			"UNTIL", "RELEASE", "Identifier", "StringExpr", "WS"
+			"SQUARE_OPEN", "SQUARE_CLOSE", "NEXT", "UNTIL", "FINALLY", "GLOBALLY", 
+			"RELEASE", "PREVIOUS", "SINCE", "PAST", "HISTORICALLY", "TRIGGER", "Identifier", 
+			"StringExpr", "WS"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -78,7 +80,7 @@ public class LDL_LTLParser extends Parser {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "LDL_LTL.g4"; }
+	public String getGrammarFileName() { return "backup/LDL_LTL.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -161,9 +163,11 @@ public class LDL_LTLParser extends Parser {
 			return getRuleContext(LdlFormulaContext.class,0);
 		}
 		public TerminalNode NEXT() { return getToken(LDL_LTLParser.NEXT, 0); }
-		public TerminalNode PREV() { return getToken(LDL_LTLParser.PREV, 0); }
-		public TerminalNode GLOBALLY() { return getToken(LDL_LTLParser.GLOBALLY, 0); }
 		public TerminalNode FINALLY() { return getToken(LDL_LTLParser.FINALLY, 0); }
+		public TerminalNode GLOBALLY() { return getToken(LDL_LTLParser.GLOBALLY, 0); }
+		public TerminalNode PREVIOUS() { return getToken(LDL_LTLParser.PREVIOUS, 0); }
+		public TerminalNode PAST() { return getToken(LDL_LTLParser.PAST, 0); }
+		public TerminalNode HISTORICALLY() { return getToken(LDL_LTLParser.HISTORICALLY, 0); }
 		public UNARY_LTL_OPTR_LDLContext(LdlFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
@@ -286,6 +290,8 @@ public class LDL_LTLParser extends Parser {
 		}
 		public TerminalNode UNTIL() { return getToken(LDL_LTLParser.UNTIL, 0); }
 		public TerminalNode RELEASE() { return getToken(LDL_LTLParser.RELEASE, 0); }
+		public TerminalNode SINCE() { return getToken(LDL_LTLParser.SINCE, 0); }
+		public TerminalNode TRIGGER() { return getToken(LDL_LTLParser.TRIGGER, 0); }
 		public BINARY_LTL_OPTR_LDLContext(LdlFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
@@ -406,9 +412,11 @@ public class LDL_LTLParser extends Parser {
 				}
 				break;
 			case NEXT:
-			case PREV:
-			case GLOBALLY:
 			case FINALLY:
+			case GLOBALLY:
+			case PREVIOUS:
+			case PAST:
+			case HISTORICALLY:
 				{
 				_localctx = new UNARY_LTL_OPTR_LDLContext(_localctx);
 				_ctx = _localctx;
@@ -416,7 +424,7 @@ public class LDL_LTLParser extends Parser {
 				setState(21);
 				((UNARY_LTL_OPTR_LDLContext)_localctx).op = _input.LT(1);
 				_la = _input.LA(1);
-				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 983040L) != 0)) ) {
+				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 28114944L) != 0)) ) {
 					((UNARY_LTL_OPTR_LDLContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 				}
 				else {
@@ -482,7 +490,7 @@ public class LDL_LTLParser extends Parser {
 						setState(36);
 						((BINARY_LTL_OPTR_LDLContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !(_la==UNTIL || _la==RELEASE) ) {
+						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 38928384L) != 0)) ) {
 							((BINARY_LTL_OPTR_LDLContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						}
 						else {
@@ -1113,7 +1121,7 @@ public class LDL_LTLParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u0018Z\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
+		"\u0004\u0001\u001cZ\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
 		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004\u0001"+
 		"\u0000\u0001\u0000\u0001\u0000\u0001\u0001\u0001\u0001\u0001\u0001\u0001"+
 		"\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001"+
@@ -1128,8 +1136,9 @@ public class LDL_LTLParser extends Parser {
 		"\u0003\u0001\u0003\u0001\u0003\u0003\u0003L\b\u0003\u0001\u0003\u0001"+
 		"\u0003\u0001\u0003\u0005\u0003Q\b\u0003\n\u0003\f\u0003T\t\u0003\u0001"+
 		"\u0004\u0001\u0004\u0003\u0004X\b\u0004\u0001\u0004\u0000\u0003\u0002"+
-		"\u0004\u0006\u0005\u0000\u0002\u0004\u0006\b\u0000\u0004\u0001\u0000\u0010"+
-		"\u0013\u0001\u0000\u0014\u0015\u0001\u0000\u0001\u0004\u0001\u0000\u0007"+
+		"\u0004\u0006\u0005\u0000\u0002\u0004\u0006\b\u0000\u0004\u0004\u0000\u0010"+
+		"\u0010\u0012\u0013\u0015\u0015\u0017\u0018\u0004\u0000\u0011\u0011\u0014"+
+		"\u0014\u0016\u0016\u0019\u0019\u0001\u0000\u0001\u0004\u0001\u0000\u0007"+
 		"\bc\u0000\n\u0001\u0000\u0000\u0000\u0002!\u0001\u0000\u0000\u0000\u0004"+
 		"7\u0001\u0000\u0000\u0000\u0006K\u0001\u0000\u0000\u0000\bW\u0001\u0000"+
 		"\u0000\u0000\n\u000b\u0003\u0002\u0001\u0000\u000b\f\u0005\u0000\u0000"+
@@ -1166,8 +1175,8 @@ public class LDL_LTLParser extends Parser {
 		"\u0000\u0000LR\u0001\u0000\u0000\u0000MN\n\u0001\u0000\u0000NO\u0007\u0002"+
 		"\u0000\u0000OQ\u0003\u0006\u0003\u0002PM\u0001\u0000\u0000\u0000QT\u0001"+
 		"\u0000\u0000\u0000RP\u0001\u0000\u0000\u0000RS\u0001\u0000\u0000\u0000"+
-		"S\u0007\u0001\u0000\u0000\u0000TR\u0001\u0000\u0000\u0000UX\u0005\u0016"+
-		"\u0000\u0000VX\u0005\u0017\u0000\u0000WU\u0001\u0000\u0000\u0000WV\u0001"+
+		"S\u0007\u0001\u0000\u0000\u0000TR\u0001\u0000\u0000\u0000UX\u0005\u001a"+
+		"\u0000\u0000VX\u0005\u001b\u0000\u0000WU\u0001\u0000\u0000\u0000WV\u0001"+
 		"\u0000\u0000\u0000X\t\u0001\u0000\u0000\u0000\t!)+7>@KRW";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());

@@ -90,22 +90,22 @@ public class PathGrammarProduction {
         String s = this.leftVariable + " --> ";
         switch (this.type) {
             case Empty:
-                s += "empty";
+                s += "ε";
                 break;
             case Test:
             case PropFormula:
-                s += LDL.getTextWithBracketIfNeed((LDL)this.rightItem1);
+                s += LDL.getTextWithBracketIfNeed((LDL)this.rightItem1, true);
                 break;
             case Variable:
                 s += this.rightItem1;
                 break;
             case Test_Variable:
             case PropFormula_Variable:
-                s += LDL.getTextWithBracketIfNeed(((LDL)this.rightItem1)) + " " + this.rightItem2;
+                s += LDL.getTextWithBracketIfNeed(((LDL)this.rightItem1), true) + " " + this.rightItem2;
                 break;
             case Test_PropFormula:
             case PropFormula_Test:
-                s += "(" + ((LDL)this.rightItem1).getText() + ").(" + ((LDL)this.rightItem2).getText() + ")";
+                s += "(" + ((LDL)this.rightItem1).getText(true) + ").(" + ((LDL)this.rightItem2).getText(true) + ")";
                 break;
         }
         return s;

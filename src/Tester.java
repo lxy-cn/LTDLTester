@@ -41,6 +41,7 @@ public class Tester {
         PathGrammar fmla_pathGrammar = null;
 
         String str_pathGrammar_before_optimization = "";
+        String str_pathGrammar_after_optimization_before_renaming = "";
 
         //Set<String> vars; // the new variables created only for this tester, not for the sub testers
         LDL initCond;
@@ -118,9 +119,9 @@ public class Tester {
             return strWriter.toString();
         }
 
-        public String toSMV(boolean printPathGrammarBeforeOptimization) {
+        public String toSMV(boolean printPathGrammarBeforeOptimization, boolean printPathGrammarBeforeRenaming) {
             String s="";
-            s+="--------- No." + this.ID + " sub-tester for " + this.fmla.getText() + " ---------\r\n";
+            s+="--------- No." + this.ID + " sub-tester for " + this.fmla.getText(true) + " ---------\r\n";
             //s+="--Output variable: " + this.out.getText() + "\r\n";
 
             // 输出变量定义
@@ -144,46 +145,55 @@ public class Tester {
                     s += leftSpace + varX + " : boolean;\t";
                     s += this.parentTester.NusmvTesterInstanceName + "Y" + v + " : boolean;";
 
-                    if(this.out.getText().equals(varX))
+                    if(this.out.getText(true).equals(varX))
                         s+=" -- " + varX + " is the output variable\r\n";
                     else
                         s+="\r\n";
                 }
             }else{
-                s+="VAR " + this.out.getText() + " : boolean;\r\n";
+                s+="VAR " + this.out.getText(true) + " : boolean;\r\n";
             }
 
-            if(initCond!=null) s+="INIT " + initCond.getText() + ";\r\n";
+            if(initCond!=null) s+="INIT " + initCond.getText(true) + ";\r\n";
 //            s+="\r\n";
 
+            // print non-optimized grammar
             if(!this.str_pathGrammar_before_optimization.equals("") && printPathGrammarBeforeOptimization){
-                s+="\r\n--Before optimization:\r\n";
+                s+="\r\n--Before optimizing and renaming:\r\n";
                 s+=this.str_pathGrammar_before_optimization.replaceAll("(?m)^", "--");
-                s+="\r\n--After optimization:\r\n";
             }
 
+            // print optimized but non-renamed grammar
+            if(!this.str_pathGrammar_after_optimization_before_renaming.equals("") && printPathGrammarBeforeRenaming){
+                s+="\r\n--After optimized and before renaming:\r\n";
+                s+=this.str_pathGrammar_after_optimization_before_renaming.replaceAll("(?m)^", "--");
+            }
+
+            // print optimized and renamed grammar
             if(this.fmla_pathGrammar!=null) {
                 String strPG = this.fmla_pathGrammar.toString();
+                s+="\r\n--After optimized and renamed:\r\n";
                 // 在所有行首（包括第一行）添加注释前缀prefix
                 String prefix = "--";
                 s += strPG.replaceAll("(?m)^", prefix);
-                //s+="\r\n";
+                s+="\r\n";
             }
 
+            // print the SMV model
             SubTesterTransition t=null;
             for(int i=0; i<this.trans.size(); i+=2) {
                 t = this.trans.get(i);
-                s+="TRANS " + t.trans.getText() + ";\r\n";
+                s+="TRANS " + t.trans.getText(false) + ";\r\n";
             }
 //            s+="\r\n";
             for(int i=1; i<this.trans.size(); i+=2) {
                 t = this.trans.get(i);
-                s+="TRANS " + t.trans.getText() + ";\r\n";
+                s+="TRANS " + t.trans.getText(false) + ";\r\n";
             }
 //            s+="\r\n";
             if(this.justices.size()>0) {
                 for (LDL j : this.justices) {
-                    s+="JUSTICE " + j.getText() + ";\r\n";
+                    s+="JUSTICE " + j.getText(false) + ";\r\n";
                 }
             }
             return s;
@@ -223,11 +233,15 @@ public class Tester {
                 f2 = buildSubTesterRecur(f.children.get(1));
                 return new LDL(f.operator, f1, f2);
             case NEXT:
-            case PREV:
-            case GLOBALLY:
-            case FINALLY:
+            case PREVIOUS:
             case UNTIL:
+            case SINCE:
             case RELEASE:
+            case TRIGGER:
+            case FINALLY:
+            case PAST:
+            case GLOBALLY:
+            case HISTORICALLY:
             case DIAMOND:
 //            case BOX: // BOX is reduced before calling this function
                 // (1) If the sub-tester of the principally temporal sub-formula f does not exist, build and cache it.
@@ -237,11 +251,16 @@ public class Tester {
                 if(!principalTemporalSubTesters.containsKey(f)){
                     switch (f.operator) {
                         case NEXT: T = buildSubTester4Next(f); break;
-                        case PREV: T = buildSubTester4Prev(f); break;
-                        case GLOBALLY: T = buildSubTester4Globally(f); break;
-                        case FINALLY: T = buildSubTester4Finally(f); break;
+                        case PREVIOUS: T = buildSubTester4Previous(f); break;
                         case UNTIL: T = buildSubTester4Until(f); break;
+                        case SINCE: T = buildSubTester4Since(f); break;
                         case RELEASE: T = buildSubTester4Release(f); break;
+                        case TRIGGER: T = buildSubTester4Trigger(f); break;
+                        case FINALLY: T = buildSubTester4Finally(f); break;
+                        case PAST: T = buildSubTester4Past(f); break;
+                        case GLOBALLY: T = buildSubTester4Globally(f); break;
+                        case HISTORICALLY: T = buildSubTester4Historically(f); break;
+
                         case DIAMOND: T = buildSubTester4Diamond(f); break;
                         default:
                             break;
@@ -299,13 +318,13 @@ public class Tester {
 
             T.str_pathGrammar_before_optimization = pg.toString();
 
-            //System.out.println("-- The path grammar after optimization:");
-            pg.optimization();
-            pg.renameProductions(GrammarVariableNumber+1);
+//            pg.optimization();
+            pg.new_optimization();
 
+            T.str_pathGrammar_after_optimization_before_renaming = pg.toString();
+
+            pg.renameProductions(GrammarVariableNumber+1);
             GrammarVariableNumber+=pg.getVariables().size();
-//            System.out.print("After renaming variables, ");
-//            pg.print();
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
@@ -378,10 +397,8 @@ public class Tester {
                     case PropFormula_Variable: // p:v-->prop.w
                         prop = (LDL) p.rightItem1;
                         w = (String) p.rightItem2;
-                        LDL nw = new LDL(this.NusmvTesterInstanceName +"X"+w);
-                        nw.prime=true; // nw=next("X"+w)
-                        LDL nwY = new LDL(this.NusmvTesterInstanceName +"Y"+w);
-                        nwY.prime=true; // nwY=next("Y"+w)
+                        LDL nw = new LDL(true, this.NusmvTesterInstanceName +"X"+w); // nw=next("X"+w)
+                        LDL nwY = new LDL(true, this.NusmvTesterInstanceName +"Y"+w); // nwY=next("Y"+w)
 
                         trX = new LDL(LDL.Operators.AND, prop, nw); // prop & next("X"+w)
                         trY = new LDL(LDL.Operators.AND, prop, nwY); // prop & next("Y"+w)
@@ -473,6 +490,7 @@ public class Tester {
         return T;
     }
 
+/*
     // Build tester for f = <pathExpr>f1
     // Building method 2: restrict feasible paths to be FINITE by using only ONE copy of grammar variables for the following cases:
     // (1) The main operator of pathExpr is not '*'.
@@ -566,42 +584,14 @@ public class Tester {
                     case PropFormula_Variable: // p:v-->prop.w
                         prop = (LDL) p.rightItem1;
                         w = (String) p.rightItem2;
-                        LDL nw = new LDL(this.NusmvTesterInstanceName +"X"+w);
-                        nw.prime=true; // nw=next("X"+w)
-                        LDL nwY = new LDL(this.NusmvTesterInstanceName +"Y"+w);
-                        nwY.prime=true; // nwY=next("Y"+w)
+                        LDL nw = new LDL(true, this.NusmvTesterInstanceName +"X"+w); // nw=next("X"+w)
+                        LDL nwY = new LDL(true, this.NusmvTesterInstanceName +"Y"+w); // nwY=next("Y"+w)
 
                         trX = new LDL(LDL.Operators.AND, prop, nw); // prop & next("X"+w)
                         trY = new LDL(LDL.Operators.AND, prop, nwY); // prop & next("Y"+w)
                         XvarTrans.add(new SubTesterTransition(p, false, trX));
                         YvarTrans.add(new SubTesterTransition(p, false, trY));
                         break;
-/*
-                    case Test_PropFormula: // p:v-->f2?.prop
-                        test = (LDL) p.rightItem1; // test=f2?
-                        f2 = test.children.get(0);
-                        f2out = buildTesterRecur(f2);
-                        prop = (LDL) p.rightItem2;
-
-                        trX = new LDL(LDL.Operators.AND, f2out, prop); // trX = T(f2).out & prop
-                        trY = new LDL(LDL.Operators.AND, ldlVarX2Y(f2out), prop); // trY = T(f2).out & prop
-                        XvarTrans.add(new TesterTransition(p, false, trX));
-                        YvarTrans.add(new TesterTransition(p, false, trY));
-                        break;
-                    case PropFormula_Test: // p:v-->prop.f2?
-                        prop = (LDL) p.rightItem1;
-                        test = (LDL) p.rightItem2; // test=f2?
-                        f2 = test.children.get(0);
-                        f2out = buildTesterRecur(f2);
-                        LDL next_f2out = new LDL(f2out);
-                        next_f2out.prime=true;
-
-                        trX = new LDL(LDL.Operators.AND, prop, next_f2out); // trX = prop & next(T(f2).out)
-                        trY = new LDL(LDL.Operators.AND, prop, ldlVarX2Y(next_f2out)); // trX = prop & next(T(f2).out)
-                        XvarTrans.add(new TesterTransition(p, false, trX));
-                        YvarTrans.add(new TesterTransition(p, false, trY));
-                        break;
-*/
                     default:
                         break;
                 }
@@ -660,6 +650,7 @@ public class Tester {
 
         return T;
     }
+*/
 
     //Build the sub-tester for f = X f1
     public SubTesterContainer buildSubTester4Next(LDL f) throws CloneNotSupportedException {
@@ -688,9 +679,9 @@ public class Tester {
         return T;
     }
 
-    //Build the sub-tester for f = Y f1
-    public SubTesterContainer buildSubTester4Prev(LDL f) throws CloneNotSupportedException {
-        if(f.operator != LDL.Operators.PREV) return null;
+    //Build the sub-tester for f = Y f1 (Yesterday, Previous)
+    public SubTesterContainer buildSubTester4Previous(LDL f) throws CloneNotSupportedException {
+        if(f.operator != LDL.Operators.PREVIOUS) return null;
 
         LDL f1 = f.children.get(0); // the tester of f1 must already be created and cached
         LDL f1out = buildSubTesterRecur(f1);
@@ -701,12 +692,11 @@ public class Tester {
 
         String newVarName = this.NusmvTesterInstanceName + LtlVariableNamePrefix + (++LtlVariableNumber);
         LDL newVar = new LDL(newVarName);
-        LDL next_newVar = new LDL(newVar);
-        next_newVar.prime = true;
+        LDL next_newVar = new LDL(true, newVar);
 
         LDL tr = new LDL(LDL.Operators.BIIMPLY,
                 f1out,
-                next_newVar); // tr = T(f1).out <-> next(newVar)
+                next_newVar); // tr = next(newVar) <-> T(f1).out
         T.trans.add(new SubTesterTransition(null, false, tr));
 
         T.initCond = new LDL(LDL.Operators.NOT, newVar); // init = !newVar
@@ -730,8 +720,7 @@ public class Tester {
 
         String newVarName = this.NusmvTesterInstanceName + LtlVariableNamePrefix + (++LtlVariableNumber);
         LDL newVar = new LDL(newVarName);
-        LDL next_newVar = new LDL(newVar);
-        next_newVar.prime = true;
+        LDL next_newVar = new LDL(true, newVar);
 
         LDL tr = new LDL(LDL.Operators.BIIMPLY,
                 newVar,
@@ -739,6 +728,35 @@ public class Tester {
         T.trans.add(new SubTesterTransition(null, false, tr));
 
         T.justices.add(new LDL(LDL.Operators.IMPLY, newVar, f1out)); // newVar -> T(f1).out
+
+        T.ID = (++SubTesterNumber);
+        T.out = newVar;
+
+        return T;
+    }
+
+    //Build the sub-tester for f = P f1
+    public SubTesterContainer buildSubTester4Past(LDL f) throws CloneNotSupportedException {
+        if(f.operator != LDL.Operators.FINALLY) return null;
+
+        LDL f1 = f.children.get(0); // the tester of f1 must already be built and cached
+        LDL f1out = buildSubTesterRecur(f1);
+
+        SubTesterContainer T = new SubTesterContainer(this); // Tester T will be returned
+        T.fmla = f;
+        T.fmla_pathGrammar = null;
+
+        String newVarName = this.NusmvTesterInstanceName + LtlVariableNamePrefix + (++LtlVariableNumber);
+        LDL newVar = new LDL(newVarName);
+        LDL next_newVar = new LDL(true, newVar);
+        LDL next_f1out = new LDL(true, f1out);
+
+        LDL tr = new LDL(LDL.Operators.BIIMPLY,
+                next_newVar,
+                new LDL(LDL.Operators.OR, next_f1out, newVar)); // tr = next(newVar) <-> (next(T(f1).out) | newVar)
+        T.trans.add(new SubTesterTransition(null, false, tr));
+
+        T.initCond = new LDL(LDL.Operators.BIIMPLY, newVar, f1out);  // newVar <-> T(f1).out
 
         T.ID = (++SubTesterNumber);
         T.out = newVar;
@@ -759,13 +777,41 @@ public class Tester {
 
         String newVarName = this.NusmvTesterInstanceName + LtlVariableNamePrefix + (++LtlVariableNumber);
         LDL newVar = new LDL(newVarName);
-        LDL next_newVar = new LDL(newVar);
-        next_newVar.prime = true;
+        LDL next_newVar = new LDL(true, newVar);
 
         LDL tr = new LDL(LDL.Operators.BIIMPLY,
                 newVar,
                 new LDL(LDL.Operators.AND, f1out, next_newVar)); // tr = newVar <-> (T(f1).out & next(newVar))
         T.trans.add(new SubTesterTransition(null, false, tr));
+
+        T.ID = (++SubTesterNumber);
+        T.out = newVar;
+
+        return T;
+    }
+
+    //Build the sub-tester for f = H f1
+    public SubTesterContainer buildSubTester4Historically(LDL f) throws CloneNotSupportedException {
+        if(f.operator != LDL.Operators.GLOBALLY) return null;
+
+        LDL f1 = f.children.get(0); // the tester of f1 must already be built and cached
+        LDL f1out = buildSubTesterRecur(f1);
+
+        SubTesterContainer T = new SubTesterContainer(this); // Tester T will be returned
+        T.fmla = f;
+        T.fmla_pathGrammar = null;
+
+        String newVarName = this.NusmvTesterInstanceName + LtlVariableNamePrefix + (++LtlVariableNumber);
+        LDL newVar = new LDL(newVarName);
+        LDL next_newVar = new LDL(true, newVar);
+        LDL next_f1out = new LDL(true, f1out);
+
+        LDL tr = new LDL(LDL.Operators.BIIMPLY,
+                next_newVar,
+                new LDL(LDL.Operators.AND, next_f1out, newVar)); // tr = next(newVar) <-> (next(T(f1).out) & newVar)
+        T.trans.add(new SubTesterTransition(null, false, tr));
+
+        T.initCond = new LDL(LDL.Operators.BIIMPLY, newVar, f1out);  // newVar <-> T(f1).out
 
         T.ID = (++SubTesterNumber);
         T.out = newVar;
@@ -789,8 +835,7 @@ public class Tester {
 
         String newVarName = this.NusmvTesterInstanceName + LtlVariableNamePrefix + (++LtlVariableNumber);
         LDL newVar = new LDL(newVarName);
-        LDL next_newVar = new LDL(newVar);
-        next_newVar.prime = true;
+        LDL next_newVar = new LDL(true, newVar);
 
         LDL tr = new LDL(LDL.Operators.BIIMPLY,
                             newVar,
@@ -805,6 +850,46 @@ public class Tester {
         T.trans.add(new SubTesterTransition(null, false, tr));
 
         T.justices.add(new LDL(LDL.Operators.IMPLY, newVar, f2out)); // newVar -> T(f2).out
+
+        T.ID = (++SubTesterNumber);
+        T.out = newVar;
+
+        return T;
+    }
+
+    //Build the sub-tester for f = f1 S f2
+    public SubTesterContainer buildSubTester4Since(LDL f) throws CloneNotSupportedException {
+        if(f.operator != LDL.Operators.SINCE) return null;
+
+        LDL f1 = f.children.get(0); // the tester of f1 must already be built and cached
+        LDL f1out = buildSubTesterRecur(f1);
+
+        LDL f2 = f.children.get(1); // the tester of f2 must already be built and cached
+        LDL f2out = buildSubTesterRecur(f2);
+
+        SubTesterContainer T = new SubTesterContainer(this); // Tester T will be returned
+        T.fmla = f;
+        T.fmla_pathGrammar = null;
+
+        String newVarName = this.NusmvTesterInstanceName + LtlVariableNamePrefix + (++LtlVariableNumber);
+        LDL newVar = new LDL(newVarName);
+        LDL next_newVar = new LDL(true, newVar);
+        LDL next_f1out = new LDL(true, f1out);
+        LDL next_f2out = new LDL(true, f2out);
+
+        LDL tr = new LDL(LDL.Operators.BIIMPLY,
+                next_newVar,
+                new LDL(LDL.Operators.OR,
+                        next_f2out,
+                        new LDL(LDL.Operators.AND,
+                                next_f1out,
+                                newVar
+                        )
+                )
+        ); // tr = next(newVar) <-> (next(T(f2).out) | (next(T(f1).out) & newVar))
+        T.trans.add(new SubTesterTransition(null, false, tr));
+
+        T.initCond = new LDL(LDL.Operators.BIIMPLY, newVar, f2out);  // newVar <-> T(f2).out
 
         T.ID = (++SubTesterNumber);
         T.out = newVar;
@@ -828,8 +913,7 @@ public class Tester {
 
         String newVarName = this.NusmvTesterInstanceName + LtlVariableNamePrefix + (++LtlVariableNumber);
         LDL newVar = new LDL(newVarName);
-        LDL next_newVar = new LDL(newVar);
-        next_newVar.prime = true;
+        LDL next_newVar = new LDL(true, newVar);
 
         LDL tr = new LDL(LDL.Operators.BIIMPLY,
                 newVar,
@@ -849,29 +933,52 @@ public class Tester {
         return T;
     }
 
-    /*
-    public void print() {
-        System.out.println("--The tester " + this.NusmvTesterInstanceName + " for " + this.fmla.getText() + ":");
-        System.out.println("Output assertion: " + this.out.getText());
-        if (this.principalTemporalSubTesters.size() <= 0) {
-            System.out.println("There is not any sub-tester.");
-        } else {
-            System.out.println("The sub-testers of " + SubTesterNumber + " principally temporal sub-formulas:");
-            Iterator<LDL> it = this.principalTemporalSubTesters.getKeyIterator(true);
-            while (it.hasNext()) {
-                LDL f = it.next();
-                SubTesterContainer T = this.principalTemporalSubTesters.get(f);
-                T.print();
-            }
-        }
+    //Build the sub-tester for f = f1 T f2
+    public SubTesterContainer buildSubTester4Trigger(LDL f) throws CloneNotSupportedException {
+        if(f.operator != LDL.Operators.RELEASE) return null;
 
-    }*/
+        LDL f1 = f.children.get(0); // the tester of f1 must already be built and cached
+        LDL f1out = buildSubTesterRecur(f1);
+
+        LDL f2 = f.children.get(1); // the tester of f2 must already be built and cached
+        LDL f2out = buildSubTesterRecur(f2);
+
+        SubTesterContainer T = new SubTesterContainer(this); // Tester T will be returned
+        T.fmla = f;
+        T.fmla_pathGrammar = null;
+
+        String newVarName = this.NusmvTesterInstanceName + LtlVariableNamePrefix + (++LtlVariableNumber);
+        LDL newVar = new LDL(newVarName);
+        LDL next_newVar = new LDL(true, newVar);
+        LDL next_f1out = new LDL(true, f1out);
+        LDL next_f2out = new LDL(true, f2out);
+
+        LDL tr = new LDL(LDL.Operators.BIIMPLY,
+                next_newVar,
+                new LDL(LDL.Operators.AND,
+                        next_f2out,
+                        new LDL(LDL.Operators.OR,
+                                next_f1out,
+                                newVar
+                        )
+                )
+        ); // tr = next(newVar) <-> (next(T(f2).out) & (next(T(f1).out) | newVar))
+        T.trans.add(new SubTesterTransition(null, false, tr));
+
+        T.initCond = new LDL(LDL.Operators.BIIMPLY, newVar, f2out);  // newVar <-> T(f2).out
+
+        T.ID = (++SubTesterNumber);
+        T.out = newVar;
+
+        return T;
+    }
+
 
     //生成smv刻画的tester，并将其插入main模块尾部
     public String toSMV() {
         String s="";
-        s+="--The LTL formula to be verified: LTLSPEC "+this.out.getText()+";\r\n";
-        s+="--The following SMV code is the tester for the LDL formula without [] operator: "+this.fmla.getText()+"\r\n";
+        s+="--The LTL formula to be verified: LTLSPEC "+this.out.getText(true)+";\r\n";
+        s+="--The following SMV code is the tester for the LTDL formula without [] operator: "+this.fmla.getText(true)+"\r\n";
 
         if(this.principalTemporalSubTesters.size()>0){
             s+="\n--The output variables for " + SubTesterNumber + " principally temporal sub-formula(s):\r\n";
@@ -881,8 +988,8 @@ public class Tester {
             while (it.hasNext()){
                 LDL f = it.next();
                 SubTesterContainer T = this.principalTemporalSubTesters.get(f);
-                s += "--  (" + (i++) + ") " + T.out.getText() + ": " + f.getText() + "\r\n";
-                smvCode += "\r\n"+T.toSMV(true);
+                s += "--  (" + (i++) + ") " + T.out.getText(true) + ": " + f.getText(true) + "\r\n";
+                smvCode += "\r\n"+T.toSMV(true, true);
             }
             s += smvCode;
         }

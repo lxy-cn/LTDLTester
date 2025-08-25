@@ -17,14 +17,14 @@ public class PathGrammar {
 
     PathGrammar(LDL pathExpr) throws CloneNotSupportedException {
         if (!pathExpr.isPathExpression(true)) {
-            System.out.println("Error: the following formula is not path expression: " + pathExpr.getText());
+            System.out.println("Error: the following formula is not path expression: " + pathExpr.getText(true));
             return;
         }
         this.pathExpr = pathExpr;
 //        this.variables = new HashSet<>();
 //        this.terminals = new HashSet<>();
         this.productions = new HashSet<>();
-        boolean result = buildPathGrammarRecur(pathExpr);
+        buildPathGrammarRecur(pathExpr);
 
 //        str_pathGrammar_before_optimization = this.toString();
 //        optimization();
@@ -32,9 +32,7 @@ public class PathGrammar {
     }
 
     String addNewVariable() {
-        String newVar = variableNamePrefix + (++builtVariableCount);
-//        variables.add(newVar);
-        return newVar;
+        return variableNamePrefix + (++builtVariableCount);
     }
 
     // The formula f must be a legal path expression
@@ -326,6 +324,24 @@ public class PathGrammar {
         return prods;
     }
 */
+// get productions that use variable rightVar
+public List<PathGrammarProduction> getProdsUsingVar(String rightVar) {
+    List<PathGrammarProduction> prods = new LinkedList<>();
+    for (PathGrammarProduction p : this.productions) {
+        switch (p.type){
+            case Variable:
+                if(p.rightItem1.equals(rightVar)) prods.add(p);
+                break;
+            case Test_Variable:
+            case PropFormula_Variable:
+                if(p.rightItem2.equals(rightVar)) prods.add(p);
+                break;
+            default:
+                break;
+        }
+    }
+    return prods;
+}
 
     // get productions starting from variable leftVar
     public List<PathGrammarProduction> getProds(String leftVar) {
@@ -347,12 +363,12 @@ public class PathGrammar {
                         break;
                     case Test:
                     case PropFormula:
-                        return ((LDL)p1.rightItem1).getText().compareTo(((LDL)p2.rightItem1).getText());
+                        return ((LDL)p1.rightItem1).getText(true).compareTo(((LDL)p2.rightItem1).getText(true));
                     case Variable:
                         return ((String)p1.rightItem1).compareTo(((String)p2.rightItem1));
                     case Test_Variable:
                     case PropFormula_Variable:
-                        int res3 = ((LDL)p1.rightItem1).getText().compareTo(((LDL)p2.rightItem1).getText());
+                        int res3 = ((LDL)p1.rightItem1).getText(true).compareTo(((LDL)p2.rightItem1).getText(true));
                         if(res3!=0) return res3;
                         return ((String)p1.rightItem2).compareTo(((String)p2.rightItem2));
                     case Test_PropFormula:
@@ -425,12 +441,12 @@ public class PathGrammar {
                             break;
                         case Test:
                         case PropFormula:
-                            return ((LDL)p1.rightItem1).getText().compareTo(((LDL)p2.rightItem1).getText());
+                            return ((LDL)p1.rightItem1).getText(true).compareTo(((LDL)p2.rightItem1).getText(true));
                         case Variable:
                             return ((String)p1.rightItem1).compareTo(((String)p2.rightItem1));
                         case Test_Variable:
                         case PropFormula_Variable:
-                            int res3 = ((LDL)p1.rightItem1).getText().compareTo(((LDL)p2.rightItem1).getText());
+                            int res3 = ((LDL)p1.rightItem1).getText(true).compareTo(((LDL)p2.rightItem1).getText(true));
                             if(res3!=0) return res3;
                             return ((String)p1.rightItem2).compareTo(((String)p2.rightItem2));
                         case Test_PropFormula:
@@ -522,12 +538,9 @@ public class PathGrammar {
 
     public String toString() {
         String s="";
-        s+="The Path Grammar of "+this.pathExpr.getText()+":\r\n";
+        s+="The Path Grammar of "+this.pathExpr.getText(true)+":\r\n";
         s+="  Start variable: "+this.start+"\r\n";
-        String vars = "";
-//        for(String var : this.getVariables())
-//            vars += var + " ";
-//        s+="  Variables: "+vars+"\r\n";
+
         s+="  Variables: "+this.getVariables().stream()
                 .map(Integer::parseInt)
                 .sorted()
@@ -561,7 +574,7 @@ public class PathGrammar {
         return prods;
     }
 
-    public boolean mergeProds() {
+    public boolean mergeProductions() {
         // prods按照leftVariable(v), type, rightItem2(w)排序
         List<PathGrammarProduction> prods = new ArrayList<>(this.productions);
         Collections.sort(prods, new Comparator<PathGrammarProduction>() {
@@ -630,7 +643,7 @@ public class PathGrammar {
                                 for (int j = startIdx+1; j <= endIdx; j++) {
                                     tf = new LDL(LDL.Operators.OR, tf, ((LDL)prods.get(j).rightItem1).children.get(0));
                                 }
-                                tf = new LDL(LDL.Operators.TEST, tf);
+                                tf = new LDL(false, LDL.Operators.TEST, tf);
                                 PathGrammarProduction newProd = new PathGrammarProduction(curVar, tf);
                                 for(int j=startIdx; j<=endIdx; j++) this.productions.remove(prods.get(j));
                                 this.productions.add(newProd);
@@ -659,7 +672,7 @@ public class PathGrammar {
                                 for (int j = startIdx+1; j <= endIdx; j++) {
                                     tf = new LDL(LDL.Operators.OR, tf, ((LDL)prods.get(j).rightItem1).children.get(0));
                                 }
-                                tf = new LDL(LDL.Operators.TEST, tf);
+                                tf = new LDL(false, LDL.Operators.TEST, tf);
                                 PathGrammarProduction newProd = new PathGrammarProduction(curVar, tf, curRightItem2);
                                 for(int j=startIdx; j<=endIdx; j++) this.productions.remove(prods.get(j));
                                 this.productions.add(newProd);
@@ -685,357 +698,12 @@ public class PathGrammar {
         return changed;
     }
 
-
-/*
     // reduce productions
     // NOTE: do NOT reduce to the following forms: v-->f?.a or v-->a.f?
-    public boolean reduceProds() {
-        List<PathGrammarProduction> od1Prods = new ArrayList<>(); // 出度为1的产生式
-        Set<PathGrammarProduction> toRemove = new HashSet<>();
-        Set<PathGrammarProduction> toAdd = new HashSet<>();
-        PathGrammarProduction newP;
-        boolean changed=false;
-        boolean oneRoundChanged=false;
-        do {
-            //将所有出度为1的产生式存入od1Prods，起始产生式除外
-            od1Prods.clear();
-            Set<String> vars = getVariables();
-            for(String v : vars) {
-                if(v.equals(start)) continue;
-                Set<PathGrammarProduction> tps = getProds(v);
-                if (tps.size()==1)
-                    od1Prods.add((PathGrammarProduction) tps.toArray()[0]);
-            }
-
-            //削减产生式，可能生成新的出度为1的产生式
-            PathGrammarProduction p,t;
-            boolean predByPropVarProds;
-            Iterator<PathGrammarProduction> itProds;
-            ListIterator<PathGrammarProduction> itOd1Prods = od1Prods.listIterator();
-            oneRoundChanged=false;
-            while (itOd1Prods.hasNext()) {
-                t = itOd1Prods.next();
-                switch (t.type) {
-                    case Empty: // t:w->empty
-                        itProds = this.productions.iterator();
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p);
-                                    newP = new PathGrammarProduction(p.leftVariable); // v->empty
-                                    toAdd.add(newP);
-                                    break;
-                                case Test_Variable: // p:v->ldl?.w
-                                case PropFormula_Variable: // p:v->ldl.w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) p.rightItem1); // v->ldl? | v->ldl
-                                    toAdd.add(newP);
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        toRemove.add(t); // remove t
-                        oneRoundChanged=true;
-                        this.productions.removeAll(toRemove);
-                        this.productions.addAll(toAdd);
-                        toRemove.clear();
-                        toAdd.clear();
-                        break;
-                    case Test: // t:w->ldl?
-                        predByPropVarProds=false;
-                        itProds = this.productions.iterator();
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) t.rightItem1); // v->ldl?
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;
-                                case Test_Variable: // p:v->ldl2?w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    LDL tf = new LDL(LDL.Operators.TEST,
-                                            new LDL(LDL.Operators.AND,
-                                            ((LDL)p.rightItem1).children.get(0),
-                                            ((LDL)t.rightItem1).children.get(0)));
-                                    newP = new PathGrammarProduction(p.leftVariable, tf); // v->(ldl2 & ldl)?
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;
-                                case PropFormula_Variable: // p:v->prop.w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    predByPropVarProds=true;
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(!predByPropVarProds) {
-                            toRemove.add(t); // remove t
-                            oneRoundChanged=true;
-                        }
-                        this.productions.removeAll(toRemove);
-                        this.productions.addAll(toAdd);
-                        toRemove.clear();
-                        toAdd.clear();
-                        break;
-                    case PropFormula: // t:w->prop
-                        predByPropVarProds=false;
-                        itProds = this.productions.iterator();
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) t.rightItem1); // v->prop
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;
-                                case Test_Variable: // p:v->ldl?w
-                                    */
-/*if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    LDL tf = new LDL(LDL.Operators.TEST,
-                                            new LDL(LDL.Operators.AND,
-                                                    ((LDL)p.rightItem1).children.get(0), // ldl
-                                                    ((LDL)t.rightItem1))); // prop
-                                    newP = new PathGrammarProduction(p.leftVariable, tf); // v->(ldl & prop)?
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;*//*
-
-                                case PropFormula_Variable: // p:v->prop.w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    predByPropVarProds=true; //实际在Test_Variable或PropFormula_Variable两种情况下都为真
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(!predByPropVarProds) {
-                            toRemove.add(t); // remove t
-                            oneRoundChanged=true;
-                        }
-                        this.productions.removeAll(toRemove);
-                        this.productions.addAll(toAdd);
-                        toRemove.clear();
-                        toAdd.clear();
-                        break;
-                    case Variable: // t:w->w'
-                        itProds = this.productions.iterator();
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v->w
-                                    if(!p.rightItem1.equals(t.leftVariable) || p==t) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (String) t.rightItem1); // v->w'
-                                    toAdd.add(newP);
-                                    break;
-                                case Test_Variable: // p:v->ldl?.w
-                                case PropFormula_Variable: // p:v->ldl.w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) p.rightItem1, (String) t.rightItem1); // v->ldl?.w' | v->ldl.w'
-                                    toAdd.add(newP);
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        toRemove.add(t); // remove t
-                        oneRoundChanged=true;
-                        this.productions.removeAll(toRemove);
-                        this.productions.addAll(toAdd);
-                        toRemove.clear();
-                        toAdd.clear();
-                        break;
-                    case Test_Variable: // t:w->ldl?.w'
-                        predByPropVarProds=false;
-                        itProds = this.productions.iterator();
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) t.rightItem1, (String) t.rightItem2); // v->ldl?.w'
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;
-                                case Test_Variable: // p:v->ldl2?.w
-                                    if(!p.rightItem2.equals(t.leftVariable) || p==t) continue;
-                                    toRemove.add(p); // remove p
-                                    LDL tf = new LDL(LDL.Operators.TEST,
-                                            new LDL(LDL.Operators.AND,
-                                                    ((LDL)p.rightItem1).children.get(0),
-                                                    ((LDL)t.rightItem1).children.get(0))); // tf=(ldl2 & ldl)?
-                                    newP = new PathGrammarProduction(p.leftVariable, tf, (String) t.rightItem2); // v->(ldl2 & ldl)?.w'
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;
-                                case PropFormula_Variable: // p:v->ldl.w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    predByPropVarProds=true;
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(!predByPropVarProds) {
-                            toRemove.add(t); // remove t
-                            oneRoundChanged=true;
-                        }
-                        this.productions.removeAll(toRemove);
-                        this.productions.addAll(toAdd);
-                        toRemove.clear();
-                        toAdd.clear();
-                        break;
-                    case PropFormula_Variable: // t:w->prop.w'
-                        predByPropVarProds=false;
-                        itProds = this.productions.iterator();
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) t.rightItem1, (String) t.rightItem2); // v->prop.w'
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;
-                                case Test_Variable: // p:v->ldl?.w
-                                    */
-/*if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    LDL tf = new LDL(LDL.Operators.TEST,
-                                            new LDL(LDL.Operators.AND,
-                                                    ((LDL)p.rightItem1).children.get(0),
-                                                    (LDL)t.rightItem1)); // tf=(ldl & prop)?
-                                    newP = new PathGrammarProduction(p.leftVariable, tf, (String) t.rightItem2); // v->(ldl & prop)?.w'
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;*//*
-
-                                case PropFormula_Variable: // p:v->ldl.w
-                                    if(!p.rightItem2.equals(t.leftVariable) || p==t) continue;
-                                    predByPropVarProds=true; //在Test_Variable或PropFormula_Variable两种情况下都为真
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(!predByPropVarProds) {
-                            toRemove.add(t); // remove t
-                            oneRoundChanged=true;
-                        }
-                        this.productions.removeAll(toRemove);
-                        this.productions.addAll(toAdd);
-                        toRemove.clear();
-                        toAdd.clear();
-                        break;
-                    default:
-                        break;
-                }
-            }
-            if (oneRoundChanged){
-                */
-/*this.productions.removeAll(toRemove);
-                this.productions.addAll(toAdd);
-                toRemove.clear();
-                toAdd.clear();*//*
-
-                changed=true;
-            }
-
-        } while (oneRoundChanged);
-
-        boolean reduced=false;
-        List<String> vars = new LinkedList<>(getVariables());
-        int i=0;
-        String w;
-        do{
-            toRemove.clear();
-            toAdd.clear();
-            reduced=false;
-            while(i<vars.size()){
-                w = vars.get(i);
-                i++;
-                Set<PathGrammarProduction> prodsUsedW = prodsUsingVar(this.productions, w); // prodsUsedW是直接使用变量w的所有产生式集合
-                if(prodsUsedW.size()==1){
-                    PathGrammarProduction p = (PathGrammarProduction) prodsUsedW.toArray()[0];
-                    if(p.type == PathGrammarProduction.Type.Variable) {
-                        // p:v->w 是使用变量w的唯一一个产生式
-                        Set<PathGrammarProduction> usedProdsFromW=new HashSet<>();
-                        Set<String> usedVarsFromW=new HashSet<>();
-                        getUsedProdsAndVars(w, p.leftVariable, usedProdsFromW, usedVarsFromW);
-                        if(!usedVarsFromW.contains(w)) {
-                            //如果从w开始的产生式有向图中所使用的变量集合不包含w（特别注意，从w开始最多只能前向走到v！）
-                            //(1)将所有w产生式的w替换为v
-                            for(PathGrammarProduction wp : getProds(w)) {
-                                //wp.leftVariable = p.leftVariable;
-                                newP=null;
-                                switch (wp.type) {
-                                    case Empty:
-                                        newP = new PathGrammarProduction(p.leftVariable);
-                                        break;
-                                    case Test:
-                                    case PropFormula:
-                                        newP = new PathGrammarProduction(p.leftVariable, (LDL) wp.rightItem1);
-                                        break;
-                                    case Variable:
-                                        newP = new PathGrammarProduction(p.leftVariable, (String) wp.rightItem1);
-                                        break;
-                                    case Test_Variable:
-                                    case PropFormula_Variable:
-                                        newP = new PathGrammarProduction(p.leftVariable, (LDL) wp.rightItem1, (String) wp.rightItem2);
-                                        break;
-                                }
-                                toRemove.add(wp);
-                                toAdd.add(newP);
-
-                                System.out.println(wp.getText() + " is modified as " + newP.getText() );
-
-                            }
-
-                            //(2)删除p:v->w
-                            toRemove.add(p);
-                            reduced=true;
-                            changed=true;
-
-                            System.out.println("The production removed: " + p.getText());
-                            System.out.println("The variable removed: " + w);
-
-                            //注意：必须尽可能快地更新集合，否则可能导致集合错误。另外，修改元素也应该采用先删除后添加元素的方式实现
-                            this.productions.removeAll(toRemove); toRemove.clear();
-                            this.productions.addAll(toAdd); toAdd.clear();
-
-                            //更新var set
-                            vars = new LinkedList<>(getVariables());
-                            i=0;
-
-                        }
-                    }
-                }
-            }
-
-        }while(reduced);
-
-        return changed;
-    }
-*/
-
-    // reduce productions (new version)
-    // NOTE: do NOT reduce to the following forms: v-->f?.a or v-->a.f?
-    public boolean reduceProds2() {
+    public boolean reduceProductions() {
+        ////////////////////////////////////////////////////////////////////////////////////////
+        // (1) 删除满足以下条件的所有变量及其产生式：该变量只有一个产生式，并且该变量被其他产生式使用。该变量被删除前需修改使用它的产生式以消除该变量的引用。
+        ////////////////////////////////////////////////////////////////////////////////////////
         List<PathGrammarProduction> od1Prods = new ArrayList<>(); // 出度为1的产生式
         Set<PathGrammarProduction> toRemove = new HashSet<>();
         Set<PathGrammarProduction> toAdd = new HashSet<>();
@@ -1114,7 +782,7 @@ public class PathGrammar {
                                 case Test_Variable: // p:v-->f1?w
                                     if(!p.rightItem2.equals(t.leftVariable)) continue;
                                     toRemove.add(p); // remove p
-                                    LDL tf = new LDL(LDL.Operators.TEST,
+                                    LDL tf = new LDL(false, LDL.Operators.TEST,
                                             new LDL(LDL.Operators.AND,
                                                     ((LDL)p.rightItem1).children.get(0),
                                                     ((LDL)t.rightItem1).children.get(0)));
@@ -1162,9 +830,22 @@ public class PathGrammar {
                                     pChanged=true;
                                     break;
                                 case Test_Variable: // p:v-->f1?w
+                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
+                                    LDL f1 = ((LDL)p.rightItem1).children.get(0);
+                                    LDL b = (LDL)t.rightItem1;
+                                    if(f1.isPropFormula()) { // f1 is an assertion
+                                        toRemove.add(p); // remove p
+                                        LDL rightItem1 = new LDL(LDL.Operators.AND, f1, b); // rightItem1 = f1 & b
+                                        newP = new PathGrammarProduction(p.leftVariable, rightItem1); // v-->(f1 & b)
+                                        toAdd.add(newP);
+                                        pChanged = true;
+                                    }else { // f1 is NOT an assertion
+                                        reserveThisOd1Prod=true;
+                                    }
+                                    break;
                                 case PropFormula_Variable: // p:v-->a w
                                     if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    reserveThisOd1Prod=true; // in the two cases, t:w-->b has to be preserved
+                                    reserveThisOd1Prod=true; // t:w-->b has to be preserved
                                     break;
                                 default:
                                     break;
@@ -1238,7 +919,7 @@ public class PathGrammar {
                                 case Test_Variable: // p:v-->f1?.w
                                     if(!p.rightItem2.equals(t.leftVariable) || p==t) continue;
                                     toRemove.add(p); // remove p
-                                    LDL tf = new LDL(LDL.Operators.TEST,
+                                    LDL tf = new LDL(false, LDL.Operators.TEST,
                                             new LDL(LDL.Operators.AND,
                                                     ((LDL)p.rightItem1).children.get(0),
                                                     ((LDL)t.rightItem1).children.get(0))); // tf=(f1 & f2)?
@@ -1286,6 +967,19 @@ public class PathGrammar {
                                     pChanged=true;
                                     break;
                                 case Test_Variable: // p:v->f1?.w
+                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
+                                    LDL f1 = ((LDL)p.rightItem1).children.get(0);
+                                    LDL b = (LDL)t.rightItem1;
+                                    if(f1.isPropFormula()) { // f1 is an assertion
+                                        toRemove.add(p); // remove p
+                                        LDL rightItem1 = new LDL(LDL.Operators.AND, f1, b); // rightItem1 = f1 & b
+                                        newP = new PathGrammarProduction(p.leftVariable, rightItem1, (String)t.rightItem2); // v-->(f1 & b).w'
+                                        toAdd.add(newP);
+                                        pChanged = true;
+                                    }else { // f1 is NOT an assertion
+                                        reserveThisOd1Prod=true;
+                                    }
+                                    break;
                                 case PropFormula_Variable: // p:v-->a.w
                                     if(!p.rightItem2.equals(t.leftVariable) || p==t) continue;
                                     reserveThisOd1Prod=true; //在Test_Variable或PropFormula_Variable两种情况下都为真
@@ -1329,6 +1023,9 @@ public class PathGrammar {
 
         } while (oneRoundChanged);
 
+        ////////////////////////////////////////////////////////////////////////////////////////
+        // (2) 删除满足以下条件的所有变量及其产生式：该变量只有一个产生式，并且该变量被其他产生式使用。该变量被删除前需修改使用它的产生式以消除该变量的引用。
+        ////////////////////////////////////////////////////////////////////////////////////////
         boolean reduced=false;
         List<String> vars = new LinkedList<>(getVariables());
         int i=0;
@@ -1353,6 +1050,9 @@ public class PathGrammar {
                             //(1)将所有w产生式的w替换为v
                             for(PathGrammarProduction wp : getProds(w)) {
                                 //wp.leftVariable = p.leftVariable;
+                                String str_old_wp = wp.getText();
+                                wp.leftVariable = p.leftVariable;
+/*
                                 newP=null;
                                 switch (wp.type) {
                                     case Empty:
@@ -1375,7 +1075,9 @@ public class PathGrammar {
 
                                 if (MainLdl_ltlVisitor.OutputLevel >0)
                                     System.out.println(wp.getText() + " is modified as " + newP.getText() );
-
+*/
+                                if (MainLtdlVisitor.OutputLevel >0)
+                                    System.out.println(str_old_wp + " is modified as " + wp.getText());
                             }
 
                             //(2)删除p:v->w
@@ -1383,7 +1085,7 @@ public class PathGrammar {
                             reduced=true;
                             changed=true;
 
-                            if (MainLdl_ltlVisitor.OutputLevel >0) {
+                            if (MainLtdlVisitor.OutputLevel >0) {
                                 System.out.println("The production removed: " + p.getText());
                                 System.out.println("The variable removed: " + w);
                             }
@@ -1407,499 +1109,211 @@ public class PathGrammar {
     }
 
 
-/*
-    // reduce productions
-    // NOTE: allow to reduce to the following forms: v-->f?.a or v-->a.f?
-    public boolean reduceProds_addNewForms() {
-        List<PathGrammarProduction> od1Prods = new ArrayList<>(); // 出度为1的产生式
-        Set<PathGrammarProduction> toRemove = new HashSet<>();
-        Set<PathGrammarProduction> toAdd = new HashSet<>();
-        PathGrammarProduction newP;
-        boolean changed=false;
-        boolean oneRoundChanged=false;
-        do {
-            //将所有出度为1的产生式存入od1Prods，起始产生式除外
-            od1Prods.clear();
-            Set<String> vars = getVariables();
-            for(String v : vars) {
-                if(v.equals(start)) continue;
-                Set<PathGrammarProduction> tps = getProds(v);
-                if (tps.size()==1)
-                    od1Prods.add((PathGrammarProduction) tps.toArray()[0]);
-            }
 
-            //削减产生式，可能生成新的出度为1的产生式
-            PathGrammarProduction p,t;
-            boolean predByPropVarProds;
-            Iterator<PathGrammarProduction> itProds;
-            ListIterator<PathGrammarProduction> itOd1Prods = od1Prods.listIterator();
-            oneRoundChanged=false;
-            boolean pChanged=false;
-            while (itOd1Prods.hasNext()) {
-                t = itOd1Prods.next();
-                switch (t.type) {
-                    case Empty: // t:w-->empty
-                        itProds = this.productions.iterator();
-                        pChanged=false;
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v-->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p);
-                                    newP = new PathGrammarProduction(p.leftVariable); // v-->empty
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                case Test_Variable: // p:v-->f1?.w
-                                case PropFormula_Variable: // p:v-->f1.w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) p.rightItem1); // v-->f1? | v-->f1
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(pChanged) {
-                            toRemove.add(t); // remove t
-                            oneRoundChanged = true;
-                            this.productions.removeAll(toRemove);
-                            this.productions.addAll(toAdd);
-                            toRemove.clear();
-                            toAdd.clear();
-                        }
-                        break;
-                    case Test: // t:w-->f2?
-                        predByPropVarProds=false;
-                        itProds = this.productions.iterator();
-                        pChanged=false;
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v-->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) t.rightItem1); // v-->f2?
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                case Test_Variable: // p:v-->f1?w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    LDL tf = new LDL(LDL.Operators.TEST,
-                                            new LDL(LDL.Operators.AND,
-                                                    ((LDL)p.rightItem1).children.get(0),
-                                                    ((LDL)t.rightItem1).children.get(0)));
-                                    newP = new PathGrammarProduction(p.leftVariable, tf); // v-->(f1 & f2)?
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                case PropFormula_Variable: // p:v-->a.w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) p.rightItem1, (LDL)t.rightItem1); // v-->a(f2?)
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(pChanged) {
-                            toRemove.add(t); // remove t
-                            oneRoundChanged=true;
-                            this.productions.removeAll(toRemove);
-                            this.productions.addAll(toAdd);
-                            toRemove.clear();
-                            toAdd.clear();
-                        }
-                        break;
-                    case PropFormula: // t:w-->b
-                        predByPropVarProds=false;
-                        itProds = this.productions.iterator();
-                        pChanged=false;
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v-->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) t.rightItem1); // v-->b
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                case Test_Variable: // p:v-->f1?w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL)p.rightItem1, (LDL)t.rightItem1); // v-->f1? b
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                case PropFormula_Variable: // p:v-->a w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    predByPropVarProds=true; // in this case t:w-->b has to be preserved
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(!predByPropVarProds) {
-                            if(pChanged){ // all uses of w are reduced
-                                toRemove.add(t); // remove t
-                                oneRoundChanged=true;
-                                this.productions.removeAll(toRemove);
-                                this.productions.addAll(toAdd);
-                                toRemove.clear();
-                                toAdd.clear();
-                            }else{ // no use of w
-                                break;
-                            }
-                        }else{ // at least one use of w is preserved (v-->a w)
-                            if(pChanged){
-                                toRemove.clear();
-                                toAdd.clear();
-                                break;
-                            }
-                        }
-                        break;
-                    case Variable: // t:w->w'
-                        itProds = this.productions.iterator();
-                        pChanged=false;
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v-->w
-                                    if(!p.rightItem1.equals(t.leftVariable) || p==t) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (String) t.rightItem1); // v-->w'
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                case Test_Variable: // p:v-->f1?.w
-                                case PropFormula_Variable: // p:v-->f1.w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) p.rightItem1, (String) t.rightItem1); // v-->f1?.w' | v-->f1.w'
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(pChanged) {
-                            toRemove.add(t); // remove t
-                            oneRoundChanged = true;
-                            this.productions.removeAll(toRemove);
-                            this.productions.addAll(toAdd);
-                            toRemove.clear();
-                            toAdd.clear();
-                        }
-                        break;
-                    case Test_Variable: // t:w-->f2?.w'
-                        predByPropVarProds=false;
-                        itProds = this.productions.iterator();
-                        pChanged=false;
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v-->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) t.rightItem1, (String) t.rightItem2); // v-->f2?.w'
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                case Test_Variable: // p:v-->f1?.w
-                                    if(!p.rightItem2.equals(t.leftVariable) || p==t) continue;
-                                    toRemove.add(p); // remove p
-                                    LDL tf = new LDL(LDL.Operators.TEST,
-                                            new LDL(LDL.Operators.AND,
-                                                    ((LDL)p.rightItem1).children.get(0),
-                                                    ((LDL)t.rightItem1).children.get(0))); // tf=(f1 & f2)?
-                                    newP = new PathGrammarProduction(p.leftVariable, tf, (String) t.rightItem2); // v-->(f1 & f2)?.w'
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                case PropFormula_Variable: // p:v->ldl.w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    predByPropVarProds=true;
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(!predByPropVarProds) {
-                            if(pChanged){ // all uses of w are reduced
-                                toRemove.add(t); // remove t
-                                oneRoundChanged=true;
-                                this.productions.removeAll(toRemove);
-                                this.productions.addAll(toAdd);
-                                toRemove.clear();
-                                toAdd.clear();
-                            }else{ // no use of w
-                                break;
-                            }
-                        }else{ // at least one use of w is preserved (v-->a w)
-                            if(pChanged){
-                                toRemove.clear();
-                                toAdd.clear();
-                                break;
-                            }
-                        }
-                        break;
-                    case PropFormula_Variable: // t:w-->b.w'
-                        predByPropVarProds=false;
-                        itProds = this.productions.iterator();
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v-->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) t.rightItem1, (String) t.rightItem2); // v-->b.w'
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;
-                                case Test_Variable: // p:v->ldl?.w
-                                    */
-/*if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    LDL tf = new LDL(LDL.Operators.TEST,
-                                            new LDL(LDL.Operators.AND,
-                                                    ((LDL)p.rightItem1).children.get(0),
-                                                    (LDL)t.rightItem1)); // tf=(ldl & prop)?
-                                    newP = new PathGrammarProduction(p.leftVariable, tf, (String) t.rightItem2); // v->(ldl & prop)?.w'
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;*//*
 
-                                case PropFormula_Variable: // p:v-->a.w
-                                    if(!p.rightItem2.equals(t.leftVariable) || p==t) continue;
-                                    predByPropVarProds=true; //在Test_Variable或PropFormula_Variable两种情况下都为真
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(!predByPropVarProds) {
-                            if(pChanged){ // all uses of w are reduced
-                                toRemove.add(t); // remove t
-                                oneRoundChanged=true;
-                                this.productions.removeAll(toRemove);
-                                this.productions.addAll(toAdd);
-                                toRemove.clear();
-                                toAdd.clear();
-                            }else{ // no use of w
-                                break;
-                            }
-                        }else{ // at least one use of w is preserved (v-->a w)
-                            if(pChanged){
-                                toRemove.clear();
-                                toAdd.clear();
-                                break;
-                            }
-                        }
-                        break;
-                    case Test_PropFormula: // t:w-->f2?.b
-                        predByPropVarProds=false;
-                        itProds = this.productions.iterator();
-                        pChanged=false;
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v-->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) t.rightItem1, (LDL) t.rightItem2); // v-->f2?.b
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                case Test_Variable: // p:v-->f1?.w
-                                    if(!p.rightItem2.equals(t.leftVariable) || p==t) continue;
-                                    toRemove.add(p); // remove p
-                                    LDL tf = new LDL(LDL.Operators.TEST,
-                                            new LDL(LDL.Operators.AND,
-                                                    ((LDL)p.rightItem1).children.get(0),
-                                                    ((LDL)t.rightItem1).children.get(0))); // tf=(f1 & f2)?
-                                    newP = new PathGrammarProduction(p.leftVariable, tf, (LDL) t.rightItem2); // v-->(f1 & f2)?.b
-                                    toAdd.add(newP);
-                                    pChanged=true;
-                                    break;
-                                case PropFormula_Variable: // p:v->a.w
-                                    if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    predByPropVarProds=true;
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(!predByPropVarProds) {
-                            if(pChanged){ // all uses of w are reduced
-                                toRemove.add(t); // remove t
-                                oneRoundChanged=true;
-                                this.productions.removeAll(toRemove);
-                                this.productions.addAll(toAdd);
-                                toRemove.clear();
-                                toAdd.clear();
-                            }else{ // no use of w
-                                break;
-                            }
-                        }else{ // at least one use of w is preserved (v-->a w)
-                            if(pChanged){
-                                toRemove.clear();
-                                toAdd.clear();
-                                break;
-                            }
-                        }
-                        break;
-                    case PropFormula_Test: // t:w-->b.f2?
-                        predByPropVarProds=false;
-                        itProds = this.productions.iterator();
-                        while (itProds.hasNext()) {
-                            p = itProds.next();
-                            switch (p.type) {
-                                case Variable: // p:v-->w
-                                    if(!p.rightItem1.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    newP = new PathGrammarProduction(p.leftVariable, (LDL) t.rightItem1, (LDL) t.rightItem2); // v-->b.f2?
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;
-                                case Test_Variable: // p:v->ldl?.w
-                                    */
-/*if(!p.rightItem2.equals(t.leftVariable)) continue;
-                                    toRemove.add(p); // remove p
-                                    LDL tf = new LDL(LDL.Operators.TEST,
-                                            new LDL(LDL.Operators.AND,
-                                                    ((LDL)p.rightItem1).children.get(0),
-                                                    (LDL)t.rightItem1)); // tf=(ldl & prop)?
-                                    newP = new PathGrammarProduction(p.leftVariable, tf, (String) t.rightItem2); // v->(ldl & prop)?.w'
-                                    toAdd.add(newP);
-                                    oneRoundChanged=true;
-                                    break;*//*
-
-                                case PropFormula_Variable: // p:v-->a.w
-                                    if(!p.rightItem2.equals(t.leftVariable) || p==t) continue;
-                                    predByPropVarProds=true; //在Test_Variable或PropFormula_Variable两种情况下都为真
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        if(!predByPropVarProds) {
-                            if(pChanged){ // all uses of w are reduced
-                                toRemove.add(t); // remove t
-                                oneRoundChanged=true;
-                                this.productions.removeAll(toRemove);
-                                this.productions.addAll(toAdd);
-                                toRemove.clear();
-                                toAdd.clear();
-                            }else{ // no use of w
-                                break;
-                            }
-                        }else{ // at least one use of w is preserved (v-->a w)
-                            if(pChanged){
-                                toRemove.clear();
-                                toAdd.clear();
-                                break;
-                            }
-                        }
-                        break;
+    // 联合两个产生式（不考虑对其他产生式的影响）
+    // 成功联合的条件：
+    //  (1) 左产生式v->tw满足v不等于w，右产生式为w->t'或w->t'w'，其中t,t'为终结符（empty, tests, assertions），w不等于w'
+    //  (2) v->tt'或v->tt'w'可被转化为合法产生式v->t"或v->t"w，其中终结符t"的语义与tt'等价
+    // 输出：合并成功则返回合法产生式v->t"或v->t"w，否则返回null
+    PathGrammarProduction unite2productions(PathGrammarProduction lProd, PathGrammarProduction rProd) {
+        PathGrammarProduction newP = null;
+        if(lProd==null || rProd==null) return null;
+        if(lProd.type!=PathGrammarProduction.Type.Variable &&
+                lProd.type!=PathGrammarProduction.Type.Test_Variable &&
+                lProd.type!=PathGrammarProduction.Type.PropFormula_Variable) return null;
+        String lProd_rightVariable=lProd.getRightVariable();
+        if(lProd_rightVariable==null || lProd_rightVariable.equals(lProd.leftVariable)) return null;
+        //现在leftProd满足条件(1)
+        if(!rProd.leftVariable.equals(lProd_rightVariable)) return null;
+        String rProd_rightVariable=rProd.getRightVariable();
+        if(rProd_rightVariable!=null && rProd_rightVariable.equals(rProd.leftVariable)) return null;
+        //现在rightProd符合条件(1)
+        //合成t"=tt'
+        switch (lProd.type) {
+            case Variable:
+                switch (rProd.type) {
+                    case Empty:
+                        return new PathGrammarProduction(lProd.leftVariable);
+                    case Test:
+                    case PropFormula:
+                        return new PathGrammarProduction(lProd.leftVariable, (LDL)rProd.rightItem1);
+                    case Variable:
+                        return new PathGrammarProduction(lProd.leftVariable, (String)rProd.rightItem1);
+                    case Test_Variable:
+                    case PropFormula_Variable:
+                        return new PathGrammarProduction(lProd.leftVariable, (LDL)rProd.rightItem1, (String)rProd.rightItem2);
                     default:
                         break;
                 }
-            }
-            if (oneRoundChanged){
-                */
-/*this.productions.removeAll(toRemove);
-                this.productions.addAll(toAdd);
-                toRemove.clear();
-                toAdd.clear();*//*
+                break;
+            case Test_Variable:
+                switch (rProd.type) {
+                    case Empty:
+                        return new PathGrammarProduction(lProd.leftVariable, (LDL)lProd.rightItem1);
+                    case Test:
+                        LDL ltf=((LDL)lProd.rightItem1).children.get(0);
+                        LDL rtf=((LDL)rProd.rightItem1).children.get(0);
+                        LDL lrt=new LDL(LDL.Operators.TEST,
+                                        new LDL(LDL.Operators.AND, ltf, rtf)); // lrt = (ltf & rtf)?
+                        return new PathGrammarProduction(lProd.leftVariable, lrt);
+                    case PropFormula:
+                        ltf = ((LDL) lProd.rightItem1).children.get(0);
+                        if(ltf.isPropFormula()){
+                            lrt=new LDL(LDL.Operators.AND, ltf, (LDL)rProd.rightItem1); // lrt = ltf & rt
+                            return new PathGrammarProduction(lProd.leftVariable, lrt);
+                        }else return null;
+                    case Variable:
+                        return new PathGrammarProduction(lProd.leftVariable, (LDL)lProd.rightItem1, (String)rProd.rightItem1);
+                    case Test_Variable:
+                        ltf=((LDL)lProd.rightItem1).children.get(0);
+                        rtf=((LDL)rProd.rightItem1).children.get(0);
+                        lrt=new LDL(LDL.Operators.TEST,
+                                new LDL(LDL.Operators.AND, ltf, rtf)); // lrt = (ltf & rtf)?
+                        return new PathGrammarProduction(lProd.leftVariable, lrt, (String)rProd.rightItem2);
+                    case PropFormula_Variable:
+                        ltf = ((LDL) lProd.rightItem1).children.get(0);
+                        if(ltf.isPropFormula()){
+                            lrt=new LDL(LDL.Operators.AND, ltf, (LDL)rProd.rightItem1); // lrt = ltf & rt
+                            return new PathGrammarProduction(lProd.leftVariable, lrt, (String)rProd.rightItem2);
+                        }else return null;
+                    default:
+                        break;
+                }
+                break;
+            case PropFormula_Variable:
+                switch (rProd.type) {
+                    case Empty:
+                        return new PathGrammarProduction(lProd.leftVariable, (LDL)lProd.rightItem1);
+                    case Test:
+                    case PropFormula:
+                        return null;
+                    case Variable:
+                        return new PathGrammarProduction(lProd.leftVariable, (LDL)lProd.rightItem1, (String)rProd.rightItem1);
+                    case Test_Variable:
+                    case PropFormula_Variable:
+                        return null;
+                    default:
+                        break;
+                }
+                break;
+            default:
+                break;
+        }
+        return null;
+    }
 
-                changed=true;
+    // 后向约减产生式：
+    // （1）对任一左变量出度为1的右产生式w->t2w2（终结符t2和变量w2都可能为空），如果所有使用w的左产生式v->t1w（终结符t1可以为空）都可以和右产生式联合，则将所有左产生式修改为v->t3w2，其中t3与t1t2语义等价，并删除右产生式。
+    // （2）如果发生产生式约减则返回true，否则返回false
+    public boolean BackwardReduceProductions() {
+        List<PathGrammarProduction> lvod1Prods = new ArrayList<>(); // 左变量出度为1的产生式
+        boolean pChanged=false; // pChanged=true表示有产生式发生改变
+        boolean oneRoundChanged=false; // oneRoundChanged=true表示在一轮大循环中有产生式发生改变
+        do {
+            oneRoundChanged=false;
+            //(1) 将所有出度为1的产生式存入lvod1Prods，起始产生式除外
+            lvod1Prods.clear();
+            Set<String> vars = getVariables();
+            for(String v : vars) {
+                if(v.equals(start)) continue;
+                List<PathGrammarProduction> tps = getProds(v);
+                if (tps.size()==1)
+                    lvod1Prods.add((PathGrammarProduction) tps.toArray()[0]);
             }
 
+            //(2) 对任一左变量出度为1的右产生式w->t2w2（终结符t2和变量w2都可能为空），如果所有使用w的左产生式v->t1w（终结符t1可以为空）都可以和右产生式联合，则将所有左产生式修改为v->t3w2，其中t3与t1t2语义等价，并删除右产生式。
+            Iterator<PathGrammarProduction> itProds;
+            ListIterator<PathGrammarProduction> itLvod1Prods = lvod1Prods.listIterator();
+            while (itLvod1Prods.hasNext()) {
+                PathGrammarProduction rp = itLvod1Prods.next(); // rp是将被联合的右产生式
+                String w = rp.leftVariable; // rp的左变量
+
+                // 获得所有使用w的左产生式并放到lProds
+                List<PathGrammarProduction> lProds = new ArrayList<>();
+                itProds = this.productions.iterator();
+                while (itProds.hasNext()) {
+                    PathGrammarProduction lp = itProds.next(); // lp is the left production to be merged
+                    String lp_rv = lp.getRightVariable();
+                    if(lp!=rp && lp_rv!=null && lp_rv.equals(w)) lProds.add(lp);
+                }
+                if(lProds.size()<=0) continue;
+
+                // 将lProds与rp联合得到产生式集合unitedProds
+                List<PathGrammarProduction> unitedProds = new ArrayList<>();
+                for(PathGrammarProduction lp : lProds){
+                    PathGrammarProduction newP = unite2productions(lp, rp);
+                    if(newP!=null) unitedProds.add(newP);
+                }
+
+                if(unitedProds.size()==lProds.size()){ // 所有使用w的产生式都可以和rp联合
+                    this.productions.removeAll(lProds);
+                    this.productions.addAll(unitedProds);
+                    this.productions.remove(rp);
+                    oneRoundChanged=true;
+                    pChanged=true;
+                }
+
+            }
         } while (oneRoundChanged);
 
-        boolean reduced=false;
-        List<String> vars = new LinkedList<>(getVariables());
-        int i=0;
-        String w;
-        do{
-            toRemove.clear();
-            toAdd.clear();
-            reduced=false;
-            while(i<vars.size()){
-                w = vars.get(i);
-                i++;
-                Set<PathGrammarProduction> prodsUsedW = prodsUsingVar(this.productions, w); // prodsUsedW是直接使用变量w的所有产生式集合
-                if(prodsUsedW.size()==1){
-                    PathGrammarProduction p = (PathGrammarProduction) prodsUsedW.toArray()[0];
-                    if(p.type == PathGrammarProduction.Type.Variable) {
-                        // p:v->w 是使用变量w的唯一一个产生式
-                        Set<PathGrammarProduction> usedProdsFromW=new HashSet<>();
-                        Set<String> usedVarsFromW=new HashSet<>();
-                        getUsedProdsAndVars(w, p.leftVariable, usedProdsFromW, usedVarsFromW);
-                        if(!usedVarsFromW.contains(w)) {
-                            //如果从w开始的产生式有向图中所使用的变量集合不包含w（特别注意，从w开始最多只能前向走到v！）
-                            //(1)将所有w产生式的w替换为v
-                            for(PathGrammarProduction wp : getProds(w)) {
-                                //wp.leftVariable = p.leftVariable;
-                                newP=null;
-                                switch (wp.type) {
-                                    case Empty:
-                                        newP = new PathGrammarProduction(p.leftVariable);
-                                        break;
-                                    case Test:
-                                    case PropFormula:
-                                        newP = new PathGrammarProduction(p.leftVariable, (LDL) wp.rightItem1);
-                                        break;
-                                    case Variable:
-                                        newP = new PathGrammarProduction(p.leftVariable, (String) wp.rightItem1);
-                                        break;
-                                    case Test_Variable:
-                                    case PropFormula_Variable:
-                                        newP = new PathGrammarProduction(p.leftVariable, (LDL) wp.rightItem1, (String) wp.rightItem2);
-                                        break;
-                                }
-                                toRemove.add(wp);
-                                toAdd.add(newP);
+        return pChanged;
+    }
 
-                                System.out.println(wp.getText() + " is modified as " + newP.getText() );
-
-                            }
-
-                            //(2)删除p:v->w
-                            toRemove.add(p);
-                            reduced=true;
-                            changed=true;
-
-                            System.out.println("The production removed: " + p.getText());
-                            System.out.println("The variable removed: " + w);
-
-                            //注意：必须尽可能快地更新集合，否则可能导致集合错误。另外，修改元素也应该采用先删除后添加元素的方式实现
-                            this.productions.removeAll(toRemove); toRemove.clear();
-                            this.productions.addAll(toAdd); toAdd.clear();
-
-                            //更新var set
-                            vars = new LinkedList<>(getVariables());
-                            i=0;
-
-                        }
-                    }
-                }
+    // 前向约减产生式：
+    // （1）对任一右变量入度为1的左产生式v->t1w（终结符t1可能为空，w不空），如果所有定义w的右产生式w->t2w2（终结符t2和变量w2都可为空）都可以和左产生式联合，则将所有右产生式修改为v->t3w2，其中t3与t1t2语义等价，并删除左产生式。
+    // （2）如果发生产生式约减则返回true，否则返回false
+    public boolean ForwardReduceProductions() {
+        List<PathGrammarProduction> rvod1Prods = new ArrayList<>(); // 右变量入度为1的产生式
+        boolean pChanged=false; // pChanged=true表示有产生式发生改变
+        boolean oneRoundChanged=false; // oneRoundChanged=true表示在一轮大循环中有产生式发生改变
+        do {
+            oneRoundChanged=false;
+            //(1) 将所有入度为1的产生式存入rvod1Prods
+            rvod1Prods.clear();
+            Set<String> vars = getVariables();
+            for(String v : vars) {
+                List<PathGrammarProduction> tps = getProdsUsingVar(v);
+                if (tps.size()==1)
+                    rvod1Prods.add((PathGrammarProduction) tps.toArray()[0]);
             }
 
-        }while(reduced);
+            //(2) 对任一右变量入度为1的左产生式v->t1w（终结符t1可能为空，w不空），如果所有定义w的右产生式w->t2w2（终结符t2和变量w2都可为空）都可以和左产生式联合，则将所有右产生式修改为v->t3w2，其中t3与t1t2语义等价，并删除左产生式。
+            Iterator<PathGrammarProduction> itProds;
+            ListIterator<PathGrammarProduction> itRvod1Prods = rvod1Prods.listIterator();
+            while (itRvod1Prods.hasNext()) {
+                PathGrammarProduction lp = itRvod1Prods.next(); // lp是将被联合的左产生式
+                String w = lp.getRightVariable(); //lp的右变量
 
-        return changed;
+                // 获得所有定义w的右产生式并放到rProds
+                List<PathGrammarProduction> rProds = new ArrayList<>();
+                itProds = this.productions.iterator();
+                while (itProds.hasNext()) {
+                    PathGrammarProduction rp = itProds.next(); // rp is the right production to be merged
+                    if(rp!=lp && rp.leftVariable.equals(w)) rProds.add(rp);
+                }
+                if(rProds.size()<=0) continue;
+
+                // 将lp与rProds与联合得到产生式集合unitedProds
+                List<PathGrammarProduction> unitedProds = new ArrayList<>();
+                for(PathGrammarProduction rp : rProds){
+                    PathGrammarProduction newP = unite2productions(lp, rp);
+                    if(newP!=null) unitedProds.add(newP);
+                }
+
+                if(unitedProds.size()==rProds.size()){ // 所有使用w的产生式都可以和rp联合
+                    this.productions.removeAll(rProds);
+                    this.productions.addAll(unitedProds);
+                    this.productions.remove(lp);
+                    oneRoundChanged=true;
+                    pChanged=true;
+                }
+
+            }
+        } while (oneRoundChanged);
+
+        return pChanged;
     }
-*/
-
 
     //如果从fromVar开始的产生式有向图使用了var，则返回true，否则返回false
     public boolean varUsed(String fromVar, String var) {
@@ -1994,12 +1408,20 @@ public class PathGrammar {
     public void optimization() {
         boolean res1=true,res2=true;
         while(res1 || res2) {
-            res1 = mergeProds();
-
-            res2 = reduceProds2();
-
+            res1 = mergeProductions();
+            res2 = reduceProductions();
         }
 
+    }
+
+    public void new_optimization() {
+        boolean res1=true,res2=true,res3=true,res4=true;
+        while(res1 || res2 || res3 || res4) {
+            res1 = mergeProductions();
+            res2 = BackwardReduceProductions();
+            res3 = mergeProductions();
+            res4 = ForwardReduceProductions();
+        }
     }
 
     public Set<PathGrammarProduction> prodsUsingVar(Set<PathGrammarProduction> prods, String var) {
@@ -2019,5 +1441,7 @@ public class PathGrammar {
         }
         return tps;
     }
+
+
 
 }

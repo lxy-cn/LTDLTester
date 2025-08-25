@@ -1,15 +1,12 @@
-// Generated from /Users/lxy/Documents/Doc-LXY-iMac/RecentDoc/Development/LDLTester/src/LDL_LTL.g4 by ANTLR 4.13.2
+// Generated from /Users/lxy/Documents/Doc-LXY-iMac/RecentDoc/Development/LDLTester/src/LTDL.g4 by ANTLR 4.13.2
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
 import java.util.List;
-import java.util.Iterator;
-import java.util.ArrayList;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue", "this-escape"})
-public class LDL_LTLParser extends Parser {
+public class LTDLParser extends Parser {
 	static { RuntimeMetaData.checkVersion("4.13.2", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
@@ -18,8 +15,9 @@ public class LDL_LTLParser extends Parser {
 	public static final int
 		BIIMPLY=1, IMPLY=2, AND=3, OR=4, NOT=5, STAR=6, PLUS=7, SEMI=8, QUESTION=9, 
 		PAREN_OPEN=10, PAREN_CLOSE=11, ANGLE_OPEN=12, ANGLE_CLOSE=13, SQUARE_OPEN=14, 
-		SQUARE_CLOSE=15, NEXT=16, PREV=17, GLOBALLY=18, FINALLY=19, UNTIL=20, 
-		RELEASE=21, Identifier=22, StringExpr=23, WS=24;
+		SQUARE_CLOSE=15, NEXT=16, UNTIL=17, FINALLY=18, GLOBALLY=19, RELEASE=20, 
+		PREVIOUS=21, SINCE=22, PAST=23, HISTORICALLY=24, TRIGGER=25, Identifier=26, 
+		StringExpr=27, WS=28;
 	public static final int
 		RULE_ldl = 0, RULE_ldlFormula = 1, RULE_pathExpr = 2, RULE_propFormula = 3, 
 		RULE_atomicFormula = 4;
@@ -33,8 +31,8 @@ public class LDL_LTLParser extends Parser {
 	private static String[] makeLiteralNames() {
 		return new String[] {
 			null, "'<->'", "'->'", "'&'", "'|'", "'!'", "'*'", "'+'", "';'", "'?'", 
-			"'('", "')'", "'<'", "'>'", "'['", "']'", "'X'", "'Y'", "'G'", "'F'", 
-			"'U'", "'R'"
+			"'('", "')'", "'<'", "'>'", "'['", "']'", "'X'", "'U'", "'F'", "'G'", 
+			"'R'", "'Y'", "'S'", "'P'", "'H'", "'T'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
@@ -42,8 +40,9 @@ public class LDL_LTLParser extends Parser {
 		return new String[] {
 			null, "BIIMPLY", "IMPLY", "AND", "OR", "NOT", "STAR", "PLUS", "SEMI", 
 			"QUESTION", "PAREN_OPEN", "PAREN_CLOSE", "ANGLE_OPEN", "ANGLE_CLOSE", 
-			"SQUARE_OPEN", "SQUARE_CLOSE", "NEXT", "PREV", "GLOBALLY", "FINALLY", 
-			"UNTIL", "RELEASE", "Identifier", "StringExpr", "WS"
+			"SQUARE_OPEN", "SQUARE_CLOSE", "NEXT", "UNTIL", "FINALLY", "GLOBALLY", 
+			"RELEASE", "PREVIOUS", "SINCE", "PAST", "HISTORICALLY", "TRIGGER", "Identifier", 
+			"StringExpr", "WS"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -81,7 +80,7 @@ public class LDL_LTLParser extends Parser {
 	}
 
 	@Override
-	public String getGrammarFileName() { return "LDL_LTL.g4"; }
+	public String getGrammarFileName() { return "LTDL.g4"; }
 
 	@Override
 	public String[] getRuleNames() { return ruleNames; }
@@ -92,7 +91,7 @@ public class LDL_LTLParser extends Parser {
 	@Override
 	public ATN getATN() { return _ATN; }
 
-	public LDL_LTLParser(TokenStream input) {
+	public LTDLParser(TokenStream input) {
 		super(input);
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
@@ -102,22 +101,22 @@ public class LDL_LTLParser extends Parser {
 		public LdlFormulaContext ldlFormula() {
 			return getRuleContext(LdlFormulaContext.class,0);
 		}
-		public TerminalNode EOF() { return getToken(LDL_LTLParser.EOF, 0); }
+		public TerminalNode EOF() { return getToken(LTDLParser.EOF, 0); }
 		public LdlContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_ldl; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterLdl(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterLdl(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitLdl(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitLdl(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitLdl(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitLdl(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -163,22 +162,24 @@ public class LDL_LTLParser extends Parser {
 		public LdlFormulaContext ldlFormula() {
 			return getRuleContext(LdlFormulaContext.class,0);
 		}
-		public TerminalNode NEXT() { return getToken(LDL_LTLParser.NEXT, 0); }
-		public TerminalNode PREV() { return getToken(LDL_LTLParser.PREV, 0); }
-		public TerminalNode GLOBALLY() { return getToken(LDL_LTLParser.GLOBALLY, 0); }
-		public TerminalNode FINALLY() { return getToken(LDL_LTLParser.FINALLY, 0); }
+		public TerminalNode NEXT() { return getToken(LTDLParser.NEXT, 0); }
+		public TerminalNode FINALLY() { return getToken(LTDLParser.FINALLY, 0); }
+		public TerminalNode GLOBALLY() { return getToken(LTDLParser.GLOBALLY, 0); }
+		public TerminalNode PREVIOUS() { return getToken(LTDLParser.PREVIOUS, 0); }
+		public TerminalNode PAST() { return getToken(LTDLParser.PAST, 0); }
+		public TerminalNode HISTORICALLY() { return getToken(LTDLParser.HISTORICALLY, 0); }
 		public UNARY_LTL_OPTR_LDLContext(LdlFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterUNARY_LTL_OPTR_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterUNARY_LTL_OPTR_LDL(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitUNARY_LTL_OPTR_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitUNARY_LTL_OPTR_LDL(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitUNARY_LTL_OPTR_LDL(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitUNARY_LTL_OPTR_LDL(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -191,22 +192,22 @@ public class LDL_LTLParser extends Parser {
 		public LdlFormulaContext ldlFormula(int i) {
 			return getRuleContext(LdlFormulaContext.class,i);
 		}
-		public TerminalNode AND() { return getToken(LDL_LTLParser.AND, 0); }
-		public TerminalNode OR() { return getToken(LDL_LTLParser.OR, 0); }
-		public TerminalNode IMPLY() { return getToken(LDL_LTLParser.IMPLY, 0); }
-		public TerminalNode BIIMPLY() { return getToken(LDL_LTLParser.BIIMPLY, 0); }
+		public TerminalNode AND() { return getToken(LTDLParser.AND, 0); }
+		public TerminalNode OR() { return getToken(LTDLParser.OR, 0); }
+		public TerminalNode IMPLY() { return getToken(LTDLParser.IMPLY, 0); }
+		public TerminalNode BIIMPLY() { return getToken(LTDLParser.BIIMPLY, 0); }
 		public BINARY_BOOL_OPTR_LDLContext(LdlFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterBINARY_BOOL_OPTR_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterBINARY_BOOL_OPTR_LDL(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitBINARY_BOOL_OPTR_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitBINARY_BOOL_OPTR_LDL(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitBINARY_BOOL_OPTR_LDL(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitBINARY_BOOL_OPTR_LDL(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -216,23 +217,23 @@ public class LDL_LTLParser extends Parser {
 		public PathExprContext pathExpr() {
 			return getRuleContext(PathExprContext.class,0);
 		}
-		public TerminalNode ANGLE_CLOSE() { return getToken(LDL_LTLParser.ANGLE_CLOSE, 0); }
+		public TerminalNode ANGLE_CLOSE() { return getToken(LTDLParser.ANGLE_CLOSE, 0); }
 		public LdlFormulaContext ldlFormula() {
 			return getRuleContext(LdlFormulaContext.class,0);
 		}
-		public TerminalNode ANGLE_OPEN() { return getToken(LDL_LTLParser.ANGLE_OPEN, 0); }
+		public TerminalNode ANGLE_OPEN() { return getToken(LTDLParser.ANGLE_OPEN, 0); }
 		public DIAMOND_LDLContext(LdlFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterDIAMOND_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterDIAMOND_LDL(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitDIAMOND_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitDIAMOND_LDL(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitDIAMOND_LDL(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitDIAMOND_LDL(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -244,15 +245,15 @@ public class LDL_LTLParser extends Parser {
 		public ATOM_LDLContext(LdlFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterATOM_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterATOM_LDL(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitATOM_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitATOM_LDL(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitATOM_LDL(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitATOM_LDL(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -262,19 +263,19 @@ public class LDL_LTLParser extends Parser {
 		public LdlFormulaContext ldlFormula() {
 			return getRuleContext(LdlFormulaContext.class,0);
 		}
-		public TerminalNode NOT() { return getToken(LDL_LTLParser.NOT, 0); }
+		public TerminalNode NOT() { return getToken(LTDLParser.NOT, 0); }
 		public NOT_LDLContext(LdlFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterNOT_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterNOT_LDL(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitNOT_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitNOT_LDL(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitNOT_LDL(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitNOT_LDL(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -287,20 +288,22 @@ public class LDL_LTLParser extends Parser {
 		public LdlFormulaContext ldlFormula(int i) {
 			return getRuleContext(LdlFormulaContext.class,i);
 		}
-		public TerminalNode UNTIL() { return getToken(LDL_LTLParser.UNTIL, 0); }
-		public TerminalNode RELEASE() { return getToken(LDL_LTLParser.RELEASE, 0); }
+		public TerminalNode UNTIL() { return getToken(LTDLParser.UNTIL, 0); }
+		public TerminalNode RELEASE() { return getToken(LTDLParser.RELEASE, 0); }
+		public TerminalNode SINCE() { return getToken(LTDLParser.SINCE, 0); }
+		public TerminalNode TRIGGER() { return getToken(LTDLParser.TRIGGER, 0); }
 		public BINARY_LTL_OPTR_LDLContext(LdlFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterBINARY_LTL_OPTR_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterBINARY_LTL_OPTR_LDL(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitBINARY_LTL_OPTR_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitBINARY_LTL_OPTR_LDL(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitBINARY_LTL_OPTR_LDL(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitBINARY_LTL_OPTR_LDL(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -310,20 +313,20 @@ public class LDL_LTLParser extends Parser {
 		public LdlFormulaContext ldlFormula() {
 			return getRuleContext(LdlFormulaContext.class,0);
 		}
-		public TerminalNode PAREN_CLOSE() { return getToken(LDL_LTLParser.PAREN_CLOSE, 0); }
-		public TerminalNode PAREN_OPEN() { return getToken(LDL_LTLParser.PAREN_OPEN, 0); }
+		public TerminalNode PAREN_CLOSE() { return getToken(LTDLParser.PAREN_CLOSE, 0); }
+		public TerminalNode PAREN_OPEN() { return getToken(LTDLParser.PAREN_OPEN, 0); }
 		public PAREN_LDLContext(LdlFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterPAREN_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterPAREN_LDL(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitPAREN_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitPAREN_LDL(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitPAREN_LDL(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitPAREN_LDL(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -333,23 +336,23 @@ public class LDL_LTLParser extends Parser {
 		public PathExprContext pathExpr() {
 			return getRuleContext(PathExprContext.class,0);
 		}
-		public TerminalNode SQUARE_CLOSE() { return getToken(LDL_LTLParser.SQUARE_CLOSE, 0); }
+		public TerminalNode SQUARE_CLOSE() { return getToken(LTDLParser.SQUARE_CLOSE, 0); }
 		public LdlFormulaContext ldlFormula() {
 			return getRuleContext(LdlFormulaContext.class,0);
 		}
-		public TerminalNode SQUARE_OPEN() { return getToken(LDL_LTLParser.SQUARE_OPEN, 0); }
+		public TerminalNode SQUARE_OPEN() { return getToken(LTDLParser.SQUARE_OPEN, 0); }
 		public BOX_LDLContext(LdlFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterBOX_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterBOX_LDL(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitBOX_LDL(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitBOX_LDL(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitBOX_LDL(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitBOX_LDL(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -409,9 +412,11 @@ public class LDL_LTLParser extends Parser {
 				}
 				break;
 			case NEXT:
-			case PREV:
-			case GLOBALLY:
 			case FINALLY:
+			case GLOBALLY:
+			case PREVIOUS:
+			case PAST:
+			case HISTORICALLY:
 				{
 				_localctx = new UNARY_LTL_OPTR_LDLContext(_localctx);
 				_ctx = _localctx;
@@ -419,7 +424,7 @@ public class LDL_LTLParser extends Parser {
 				setState(21);
 				((UNARY_LTL_OPTR_LDLContext)_localctx).op = _input.LT(1);
 				_la = _input.LA(1);
-				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 983040L) != 0)) ) {
+				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 28114944L) != 0)) ) {
 					((UNARY_LTL_OPTR_LDLContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 				}
 				else {
@@ -485,7 +490,7 @@ public class LDL_LTLParser extends Parser {
 						setState(36);
 						((BINARY_LTL_OPTR_LDLContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
-						if ( !(_la==UNTIL || _la==RELEASE) ) {
+						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 38928384L) != 0)) ) {
 							((BINARY_LTL_OPTR_LDLContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						}
 						else {
@@ -558,15 +563,15 @@ public class LDL_LTLParser extends Parser {
 		public PROP_PATHEXPRContext(PathExprContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterPROP_PATHEXPR(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterPROP_PATHEXPR(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitPROP_PATHEXPR(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitPROP_PATHEXPR(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitPROP_PATHEXPR(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitPROP_PATHEXPR(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -576,19 +581,19 @@ public class LDL_LTLParser extends Parser {
 		public PathExprContext pathExpr() {
 			return getRuleContext(PathExprContext.class,0);
 		}
-		public TerminalNode STAR() { return getToken(LDL_LTLParser.STAR, 0); }
+		public TerminalNode STAR() { return getToken(LTDLParser.STAR, 0); }
 		public REPETITION_PATHEXPRContext(PathExprContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterREPETITION_PATHEXPR(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterREPETITION_PATHEXPR(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitREPETITION_PATHEXPR(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitREPETITION_PATHEXPR(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitREPETITION_PATHEXPR(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitREPETITION_PATHEXPR(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -598,19 +603,19 @@ public class LDL_LTLParser extends Parser {
 		public LdlFormulaContext ldlFormula() {
 			return getRuleContext(LdlFormulaContext.class,0);
 		}
-		public TerminalNode QUESTION() { return getToken(LDL_LTLParser.QUESTION, 0); }
+		public TerminalNode QUESTION() { return getToken(LTDLParser.QUESTION, 0); }
 		public TEST_PATHEXPRContext(PathExprContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterTEST_PATHEXPR(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterTEST_PATHEXPR(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitTEST_PATHEXPR(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitTEST_PATHEXPR(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitTEST_PATHEXPR(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitTEST_PATHEXPR(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -620,20 +625,20 @@ public class LDL_LTLParser extends Parser {
 		public PathExprContext pathExpr() {
 			return getRuleContext(PathExprContext.class,0);
 		}
-		public TerminalNode PAREN_CLOSE() { return getToken(LDL_LTLParser.PAREN_CLOSE, 0); }
-		public TerminalNode PAREN_OPEN() { return getToken(LDL_LTLParser.PAREN_OPEN, 0); }
+		public TerminalNode PAREN_CLOSE() { return getToken(LTDLParser.PAREN_CLOSE, 0); }
+		public TerminalNode PAREN_OPEN() { return getToken(LTDLParser.PAREN_OPEN, 0); }
 		public PAREN_PATHEXPRContext(PathExprContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterPAREN_PATHEXPR(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterPAREN_PATHEXPR(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitPAREN_PATHEXPR(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitPAREN_PATHEXPR(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitPAREN_PATHEXPR(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitPAREN_PATHEXPR(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -646,20 +651,20 @@ public class LDL_LTLParser extends Parser {
 		public PathExprContext pathExpr(int i) {
 			return getRuleContext(PathExprContext.class,i);
 		}
-		public TerminalNode SEMI() { return getToken(LDL_LTLParser.SEMI, 0); }
-		public TerminalNode PLUS() { return getToken(LDL_LTLParser.PLUS, 0); }
+		public TerminalNode SEMI() { return getToken(LTDLParser.SEMI, 0); }
+		public TerminalNode PLUS() { return getToken(LTDLParser.PLUS, 0); }
 		public TWO_OPERANDS_PATHEXPRContext(PathExprContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterTWO_OPERANDS_PATHEXPR(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterTWO_OPERANDS_PATHEXPR(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitTWO_OPERANDS_PATHEXPR(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitTWO_OPERANDS_PATHEXPR(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitTWO_OPERANDS_PATHEXPR(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitTWO_OPERANDS_PATHEXPR(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -799,19 +804,19 @@ public class LDL_LTLParser extends Parser {
 		public PropFormulaContext propFormula() {
 			return getRuleContext(PropFormulaContext.class,0);
 		}
-		public TerminalNode NOT() { return getToken(LDL_LTLParser.NOT, 0); }
+		public TerminalNode NOT() { return getToken(LTDLParser.NOT, 0); }
 		public NOT_PROPContext(PropFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterNOT_PROP(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterNOT_PROP(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitNOT_PROP(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitNOT_PROP(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitNOT_PROP(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitNOT_PROP(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -824,22 +829,22 @@ public class LDL_LTLParser extends Parser {
 		public PropFormulaContext propFormula(int i) {
 			return getRuleContext(PropFormulaContext.class,i);
 		}
-		public TerminalNode AND() { return getToken(LDL_LTLParser.AND, 0); }
-		public TerminalNode OR() { return getToken(LDL_LTLParser.OR, 0); }
-		public TerminalNode IMPLY() { return getToken(LDL_LTLParser.IMPLY, 0); }
-		public TerminalNode BIIMPLY() { return getToken(LDL_LTLParser.BIIMPLY, 0); }
+		public TerminalNode AND() { return getToken(LTDLParser.AND, 0); }
+		public TerminalNode OR() { return getToken(LTDLParser.OR, 0); }
+		public TerminalNode IMPLY() { return getToken(LTDLParser.IMPLY, 0); }
+		public TerminalNode BIIMPLY() { return getToken(LTDLParser.BIIMPLY, 0); }
 		public TWO_OPERANDS_PROPContext(PropFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterTWO_OPERANDS_PROP(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterTWO_OPERANDS_PROP(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitTWO_OPERANDS_PROP(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitTWO_OPERANDS_PROP(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitTWO_OPERANDS_PROP(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitTWO_OPERANDS_PROP(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -849,20 +854,20 @@ public class LDL_LTLParser extends Parser {
 		public PropFormulaContext propFormula() {
 			return getRuleContext(PropFormulaContext.class,0);
 		}
-		public TerminalNode PAREN_CLOSE() { return getToken(LDL_LTLParser.PAREN_CLOSE, 0); }
-		public TerminalNode PAREN_OPEN() { return getToken(LDL_LTLParser.PAREN_OPEN, 0); }
+		public TerminalNode PAREN_CLOSE() { return getToken(LTDLParser.PAREN_CLOSE, 0); }
+		public TerminalNode PAREN_OPEN() { return getToken(LTDLParser.PAREN_OPEN, 0); }
 		public PAREN_PROPContext(PropFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterPAREN_PROP(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterPAREN_PROP(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitPAREN_PROP(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitPAREN_PROP(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitPAREN_PROP(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitPAREN_PROP(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -874,15 +879,15 @@ public class LDL_LTLParser extends Parser {
 		public ATOM_PROPContext(PropFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterATOM_PROP(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterATOM_PROP(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitATOM_PROP(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitATOM_PROP(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitATOM_PROP(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitATOM_PROP(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1005,37 +1010,37 @@ public class LDL_LTLParser extends Parser {
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class STREXPR_ATOMContext extends AtomicFormulaContext {
-		public TerminalNode StringExpr() { return getToken(LDL_LTLParser.StringExpr, 0); }
+		public TerminalNode StringExpr() { return getToken(LTDLParser.StringExpr, 0); }
 		public STREXPR_ATOMContext(AtomicFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterSTREXPR_ATOM(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterSTREXPR_ATOM(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitSTREXPR_ATOM(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitSTREXPR_ATOM(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitSTREXPR_ATOM(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitSTREXPR_ATOM(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
 	public static class ID_ATOMContext extends AtomicFormulaContext {
-		public TerminalNode Identifier() { return getToken(LDL_LTLParser.Identifier, 0); }
+		public TerminalNode Identifier() { return getToken(LTDLParser.Identifier, 0); }
 		public ID_ATOMContext(AtomicFormulaContext ctx) { copyFrom(ctx); }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).enterID_ATOM(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).enterID_ATOM(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof LDL_LTLListener ) ((LDL_LTLListener)listener).exitID_ATOM(this);
+			if ( listener instanceof LTDLListener ) ((LTDLListener)listener).exitID_ATOM(this);
 		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof LDL_LTLVisitor ) return ((LDL_LTLVisitor<? extends T>)visitor).visitID_ATOM(this);
+			if ( visitor instanceof LTDLVisitor ) return ((LTDLVisitor<? extends T>)visitor).visitID_ATOM(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1116,7 +1121,7 @@ public class LDL_LTLParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u0018Z\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
+		"\u0004\u0001\u001cZ\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
 		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004\u0001"+
 		"\u0000\u0001\u0000\u0001\u0000\u0001\u0001\u0001\u0001\u0001\u0001\u0001"+
 		"\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001\u0001"+
@@ -1131,8 +1136,9 @@ public class LDL_LTLParser extends Parser {
 		"\u0003\u0001\u0003\u0001\u0003\u0003\u0003L\b\u0003\u0001\u0003\u0001"+
 		"\u0003\u0001\u0003\u0005\u0003Q\b\u0003\n\u0003\f\u0003T\t\u0003\u0001"+
 		"\u0004\u0001\u0004\u0003\u0004X\b\u0004\u0001\u0004\u0000\u0003\u0002"+
-		"\u0004\u0006\u0005\u0000\u0002\u0004\u0006\b\u0000\u0004\u0001\u0000\u0010"+
-		"\u0013\u0001\u0000\u0014\u0015\u0001\u0000\u0001\u0004\u0001\u0000\u0007"+
+		"\u0004\u0006\u0005\u0000\u0002\u0004\u0006\b\u0000\u0004\u0004\u0000\u0010"+
+		"\u0010\u0012\u0013\u0015\u0015\u0017\u0018\u0004\u0000\u0011\u0011\u0014"+
+		"\u0014\u0016\u0016\u0019\u0019\u0001\u0000\u0001\u0004\u0001\u0000\u0007"+
 		"\bc\u0000\n\u0001\u0000\u0000\u0000\u0002!\u0001\u0000\u0000\u0000\u0004"+
 		"7\u0001\u0000\u0000\u0000\u0006K\u0001\u0000\u0000\u0000\bW\u0001\u0000"+
 		"\u0000\u0000\n\u000b\u0003\u0002\u0001\u0000\u000b\f\u0005\u0000\u0000"+
@@ -1169,8 +1175,8 @@ public class LDL_LTLParser extends Parser {
 		"\u0000\u0000LR\u0001\u0000\u0000\u0000MN\n\u0001\u0000\u0000NO\u0007\u0002"+
 		"\u0000\u0000OQ\u0003\u0006\u0003\u0002PM\u0001\u0000\u0000\u0000QT\u0001"+
 		"\u0000\u0000\u0000RP\u0001\u0000\u0000\u0000RS\u0001\u0000\u0000\u0000"+
-		"S\u0007\u0001\u0000\u0000\u0000TR\u0001\u0000\u0000\u0000UX\u0005\u0016"+
-		"\u0000\u0000VX\u0005\u0017\u0000\u0000WU\u0001\u0000\u0000\u0000WV\u0001"+
+		"S\u0007\u0001\u0000\u0000\u0000TR\u0001\u0000\u0000\u0000UX\u0005\u001a"+
+		"\u0000\u0000VX\u0005\u001b\u0000\u0000WU\u0001\u0000\u0000\u0000WV\u0001"+
 		"\u0000\u0000\u0000X\t\u0001\u0000\u0000\u0000\t!)+7>@KRW";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
