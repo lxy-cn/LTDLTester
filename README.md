@@ -2,8 +2,6 @@
 
 **LTDLTester** is a temporal tester generator for Linear Temporal Dynamic Logic (LTDL), which is a combination of Linear Dynamic Logic (LDL) and Future and Past Linear Temporal Logic (LTL). The generated tester is written in SMV language that is used by NuSMV and nuXmv.
 
-Xiangyu Luo  
-College of Computer Science and Technology, Huaqiao University
 
 ## 1. Release notes
 
