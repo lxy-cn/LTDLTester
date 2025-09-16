@@ -327,8 +327,7 @@ public class MainLtdlVisitor {
 
     public static void showVersion(){
         System.out.println("*** LTDLTester 1.2.0 is a temporal tester generator for Linear Temporal Dynamic Logic (LTDL), which is a combination ofLinear Dynamic Logic (LDL) and Future and Past Linear Temporal Logic (LTL). The generated tester is written in SMV language that is used by NuSMV and nuXmv.");
-        System.out.println("*** Copyright (c) 2025, Xiangyu Luo at Huaqiao University");
-        System.out.println("*** For more information please contact us via luoxy@hqu.edu.cn");
+        System.out.println("*** Copyright (c) 2025");
     }
 
     public static void main(String[] args) throws Exception {
