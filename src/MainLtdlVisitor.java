@@ -313,8 +313,8 @@ public class MainLtdlVisitor {
 
         Ldl_ltlGetTreeVisitor ldlGetTreeVisitor = new Ldl_ltlGetTreeVisitor();
         LDL ldlTree = ldlGetTreeVisitor.visit(tree);
-        System.out.println("--The original LTDL formula: " + ldlTree.getText(true));
-        ldlTree = ldlTree.box2diamond().reduceRedundantNotOperator();
+        System.out.println("--The original LTDL formula: " + ldlTree.getText(false));
+        ldlTree = ldlTree.box2diamond().reduceRedundantNotOperator();  // eliminate box and redundant not operators
 
         Tester tester = new Tester("", ldlTree);
         String smvOutput = tester.toSMV();

@@ -217,21 +217,20 @@ public class Tester {
     // all sub testers of f are cached
     public LDL buildSubTesterRecur(LDL f) throws CloneNotSupportedException {
         if(f==null) return null;
-        LDL f1=null,f2=null;
+        LDL f1out=null,f2out=null;
         switch (f.operator) {
             case ATOM: // f = atom
                 return f.clone();
             case NOT: // f = ! f1
-                f1 = f.children.get(0);
-                LDL f1out = buildSubTesterRecur(f1); // tester of f1
+                f1out = buildSubTesterRecur(f.children.get(0)); // tester of f1
                 return new LDL(LDL.Operators.NOT, f1out);
             case AND: // f = f1 & f2
             case OR: // f = f1 | f2
             case IMPLY: // f = f1 -> f2
             case BIIMPLY: // f = f1 <-> f2
-                f1 = buildSubTesterRecur(f.children.get(0));
-                f2 = buildSubTesterRecur(f.children.get(1));
-                return new LDL(f.operator, f1, f2);
+                f1out = buildSubTesterRecur(f.children.get(0)); // T(f1)
+                f2out = buildSubTesterRecur(f.children.get(1)); // T(f2)
+                return new LDL(f.operator, f1out, f2out);
             case NEXT:
             case PREVIOUS:
             case UNTIL:
@@ -989,7 +988,7 @@ public class Tester {
                 LDL f = it.next();
                 SubTesterContainer T = this.principalTemporalSubTesters.get(f);
                 s += "--  (" + (i++) + ") " + T.out.getText(true) + ": " + f.getText(true) + "\r\n";
-                smvCode += "\r\n"+T.toSMV(true, true);
+                smvCode += "\r\n"+T.toSMV(false, false);
             }
             s += smvCode;
         }

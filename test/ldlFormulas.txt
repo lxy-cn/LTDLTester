@@ -29,6 +29,24 @@
 
 --<(a + b ; (c -> <a+b> F c & d)?; e)>f #
 
+--[envworks;(bit0?;(bit1+recbit+recack*))] bit1 #
+
+bit0 -> <(
+ bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+ ;bit0;bit0;bit0;bit0
+
+)*> recack #
+
+
+/*
+([(
+TRUE;TRUE;TRUE;TRUE
+)*] envworks) -> (<(
+TRUE;TRUE;TRUE;TRUE
+)*> (!recack & <TRUE>recack)) #
+
+
+(<(TRUE;TRUE)*> recack) -> (<TRUE*>(recbit & !recack)) #
 
 [( (    req? ;
         working;
@@ -38,13 +56,136 @@
             (!error S working)?
         )
     ) +
-    (!req? ; true)
+    (!req? ; TRUE)
  )*
 ] !error #
 
 
-/*
-[(((envworks ; envbroken) + (envbroken ; envworks)) 
+
+[(((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    ; ((envworks ; envbroken) + (envbroken ; envworks))
+    )* ] receiverDone #
+
+
+([(
+
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks));
+((envworks;envbroken)+(envbroken;envworks))
+
+)*] TRUE) -> (F senderDone) #
+
+
+[(((envworks ; envbroken) + (envbroken ; envworks))
     ; ((envworks ; envbroken) + (envbroken ; envworks))
     ; ((envworks ; envbroken) + (envbroken ; envworks))
     ; ((envworks ; envbroken) + (envbroken ; envworks))
@@ -65,20 +206,9 @@
     ; ((envworks ; envbroken) + (envbroken ; envworks))
     ; ((envworks ; envbroken) + (envbroken ; envworks))
     ; ((envworks ; envbroken) + (envbroken ; envworks))
-    
-    ; ((envworks ; envbroken) + (envbroken ; envworks))
-    ; ((envworks ; envbroken) + (envbroken ; envworks))
-    ; ((envworks ; envbroken) + (envbroken ; envworks))
-    ; ((envworks ; envbroken) + (envbroken ; envworks))
-    ; ((envworks ; envbroken) + (envbroken ; envworks))
-    ; ((envworks ; envbroken) + (envbroken ; envworks))
-    ; ((envworks ; envbroken) + (envbroken ; envworks))
-    ; ((envworks ; envbroken) + (envbroken ; envworks))
-    ; ((envworks ; envbroken) + (envbroken ; envworks))
-    ; ((envworks ; envbroken) + (envbroken ; envworks))
-    
 
     )* ] receiverDone #
+
 
 'sndr.bit=0' -> <(
         'sndr.bit=0';
