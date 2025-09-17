@@ -1,0 +1,329 @@
+--Writting Format--
+--(1) Every LTDL formula can occupy multi lines and must end with '#'
+--(2) Every line starting with '--' is commented out.
+--(3) Multiline text can be commented out by enclosing it within '/*' and '*/'
+
+-- <((a+b)*;c)*>d #  -- the first example in README.md
+
+/*
+-- the second example in README.md
+[( (    req? ;
+        working;
+        Serve;
+        !working;
+        (   ((!(!error S working))? ; Rec) +
+            (!error S working)?
+        )
+    ) +
+    (!req? ; TRUE)
+ )*
+] !error #
+*/
+
+-- LTDL formulas for bit transmission protocol:
+/*
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=6
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=8
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=10
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=12
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=14
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=20
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=40
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=60
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=80
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=100
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=120
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=140
+
+bit0 -> <(
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;
+    bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0
+)*> recack # --n=160
+*/
+
+--LTDL formulas for Go-Back-N ARQ Protocol
+/*
+([(
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks))
+  )*]TRUE) -> (F senderDone) # --n=2
+
+([(
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks))
+  )*]TRUE) -> (F senderDone) # --n=4
+
+([(
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks))
+  )*]TRUE) -> (F senderDone) # --n=6
+
+([(
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks))
+  )*]TRUE) -> (F senderDone) # --n=8
+
+([(
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks))
+  )*]TRUE) -> (F senderDone) # --n=10
+*/
+
+([(
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks));
+    ((envworks;envbroken)+(envbroken;envworks))
+  )*]TRUE) -> (F senderDone) # --n=100
+
+/* other LTDL formulas:*/
+
+-- (<((a));(!!!!!['b[6]<3';b]a?+!('c>5'->d<->c)*)*>b) #
+-- <((a+b+c)*+d)>c #
+-- <a+(b+c)*+d>e #
+--[((F b)? ; a ; ((b?;c)+((!b)?;d)))* ; (!F b)?] e # -- while (F b) do { a ; if b then c else d }; e, where F b denotes that b will finally be true  -- the second example in README.md
+--G F a #
+--[TRUE*]<TRUE*>a #
+--  <a+(<b>c)?>d #
+-- <(a;b)*>c #
+--   (<(a;(![a+b?]c)?)*>c) & (<a+b?>!c)  #
+--   <(a?;b)*>c  #
+--[(req;(<TRUE*>work)?)*]<(a;b)*>ack #
+--[(a;b;c;(d+e+f);g;h)*]i #
+
+--<(a?;b;((c?;d)+((!c)?;e)))*;(!a)?>f #
+
+--[(TRUE;TRUE;TRUE;TRUE)*]b  #
+
+--[(a;(b U c)?)*] (Y <d*>(b R c)) #
+--<(a?)*>b
+--a U b #
+--<a + b? + c + (F d)?>e #
+--<((F a)?;c+d)*>b #
+
+--<(a + b ; (c -> <a+b> F c & d)?; e)>f #
+
+--[envworks;(bit0?;(bit1+recbit+recack*))] bit1 #

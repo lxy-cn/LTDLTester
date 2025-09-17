@@ -1,0 +1,1546 @@
+-- The Go-Back-N ARQ protocol.
+-- Three bits, using N = 2.
+-- this model is refered from go_back_n_4bits.ispl in the MCMAS-LDLK package
+
+MODULE main
+VAR
+  state : {s,r,sr,none};
+  s_r_1: {b0, b1, empty};
+  s_r_1_seq: 0..3;
+  s_r_2: {b0, b1, empty};
+  s_r_2_seq: 0..3;
+  s_r_3: {b0, b1, empty};
+  s_r_3_seq: 0..3;
+  r_s_1: 0..3;
+  r_s_2: 0..3;
+  r_s_3: 0..3;
+
+  act: {s,sr,r,none};
+
+  sender : Sender(r_s_3);
+  receiver : Receiver(s_r_3, s_r_3_seq);
+
+DEFINE
+  envworks := (state=sr);
+  envbroken := (state=none);
+  receiverDone := (receiver.recv1 != empty & receiver.recv2 != empty & receiver.recv3 != empty);
+  senderDone := (sender.done = TRUE);
+
+INIT
+    s_r_1=empty &
+    s_r_2=empty &
+    s_r_3=empty &
+    r_s_1=0 &
+    r_s_2=0 &
+    r_s_3=0 &
+    sender.done=FALSE &
+    sender.recack=0 &
+    sender.dispatch=1 &
+    receiver.recv1=empty &
+    receiver.recv2=empty &
+    receiver.recv3=empty;
+
+ASSIGN
+--the protocol
+act := case 
+  state=s: {s,sr,r,none};
+  state=r: {s,sr,r,none};
+  state=sr: {s,sr,r,none};
+  state=none: {s,sr,r,none};
+esac;
+
+--the evolution
+next(state) := case
+  act=s: s;
+  act=r: r;
+  act=sr: sr;
+  act=none: none;
+esac;                                                                                                                                        
+next(s_r_1) := case
+  ((sender.act=b10 | sender.act=b20 | sender.act=b30)) : b0;
+  (sender.act=none) : empty;
+  (sender.act=b11 | sender.act=b21 | sender.act=b31) : b1;
+  (sender.act=none) : empty;
+  TRUE: s_r_1;
+esac;
+
+next(s_r_2) := case
+  (s_r_1=b0 & (act=sr | act=s)) : b0;
+  (s_r_1=b1 & (act=sr | act=s)) : b1;
+  (act=r | act=none) | (s_r_1=empty) : empty;
+  TRUE: s_r_2;
+esac;
+
+next(s_r_3) := case
+  (s_r_2=b0) & (act=sr | act=s) : b0;
+  (s_r_2=b1) & (act=sr | act=s) : b1;
+  (act=r | act=none) | (s_r_2=empty) : empty;
+  (s_r_2=empty) : empty;
+  TRUE: s_r_3;
+esac;
+
+next(s_r_1_seq) := case
+  (sender.act=b10 | sender.act=b11) : 1;
+  (sender.act=b20 | sender.act=b21) : 2;
+  (sender.act=b30 | sender.act=b31) : 3;
+  (sender.act=none) : 3;
+  TRUE : s_r_1_seq;
+esac;
+
+next(s_r_2_seq) := case
+  (act=none) | !(act=none) : s_r_1_seq;
+  TRUE : s_r_2_seq;
+esac;
+
+next(s_r_3_seq) := case
+  (act=none) | !(act=none) : s_r_2_seq;
+  TRUE : s_r_3_seq;
+esac;
+
+next(r_s_1) := case
+  (receiver.act=null) : 0;
+  (receiver.act=r1) : 1;
+  (receiver.act=r2) : 2;
+  (receiver.act=r3) : 3;
+  TRUE : r_s_1;
+esac;
+
+next(r_s_2) := case
+  (act=s | act=sr) : r_s_1; 
+  (act=r | act=none) : 0;
+  TRUE : r_s_2;
+esac;
+
+next(r_s_3) := case
+  (act=s | act=sr) : r_s_2; 
+  (act=r | act=none) : 0;
+  TRUE : r_s_3;
+esac;
+
+
+FAIRNESS envworks;
+
+LTLSPEC !X1 -> W1;
+
+--------------------------------- No.1 formula ---------------------------------
+--The original LTDL formula: ([(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((envworks ; envbroken) + (envbroken ; envworks)) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks)))*]TRUE) -> F senderDone
+--The LTL formula to be verified: LTLSPEC !X1 -> W1;
+--The following SMV code is the tester for the LTDL formula without [] operator: !(<(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((envbroken ; envworks) + (envworks ; envbroken)) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken)))*>!TRUE) -> F senderDone
+
+--The output variables for 2 principally temporal sub-formula(s):
+--  (1) X1: <(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((envbroken ; envworks) + (envworks ; envbroken)) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken)))*>!TRUE
+--  (2) W1: F senderDone
+
+--------- No.1 sub-tester for <(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((envbroken ; envworks) + (envworks ; envbroken)) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken)))*>!TRUE ---------
+VAR X1 : boolean; Y1 : boolean; -- X1 is the output variable
+    X2 : boolean; Y2 : boolean;
+    X3 : boolean; Y3 : boolean;
+    X4 : boolean; Y4 : boolean;
+    X5 : boolean; Y5 : boolean;
+    X6 : boolean; Y6 : boolean;
+    X7 : boolean; Y7 : boolean;
+    X8 : boolean; Y8 : boolean;
+    X9 : boolean; Y9 : boolean;
+    X10 : boolean;  Y10 : boolean;
+    X11 : boolean;  Y11 : boolean;
+    X12 : boolean;  Y12 : boolean;
+    X13 : boolean;  Y13 : boolean;
+    X14 : boolean;  Y14 : boolean;
+    X15 : boolean;  Y15 : boolean;
+    X16 : boolean;  Y16 : boolean;
+    X17 : boolean;  Y17 : boolean;
+    X18 : boolean;  Y18 : boolean;
+    X19 : boolean;  Y19 : boolean;
+    X20 : boolean;  Y20 : boolean;
+    X21 : boolean;  Y21 : boolean;
+    X22 : boolean;  Y22 : boolean;
+    X23 : boolean;  Y23 : boolean;
+    X24 : boolean;  Y24 : boolean;
+    X25 : boolean;  Y25 : boolean;
+    X26 : boolean;  Y26 : boolean;
+    X27 : boolean;  Y27 : boolean;
+    X28 : boolean;  Y28 : boolean;
+    X29 : boolean;  Y29 : boolean;
+    X30 : boolean;  Y30 : boolean;
+    X31 : boolean;  Y31 : boolean;
+    X32 : boolean;  Y32 : boolean;
+    X33 : boolean;  Y33 : boolean;
+    X34 : boolean;  Y34 : boolean;
+    X35 : boolean;  Y35 : boolean;
+    X36 : boolean;  Y36 : boolean;
+    X37 : boolean;  Y37 : boolean;
+    X38 : boolean;  Y38 : boolean;
+    X39 : boolean;  Y39 : boolean;
+    X40 : boolean;  Y40 : boolean;
+    X41 : boolean;  Y41 : boolean;
+    X42 : boolean;  Y42 : boolean;
+    X43 : boolean;  Y43 : boolean;
+    X44 : boolean;  Y44 : boolean;
+    X45 : boolean;  Y45 : boolean;
+    X46 : boolean;  Y46 : boolean;
+    X47 : boolean;  Y47 : boolean;
+    X48 : boolean;  Y48 : boolean;
+    X49 : boolean;  Y49 : boolean;
+    X50 : boolean;  Y50 : boolean;
+    X51 : boolean;  Y51 : boolean;
+    X52 : boolean;  Y52 : boolean;
+    X53 : boolean;  Y53 : boolean;
+    X54 : boolean;  Y54 : boolean;
+    X55 : boolean;  Y55 : boolean;
+    X56 : boolean;  Y56 : boolean;
+    X57 : boolean;  Y57 : boolean;
+    X58 : boolean;  Y58 : boolean;
+    X59 : boolean;  Y59 : boolean;
+    X60 : boolean;  Y60 : boolean;
+    X61 : boolean;  Y61 : boolean;
+    X62 : boolean;  Y62 : boolean;
+    X63 : boolean;  Y63 : boolean;
+    X64 : boolean;  Y64 : boolean;
+    X65 : boolean;  Y65 : boolean;
+    X66 : boolean;  Y66 : boolean;
+    X67 : boolean;  Y67 : boolean;
+    X68 : boolean;  Y68 : boolean;
+    X69 : boolean;  Y69 : boolean;
+    X70 : boolean;  Y70 : boolean;
+    X71 : boolean;  Y71 : boolean;
+    X72 : boolean;  Y72 : boolean;
+    X73 : boolean;  Y73 : boolean;
+    X74 : boolean;  Y74 : boolean;
+    X75 : boolean;  Y75 : boolean;
+    X76 : boolean;  Y76 : boolean;
+    X77 : boolean;  Y77 : boolean;
+    X78 : boolean;  Y78 : boolean;
+    X79 : boolean;  Y79 : boolean;
+    X80 : boolean;  Y80 : boolean;
+    X81 : boolean;  Y81 : boolean;
+    X82 : boolean;  Y82 : boolean;
+    X83 : boolean;  Y83 : boolean;
+    X84 : boolean;  Y84 : boolean;
+    X85 : boolean;  Y85 : boolean;
+    X86 : boolean;  Y86 : boolean;
+    X87 : boolean;  Y87 : boolean;
+    X88 : boolean;  Y88 : boolean;
+    X89 : boolean;  Y89 : boolean;
+    X90 : boolean;  Y90 : boolean;
+    X91 : boolean;  Y91 : boolean;
+    X92 : boolean;  Y92 : boolean;
+    X93 : boolean;  Y93 : boolean;
+    X94 : boolean;  Y94 : boolean;
+    X95 : boolean;  Y95 : boolean;
+    X96 : boolean;  Y96 : boolean;
+    X97 : boolean;  Y97 : boolean;
+    X98 : boolean;  Y98 : boolean;
+    X99 : boolean;  Y99 : boolean;
+    X100 : boolean; Y100 : boolean;
+    X101 : boolean; Y101 : boolean;
+    X102 : boolean; Y102 : boolean;
+    X103 : boolean; Y103 : boolean;
+    X104 : boolean; Y104 : boolean;
+    X105 : boolean; Y105 : boolean;
+    X106 : boolean; Y106 : boolean;
+    X107 : boolean; Y107 : boolean;
+    X108 : boolean; Y108 : boolean;
+    X109 : boolean; Y109 : boolean;
+    X110 : boolean; Y110 : boolean;
+    X111 : boolean; Y111 : boolean;
+    X112 : boolean; Y112 : boolean;
+    X113 : boolean; Y113 : boolean;
+    X114 : boolean; Y114 : boolean;
+    X115 : boolean; Y115 : boolean;
+    X116 : boolean; Y116 : boolean;
+    X117 : boolean; Y117 : boolean;
+    X118 : boolean; Y118 : boolean;
+    X119 : boolean; Y119 : boolean;
+    X120 : boolean; Y120 : boolean;
+    X121 : boolean; Y121 : boolean;
+    X122 : boolean; Y122 : boolean;
+    X123 : boolean; Y123 : boolean;
+    X124 : boolean; Y124 : boolean;
+    X125 : boolean; Y125 : boolean;
+    X126 : boolean; Y126 : boolean;
+    X127 : boolean; Y127 : boolean;
+    X128 : boolean; Y128 : boolean;
+    X129 : boolean; Y129 : boolean;
+    X130 : boolean; Y130 : boolean;
+    X131 : boolean; Y131 : boolean;
+    X132 : boolean; Y132 : boolean;
+    X133 : boolean; Y133 : boolean;
+    X134 : boolean; Y134 : boolean;
+    X135 : boolean; Y135 : boolean;
+    X136 : boolean; Y136 : boolean;
+    X137 : boolean; Y137 : boolean;
+    X138 : boolean; Y138 : boolean;
+    X139 : boolean; Y139 : boolean;
+    X140 : boolean; Y140 : boolean;
+    X141 : boolean; Y141 : boolean;
+    X142 : boolean; Y142 : boolean;
+    X143 : boolean; Y143 : boolean;
+    X144 : boolean; Y144 : boolean;
+    X145 : boolean; Y145 : boolean;
+    X146 : boolean; Y146 : boolean;
+    X147 : boolean; Y147 : boolean;
+    X148 : boolean; Y148 : boolean;
+    X149 : boolean; Y149 : boolean;
+    X150 : boolean; Y150 : boolean;
+    X151 : boolean; Y151 : boolean;
+    X152 : boolean; Y152 : boolean;
+    X153 : boolean; Y153 : boolean;
+    X154 : boolean; Y154 : boolean;
+    X155 : boolean; Y155 : boolean;
+    X156 : boolean; Y156 : boolean;
+    X157 : boolean; Y157 : boolean;
+    X158 : boolean; Y158 : boolean;
+    X159 : boolean; Y159 : boolean;
+    X160 : boolean; Y160 : boolean;
+    X161 : boolean; Y161 : boolean;
+    X162 : boolean; Y162 : boolean;
+    X163 : boolean; Y163 : boolean;
+    X164 : boolean; Y164 : boolean;
+    X165 : boolean; Y165 : boolean;
+    X166 : boolean; Y166 : boolean;
+    X167 : boolean; Y167 : boolean;
+    X168 : boolean; Y168 : boolean;
+    X169 : boolean; Y169 : boolean;
+    X170 : boolean; Y170 : boolean;
+    X171 : boolean; Y171 : boolean;
+    X172 : boolean; Y172 : boolean;
+    X173 : boolean; Y173 : boolean;
+    X174 : boolean; Y174 : boolean;
+    X175 : boolean; Y175 : boolean;
+    X176 : boolean; Y176 : boolean;
+    X177 : boolean; Y177 : boolean;
+    X178 : boolean; Y178 : boolean;
+    X179 : boolean; Y179 : boolean;
+    X180 : boolean; Y180 : boolean;
+    X181 : boolean; Y181 : boolean;
+    X182 : boolean; Y182 : boolean;
+    X183 : boolean; Y183 : boolean;
+    X184 : boolean; Y184 : boolean;
+    X185 : boolean; Y185 : boolean;
+    X186 : boolean; Y186 : boolean;
+    X187 : boolean; Y187 : boolean;
+    X188 : boolean; Y188 : boolean;
+    X189 : boolean; Y189 : boolean;
+    X190 : boolean; Y190 : boolean;
+    X191 : boolean; Y191 : boolean;
+    X192 : boolean; Y192 : boolean;
+    X193 : boolean; Y193 : boolean;
+    X194 : boolean; Y194 : boolean;
+    X195 : boolean; Y195 : boolean;
+    X196 : boolean; Y196 : boolean;
+    X197 : boolean; Y197 : boolean;
+    X198 : boolean; Y198 : boolean;
+    X199 : boolean; Y199 : boolean;
+    X200 : boolean; Y200 : boolean;
+    X201 : boolean; Y201 : boolean;
+    X202 : boolean; Y202 : boolean;
+    X203 : boolean; Y203 : boolean;
+    X204 : boolean; Y204 : boolean;
+    X205 : boolean; Y205 : boolean;
+    X206 : boolean; Y206 : boolean;
+    X207 : boolean; Y207 : boolean;
+    X208 : boolean; Y208 : boolean;
+    X209 : boolean; Y209 : boolean;
+    X210 : boolean; Y210 : boolean;
+    X211 : boolean; Y211 : boolean;
+    X212 : boolean; Y212 : boolean;
+    X213 : boolean; Y213 : boolean;
+    X214 : boolean; Y214 : boolean;
+    X215 : boolean; Y215 : boolean;
+    X216 : boolean; Y216 : boolean;
+    X217 : boolean; Y217 : boolean;
+    X218 : boolean; Y218 : boolean;
+    X219 : boolean; Y219 : boolean;
+    X220 : boolean; Y220 : boolean;
+    X221 : boolean; Y221 : boolean;
+    X222 : boolean; Y222 : boolean;
+    X223 : boolean; Y223 : boolean;
+    X224 : boolean; Y224 : boolean;
+    X225 : boolean; Y225 : boolean;
+    X226 : boolean; Y226 : boolean;
+    X227 : boolean; Y227 : boolean;
+    X228 : boolean; Y228 : boolean;
+    X229 : boolean; Y229 : boolean;
+    X230 : boolean; Y230 : boolean;
+    X231 : boolean; Y231 : boolean;
+    X232 : boolean; Y232 : boolean;
+    X233 : boolean; Y233 : boolean;
+    X234 : boolean; Y234 : boolean;
+    X235 : boolean; Y235 : boolean;
+    X236 : boolean; Y236 : boolean;
+    X237 : boolean; Y237 : boolean;
+    X238 : boolean; Y238 : boolean;
+    X239 : boolean; Y239 : boolean;
+    X240 : boolean; Y240 : boolean;
+    X241 : boolean; Y241 : boolean;
+    X242 : boolean; Y242 : boolean;
+    X243 : boolean; Y243 : boolean;
+    X244 : boolean; Y244 : boolean;
+    X245 : boolean; Y245 : boolean;
+    X246 : boolean; Y246 : boolean;
+    X247 : boolean; Y247 : boolean;
+    X248 : boolean; Y248 : boolean;
+    X249 : boolean; Y249 : boolean;
+    X250 : boolean; Y250 : boolean;
+    X251 : boolean; Y251 : boolean;
+    X252 : boolean; Y252 : boolean;
+    X253 : boolean; Y253 : boolean;
+    X254 : boolean; Y254 : boolean;
+    X255 : boolean; Y255 : boolean;
+    X256 : boolean; Y256 : boolean;
+    X257 : boolean; Y257 : boolean;
+    X258 : boolean; Y258 : boolean;
+    X259 : boolean; Y259 : boolean;
+    X260 : boolean; Y260 : boolean;
+    X261 : boolean; Y261 : boolean;
+    X262 : boolean; Y262 : boolean;
+    X263 : boolean; Y263 : boolean;
+    X264 : boolean; Y264 : boolean;
+    X265 : boolean; Y265 : boolean;
+    X266 : boolean; Y266 : boolean;
+    X267 : boolean; Y267 : boolean;
+    X268 : boolean; Y268 : boolean;
+    X269 : boolean; Y269 : boolean;
+    X270 : boolean; Y270 : boolean;
+    X271 : boolean; Y271 : boolean;
+    X272 : boolean; Y272 : boolean;
+    X273 : boolean; Y273 : boolean;
+    X274 : boolean; Y274 : boolean;
+    X275 : boolean; Y275 : boolean;
+    X276 : boolean; Y276 : boolean;
+    X277 : boolean; Y277 : boolean;
+    X278 : boolean; Y278 : boolean;
+    X279 : boolean; Y279 : boolean;
+    X280 : boolean; Y280 : boolean;
+    X281 : boolean; Y281 : boolean;
+    X282 : boolean; Y282 : boolean;
+    X283 : boolean; Y283 : boolean;
+    X284 : boolean; Y284 : boolean;
+    X285 : boolean; Y285 : boolean;
+    X286 : boolean; Y286 : boolean;
+    X287 : boolean; Y287 : boolean;
+    X288 : boolean; Y288 : boolean;
+    X289 : boolean; Y289 : boolean;
+    X290 : boolean; Y290 : boolean;
+    X291 : boolean; Y291 : boolean;
+    X292 : boolean; Y292 : boolean;
+    X293 : boolean; Y293 : boolean;
+    X294 : boolean; Y294 : boolean;
+    X295 : boolean; Y295 : boolean;
+    X296 : boolean; Y296 : boolean;
+    X297 : boolean; Y297 : boolean;
+    X298 : boolean; Y298 : boolean;
+    X299 : boolean; Y299 : boolean;
+    X300 : boolean; Y300 : boolean;
+
+--After optimized and renamed:
+--The Path Grammar of (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((envbroken ; envworks) + (envworks ; envbroken)) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken)))*:
+--  Start variable: 1
+--  Variables: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300]
+--  Productions:
+--    (1) 1 --> ¦Å
+--    (2) 1 --> envbroken 2
+--    (3) 1 --> envworks 3
+--    (4) 2 --> envworks 4
+--    (5) 3 --> envbroken 4
+--    (6) 4 --> envbroken 5
+--    (7) 4 --> envworks 6
+--    (8) 5 --> envworks 7
+--    (9) 6 --> envbroken 7
+--    (10) 7 --> envbroken 8
+--    (11) 7 --> envworks 9
+--    (12) 8 --> envworks 10
+--    (13) 9 --> envbroken 10
+--    (14) 10 --> envbroken 11
+--    (15) 10 --> envworks 12
+--    (16) 11 --> envworks 13
+--    (17) 12 --> envbroken 13
+--    (18) 13 --> envbroken 14
+--    (19) 13 --> envworks 15
+--    (20) 14 --> envworks 16
+--    (21) 15 --> envbroken 16
+--    (22) 16 --> envbroken 17
+--    (23) 16 --> envworks 18
+--    (24) 17 --> envworks 19
+--    (25) 18 --> envbroken 19
+--    (26) 19 --> envbroken 20
+--    (27) 19 --> envworks 21
+--    (28) 20 --> envworks 22
+--    (29) 21 --> envbroken 22
+--    (30) 22 --> envbroken 23
+--    (31) 22 --> envworks 24
+--    (32) 23 --> envworks 25
+--    (33) 24 --> envbroken 25
+--    (34) 25 --> envbroken 26
+--    (35) 25 --> envworks 27
+--    (36) 26 --> envworks 28
+--    (37) 27 --> envbroken 28
+--    (38) 28 --> envbroken 29
+--    (39) 28 --> envworks 30
+--    (40) 29 --> envworks 31
+--    (41) 30 --> envbroken 31
+--    (42) 31 --> envbroken 32
+--    (43) 31 --> envworks 33
+--    (44) 32 --> envworks 34
+--    (45) 33 --> envbroken 34
+--    (46) 34 --> envbroken 35
+--    (47) 34 --> envworks 36
+--    (48) 35 --> envworks 37
+--    (49) 36 --> envbroken 37
+--    (50) 37 --> envbroken 38
+--    (51) 37 --> envworks 39
+--    (52) 38 --> envworks 40
+--    (53) 39 --> envbroken 40
+--    (54) 40 --> envbroken 41
+--    (55) 40 --> envworks 42
+--    (56) 41 --> envworks 43
+--    (57) 42 --> envbroken 43
+--    (58) 43 --> envbroken 44
+--    (59) 43 --> envworks 45
+--    (60) 44 --> envworks 46
+--    (61) 45 --> envbroken 46
+--    (62) 46 --> envbroken 47
+--    (63) 46 --> envworks 48
+--    (64) 47 --> envworks 49
+--    (65) 48 --> envbroken 49
+--    (66) 49 --> envbroken 50
+--    (67) 49 --> envworks 51
+--    (68) 50 --> envworks 52
+--    (69) 51 --> envbroken 52
+--    (70) 52 --> envbroken 53
+--    (71) 52 --> envworks 54
+--    (72) 53 --> envworks 55
+--    (73) 54 --> envbroken 55
+--    (74) 55 --> envbroken 56
+--    (75) 55 --> envworks 57
+--    (76) 56 --> envworks 58
+--    (77) 57 --> envbroken 58
+--    (78) 58 --> envbroken 59
+--    (79) 58 --> envworks 60
+--    (80) 59 --> envworks 61
+--    (81) 60 --> envbroken 61
+--    (82) 61 --> envbroken 62
+--    (83) 61 --> envworks 63
+--    (84) 62 --> envworks 64
+--    (85) 63 --> envbroken 64
+--    (86) 64 --> envbroken 65
+--    (87) 64 --> envworks 66
+--    (88) 65 --> envworks 67
+--    (89) 66 --> envbroken 67
+--    (90) 67 --> envbroken 68
+--    (91) 67 --> envworks 69
+--    (92) 68 --> envworks 70
+--    (93) 69 --> envbroken 70
+--    (94) 70 --> envbroken 71
+--    (95) 70 --> envworks 72
+--    (96) 71 --> envworks 73
+--    (97) 72 --> envbroken 73
+--    (98) 73 --> envbroken 74
+--    (99) 73 --> envworks 75
+--    (100) 74 --> envworks 76
+--    (101) 75 --> envbroken 76
+--    (102) 76 --> envbroken 77
+--    (103) 76 --> envworks 78
+--    (104) 77 --> envworks 79
+--    (105) 78 --> envbroken 79
+--    (106) 79 --> envbroken 80
+--    (107) 79 --> envworks 81
+--    (108) 80 --> envworks 82
+--    (109) 81 --> envbroken 82
+--    (110) 82 --> envbroken 83
+--    (111) 82 --> envworks 84
+--    (112) 83 --> envworks 85
+--    (113) 84 --> envbroken 85
+--    (114) 85 --> envbroken 86
+--    (115) 85 --> envworks 87
+--    (116) 86 --> envworks 88
+--    (117) 87 --> envbroken 88
+--    (118) 88 --> envbroken 89
+--    (119) 88 --> envworks 90
+--    (120) 89 --> envworks 91
+--    (121) 90 --> envbroken 91
+--    (122) 91 --> envbroken 92
+--    (123) 91 --> envworks 93
+--    (124) 92 --> envworks 94
+--    (125) 93 --> envbroken 94
+--    (126) 94 --> envbroken 95
+--    (127) 94 --> envworks 96
+--    (128) 95 --> envworks 97
+--    (129) 96 --> envbroken 97
+--    (130) 97 --> envbroken 98
+--    (131) 97 --> envworks 99
+--    (132) 98 --> envworks 100
+--    (133) 99 --> envbroken 100
+--    (134) 100 --> envbroken 101
+--    (135) 100 --> envworks 102
+--    (136) 101 --> envworks 103
+--    (137) 102 --> envbroken 103
+--    (138) 103 --> envbroken 104
+--    (139) 103 --> envworks 105
+--    (140) 104 --> envworks 106
+--    (141) 105 --> envbroken 106
+--    (142) 106 --> envbroken 107
+--    (143) 106 --> envworks 108
+--    (144) 107 --> envworks 109
+--    (145) 108 --> envbroken 109
+--    (146) 109 --> envbroken 110
+--    (147) 109 --> envworks 111
+--    (148) 110 --> envworks 112
+--    (149) 111 --> envbroken 112
+--    (150) 112 --> envbroken 113
+--    (151) 112 --> envworks 114
+--    (152) 113 --> envworks 115
+--    (153) 114 --> envbroken 115
+--    (154) 115 --> envbroken 116
+--    (155) 115 --> envworks 117
+--    (156) 116 --> envworks 118
+--    (157) 117 --> envbroken 118
+--    (158) 118 --> envbroken 119
+--    (159) 118 --> envworks 120
+--    (160) 119 --> envworks 121
+--    (161) 120 --> envbroken 121
+--    (162) 121 --> envbroken 122
+--    (163) 121 --> envworks 123
+--    (164) 122 --> envworks 124
+--    (165) 123 --> envbroken 124
+--    (166) 124 --> envbroken 125
+--    (167) 124 --> envworks 126
+--    (168) 125 --> envworks 127
+--    (169) 126 --> envbroken 127
+--    (170) 127 --> envbroken 128
+--    (171) 127 --> envworks 129
+--    (172) 128 --> envworks 130
+--    (173) 129 --> envbroken 130
+--    (174) 130 --> envbroken 131
+--    (175) 130 --> envworks 132
+--    (176) 131 --> envworks 133
+--    (177) 132 --> envbroken 133
+--    (178) 133 --> envbroken 134
+--    (179) 133 --> envworks 135
+--    (180) 134 --> envworks 136
+--    (181) 135 --> envbroken 136
+--    (182) 136 --> envbroken 137
+--    (183) 136 --> envworks 138
+--    (184) 137 --> envworks 139
+--    (185) 138 --> envbroken 139
+--    (186) 139 --> envbroken 140
+--    (187) 139 --> envworks 141
+--    (188) 140 --> envworks 142
+--    (189) 141 --> envbroken 142
+--    (190) 142 --> envbroken 143
+--    (191) 142 --> envworks 144
+--    (192) 143 --> envworks 145
+--    (193) 144 --> envbroken 145
+--    (194) 145 --> envbroken 146
+--    (195) 145 --> envworks 147
+--    (196) 146 --> envworks 148
+--    (197) 147 --> envbroken 148
+--    (198) 148 --> envbroken 149
+--    (199) 148 --> envworks 150
+--    (200) 149 --> envworks 151
+--    (201) 150 --> envbroken 151
+--    (202) 151 --> envbroken 152
+--    (203) 151 --> envworks 153
+--    (204) 152 --> envworks 154
+--    (205) 153 --> envbroken 154
+--    (206) 154 --> envbroken 155
+--    (207) 154 --> envworks 156
+--    (208) 155 --> envworks 157
+--    (209) 156 --> envbroken 157
+--    (210) 157 --> envbroken 158
+--    (211) 157 --> envworks 159
+--    (212) 158 --> envworks 160
+--    (213) 159 --> envbroken 160
+--    (214) 160 --> envbroken 161
+--    (215) 160 --> envworks 162
+--    (216) 161 --> envworks 163
+--    (217) 162 --> envbroken 163
+--    (218) 163 --> envbroken 164
+--    (219) 163 --> envworks 165
+--    (220) 164 --> envworks 166
+--    (221) 165 --> envbroken 166
+--    (222) 166 --> envbroken 167
+--    (223) 166 --> envworks 168
+--    (224) 167 --> envworks 169
+--    (225) 168 --> envbroken 169
+--    (226) 169 --> envbroken 170
+--    (227) 169 --> envworks 171
+--    (228) 170 --> envworks 172
+--    (229) 171 --> envbroken 172
+--    (230) 172 --> envbroken 173
+--    (231) 172 --> envworks 174
+--    (232) 173 --> envworks 175
+--    (233) 174 --> envbroken 175
+--    (234) 175 --> envbroken 176
+--    (235) 175 --> envworks 177
+--    (236) 176 --> envworks 178
+--    (237) 177 --> envbroken 178
+--    (238) 178 --> envbroken 179
+--    (239) 178 --> envworks 180
+--    (240) 179 --> envworks 181
+--    (241) 180 --> envbroken 181
+--    (242) 181 --> envbroken 182
+--    (243) 181 --> envworks 183
+--    (244) 182 --> envworks 184
+--    (245) 183 --> envbroken 184
+--    (246) 184 --> envbroken 185
+--    (247) 184 --> envworks 186
+--    (248) 185 --> envworks 187
+--    (249) 186 --> envbroken 187
+--    (250) 187 --> envbroken 188
+--    (251) 187 --> envworks 189
+--    (252) 188 --> envworks 190
+--    (253) 189 --> envbroken 190
+--    (254) 190 --> envbroken 191
+--    (255) 190 --> envworks 192
+--    (256) 191 --> envworks 193
+--    (257) 192 --> envbroken 193
+--    (258) 193 --> envbroken 194
+--    (259) 193 --> envworks 195
+--    (260) 194 --> envworks 196
+--    (261) 195 --> envbroken 196
+--    (262) 196 --> envbroken 197
+--    (263) 196 --> envworks 198
+--    (264) 197 --> envworks 199
+--    (265) 198 --> envbroken 199
+--    (266) 199 --> envbroken 200
+--    (267) 199 --> envworks 201
+--    (268) 200 --> envworks 202
+--    (269) 201 --> envbroken 202
+--    (270) 202 --> envbroken 203
+--    (271) 202 --> envworks 204
+--    (272) 203 --> envworks 205
+--    (273) 204 --> envbroken 205
+--    (274) 205 --> envbroken 206
+--    (275) 205 --> envworks 207
+--    (276) 206 --> envworks 208
+--    (277) 207 --> envbroken 208
+--    (278) 208 --> envbroken 209
+--    (279) 208 --> envworks 210
+--    (280) 209 --> envworks 211
+--    (281) 210 --> envbroken 211
+--    (282) 211 --> envbroken 212
+--    (283) 211 --> envworks 213
+--    (284) 212 --> envworks 214
+--    (285) 213 --> envbroken 214
+--    (286) 214 --> envbroken 215
+--    (287) 214 --> envworks 216
+--    (288) 215 --> envworks 217
+--    (289) 216 --> envbroken 217
+--    (290) 217 --> envbroken 218
+--    (291) 217 --> envworks 219
+--    (292) 218 --> envworks 220
+--    (293) 219 --> envbroken 220
+--    (294) 220 --> envbroken 221
+--    (295) 220 --> envworks 222
+--    (296) 221 --> envworks 223
+--    (297) 222 --> envbroken 223
+--    (298) 223 --> envbroken 224
+--    (299) 223 --> envworks 225
+--    (300) 224 --> envworks 226
+--    (301) 225 --> envbroken 226
+--    (302) 226 --> envbroken 227
+--    (303) 226 --> envworks 228
+--    (304) 227 --> envworks 229
+--    (305) 228 --> envbroken 229
+--    (306) 229 --> envbroken 230
+--    (307) 229 --> envworks 231
+--    (308) 230 --> envworks 232
+--    (309) 231 --> envbroken 232
+--    (310) 232 --> envbroken 233
+--    (311) 232 --> envworks 234
+--    (312) 233 --> envworks 235
+--    (313) 234 --> envbroken 235
+--    (314) 235 --> envbroken 236
+--    (315) 235 --> envworks 237
+--    (316) 236 --> envworks 238
+--    (317) 237 --> envbroken 238
+--    (318) 238 --> envbroken 239
+--    (319) 238 --> envworks 240
+--    (320) 239 --> envworks 241
+--    (321) 240 --> envbroken 241
+--    (322) 241 --> envbroken 242
+--    (323) 241 --> envworks 243
+--    (324) 242 --> envworks 244
+--    (325) 243 --> envbroken 244
+--    (326) 244 --> envbroken 245
+--    (327) 244 --> envworks 246
+--    (328) 245 --> envworks 247
+--    (329) 246 --> envbroken 247
+--    (330) 247 --> envbroken 248
+--    (331) 247 --> envworks 249
+--    (332) 248 --> envworks 250
+--    (333) 249 --> envbroken 250
+--    (334) 250 --> envbroken 251
+--    (335) 250 --> envworks 252
+--    (336) 251 --> envworks 253
+--    (337) 252 --> envbroken 253
+--    (338) 253 --> envbroken 254
+--    (339) 253 --> envworks 255
+--    (340) 254 --> envworks 256
+--    (341) 255 --> envbroken 256
+--    (342) 256 --> envbroken 257
+--    (343) 256 --> envworks 258
+--    (344) 257 --> envworks 259
+--    (345) 258 --> envbroken 259
+--    (346) 259 --> envbroken 260
+--    (347) 259 --> envworks 261
+--    (348) 260 --> envworks 262
+--    (349) 261 --> envbroken 262
+--    (350) 262 --> envbroken 263
+--    (351) 262 --> envworks 264
+--    (352) 263 --> envworks 265
+--    (353) 264 --> envbroken 265
+--    (354) 265 --> envbroken 266
+--    (355) 265 --> envworks 267
+--    (356) 266 --> envworks 268
+--    (357) 267 --> envbroken 268
+--    (358) 268 --> envbroken 269
+--    (359) 268 --> envworks 270
+--    (360) 269 --> envworks 271
+--    (361) 270 --> envbroken 271
+--    (362) 271 --> envbroken 272
+--    (363) 271 --> envworks 273
+--    (364) 272 --> envworks 274
+--    (365) 273 --> envbroken 274
+--    (366) 274 --> envbroken 275
+--    (367) 274 --> envworks 276
+--    (368) 275 --> envworks 277
+--    (369) 276 --> envbroken 277
+--    (370) 277 --> envbroken 278
+--    (371) 277 --> envworks 279
+--    (372) 278 --> envworks 280
+--    (373) 279 --> envbroken 280
+--    (374) 280 --> envbroken 281
+--    (375) 280 --> envworks 282
+--    (376) 281 --> envworks 283
+--    (377) 282 --> envbroken 283
+--    (378) 283 --> envbroken 284
+--    (379) 283 --> envworks 285
+--    (380) 284 --> envworks 286
+--    (381) 285 --> envbroken 286
+--    (382) 286 --> envbroken 287
+--    (383) 286 --> envworks 288
+--    (384) 287 --> envworks 289
+--    (385) 288 --> envbroken 289
+--    (386) 289 --> envbroken 290
+--    (387) 289 --> envworks 291
+--    (388) 290 --> envworks 292
+--    (389) 291 --> envbroken 292
+--    (390) 292 --> envbroken 293
+--    (391) 292 --> envworks 294
+--    (392) 293 --> envworks 295
+--    (393) 294 --> envbroken 295
+--    (394) 295 --> envbroken 296
+--    (395) 295 --> envworks 297
+--    (396) 296 --> envworks 298
+--    (397) 297 --> envbroken 298
+--    (398) 298 --> envbroken 299
+--    (399) 298 --> envworks 300
+--    (400) 299 --> envworks
+--    (401) 299 --> envworks 1
+--    (402) 300 --> envbroken
+--    (403) 300 --> envbroken 1
+
+TRANS X1 <-> ((!TRUE | (envbroken & next(X2))) | (envworks & next(X3)));
+TRANS X2 <-> (envworks & next(X4));
+TRANS X3 <-> (envbroken & next(X4));
+TRANS X4 <-> ((envbroken & next(X5)) | (envworks & next(X6)));
+TRANS X5 <-> (envworks & next(X7));
+TRANS X6 <-> (envbroken & next(X7));
+TRANS X7 <-> ((envbroken & next(X8)) | (envworks & next(X9)));
+TRANS X8 <-> (envworks & next(X10));
+TRANS X9 <-> (envbroken & next(X10));
+TRANS X10 <-> ((envbroken & next(X11)) | (envworks & next(X12)));
+TRANS X11 <-> (envworks & next(X13));
+TRANS X12 <-> (envbroken & next(X13));
+TRANS X13 <-> ((envbroken & next(X14)) | (envworks & next(X15)));
+TRANS X14 <-> (envworks & next(X16));
+TRANS X15 <-> (envbroken & next(X16));
+TRANS X16 <-> ((envbroken & next(X17)) | (envworks & next(X18)));
+TRANS X17 <-> (envworks & next(X19));
+TRANS X18 <-> (envbroken & next(X19));
+TRANS X19 <-> ((envbroken & next(X20)) | (envworks & next(X21)));
+TRANS X20 <-> (envworks & next(X22));
+TRANS X21 <-> (envbroken & next(X22));
+TRANS X22 <-> ((envbroken & next(X23)) | (envworks & next(X24)));
+TRANS X23 <-> (envworks & next(X25));
+TRANS X24 <-> (envbroken & next(X25));
+TRANS X25 <-> ((envbroken & next(X26)) | (envworks & next(X27)));
+TRANS X26 <-> (envworks & next(X28));
+TRANS X27 <-> (envbroken & next(X28));
+TRANS X28 <-> ((envbroken & next(X29)) | (envworks & next(X30)));
+TRANS X29 <-> (envworks & next(X31));
+TRANS X30 <-> (envbroken & next(X31));
+TRANS X31 <-> ((envbroken & next(X32)) | (envworks & next(X33)));
+TRANS X32 <-> (envworks & next(X34));
+TRANS X33 <-> (envbroken & next(X34));
+TRANS X34 <-> ((envbroken & next(X35)) | (envworks & next(X36)));
+TRANS X35 <-> (envworks & next(X37));
+TRANS X36 <-> (envbroken & next(X37));
+TRANS X37 <-> ((envbroken & next(X38)) | (envworks & next(X39)));
+TRANS X38 <-> (envworks & next(X40));
+TRANS X39 <-> (envbroken & next(X40));
+TRANS X40 <-> ((envbroken & next(X41)) | (envworks & next(X42)));
+TRANS X41 <-> (envworks & next(X43));
+TRANS X42 <-> (envbroken & next(X43));
+TRANS X43 <-> ((envbroken & next(X44)) | (envworks & next(X45)));
+TRANS X44 <-> (envworks & next(X46));
+TRANS X45 <-> (envbroken & next(X46));
+TRANS X46 <-> ((envbroken & next(X47)) | (envworks & next(X48)));
+TRANS X47 <-> (envworks & next(X49));
+TRANS X48 <-> (envbroken & next(X49));
+TRANS X49 <-> ((envbroken & next(X50)) | (envworks & next(X51)));
+TRANS X50 <-> (envworks & next(X52));
+TRANS X51 <-> (envbroken & next(X52));
+TRANS X52 <-> ((envbroken & next(X53)) | (envworks & next(X54)));
+TRANS X53 <-> (envworks & next(X55));
+TRANS X54 <-> (envbroken & next(X55));
+TRANS X55 <-> ((envbroken & next(X56)) | (envworks & next(X57)));
+TRANS X56 <-> (envworks & next(X58));
+TRANS X57 <-> (envbroken & next(X58));
+TRANS X58 <-> ((envbroken & next(X59)) | (envworks & next(X60)));
+TRANS X59 <-> (envworks & next(X61));
+TRANS X60 <-> (envbroken & next(X61));
+TRANS X61 <-> ((envbroken & next(X62)) | (envworks & next(X63)));
+TRANS X62 <-> (envworks & next(X64));
+TRANS X63 <-> (envbroken & next(X64));
+TRANS X64 <-> ((envbroken & next(X65)) | (envworks & next(X66)));
+TRANS X65 <-> (envworks & next(X67));
+TRANS X66 <-> (envbroken & next(X67));
+TRANS X67 <-> ((envbroken & next(X68)) | (envworks & next(X69)));
+TRANS X68 <-> (envworks & next(X70));
+TRANS X69 <-> (envbroken & next(X70));
+TRANS X70 <-> ((envbroken & next(X71)) | (envworks & next(X72)));
+TRANS X71 <-> (envworks & next(X73));
+TRANS X72 <-> (envbroken & next(X73));
+TRANS X73 <-> ((envbroken & next(X74)) | (envworks & next(X75)));
+TRANS X74 <-> (envworks & next(X76));
+TRANS X75 <-> (envbroken & next(X76));
+TRANS X76 <-> ((envbroken & next(X77)) | (envworks & next(X78)));
+TRANS X77 <-> (envworks & next(X79));
+TRANS X78 <-> (envbroken & next(X79));
+TRANS X79 <-> ((envbroken & next(X80)) | (envworks & next(X81)));
+TRANS X80 <-> (envworks & next(X82));
+TRANS X81 <-> (envbroken & next(X82));
+TRANS X82 <-> ((envbroken & next(X83)) | (envworks & next(X84)));
+TRANS X83 <-> (envworks & next(X85));
+TRANS X84 <-> (envbroken & next(X85));
+TRANS X85 <-> ((envbroken & next(X86)) | (envworks & next(X87)));
+TRANS X86 <-> (envworks & next(X88));
+TRANS X87 <-> (envbroken & next(X88));
+TRANS X88 <-> ((envbroken & next(X89)) | (envworks & next(X90)));
+TRANS X89 <-> (envworks & next(X91));
+TRANS X90 <-> (envbroken & next(X91));
+TRANS X91 <-> ((envbroken & next(X92)) | (envworks & next(X93)));
+TRANS X92 <-> (envworks & next(X94));
+TRANS X93 <-> (envbroken & next(X94));
+TRANS X94 <-> ((envbroken & next(X95)) | (envworks & next(X96)));
+TRANS X95 <-> (envworks & next(X97));
+TRANS X96 <-> (envbroken & next(X97));
+TRANS X97 <-> ((envbroken & next(X98)) | (envworks & next(X99)));
+TRANS X98 <-> (envworks & next(X100));
+TRANS X99 <-> (envbroken & next(X100));
+TRANS X100 <-> ((envbroken & next(X101)) | (envworks & next(X102)));
+TRANS X101 <-> (envworks & next(X103));
+TRANS X102 <-> (envbroken & next(X103));
+TRANS X103 <-> ((envbroken & next(X104)) | (envworks & next(X105)));
+TRANS X104 <-> (envworks & next(X106));
+TRANS X105 <-> (envbroken & next(X106));
+TRANS X106 <-> ((envbroken & next(X107)) | (envworks & next(X108)));
+TRANS X107 <-> (envworks & next(X109));
+TRANS X108 <-> (envbroken & next(X109));
+TRANS X109 <-> ((envbroken & next(X110)) | (envworks & next(X111)));
+TRANS X110 <-> (envworks & next(X112));
+TRANS X111 <-> (envbroken & next(X112));
+TRANS X112 <-> ((envbroken & next(X113)) | (envworks & next(X114)));
+TRANS X113 <-> (envworks & next(X115));
+TRANS X114 <-> (envbroken & next(X115));
+TRANS X115 <-> ((envbroken & next(X116)) | (envworks & next(X117)));
+TRANS X116 <-> (envworks & next(X118));
+TRANS X117 <-> (envbroken & next(X118));
+TRANS X118 <-> ((envbroken & next(X119)) | (envworks & next(X120)));
+TRANS X119 <-> (envworks & next(X121));
+TRANS X120 <-> (envbroken & next(X121));
+TRANS X121 <-> ((envbroken & next(X122)) | (envworks & next(X123)));
+TRANS X122 <-> (envworks & next(X124));
+TRANS X123 <-> (envbroken & next(X124));
+TRANS X124 <-> ((envbroken & next(X125)) | (envworks & next(X126)));
+TRANS X125 <-> (envworks & next(X127));
+TRANS X126 <-> (envbroken & next(X127));
+TRANS X127 <-> ((envbroken & next(X128)) | (envworks & next(X129)));
+TRANS X128 <-> (envworks & next(X130));
+TRANS X129 <-> (envbroken & next(X130));
+TRANS X130 <-> ((envbroken & next(X131)) | (envworks & next(X132)));
+TRANS X131 <-> (envworks & next(X133));
+TRANS X132 <-> (envbroken & next(X133));
+TRANS X133 <-> ((envbroken & next(X134)) | (envworks & next(X135)));
+TRANS X134 <-> (envworks & next(X136));
+TRANS X135 <-> (envbroken & next(X136));
+TRANS X136 <-> ((envbroken & next(X137)) | (envworks & next(X138)));
+TRANS X137 <-> (envworks & next(X139));
+TRANS X138 <-> (envbroken & next(X139));
+TRANS X139 <-> ((envbroken & next(X140)) | (envworks & next(X141)));
+TRANS X140 <-> (envworks & next(X142));
+TRANS X141 <-> (envbroken & next(X142));
+TRANS X142 <-> ((envbroken & next(X143)) | (envworks & next(X144)));
+TRANS X143 <-> (envworks & next(X145));
+TRANS X144 <-> (envbroken & next(X145));
+TRANS X145 <-> ((envbroken & next(X146)) | (envworks & next(X147)));
+TRANS X146 <-> (envworks & next(X148));
+TRANS X147 <-> (envbroken & next(X148));
+TRANS X148 <-> ((envbroken & next(X149)) | (envworks & next(X150)));
+TRANS X149 <-> (envworks & next(X151));
+TRANS X150 <-> (envbroken & next(X151));
+TRANS X151 <-> ((envbroken & next(X152)) | (envworks & next(X153)));
+TRANS X152 <-> (envworks & next(X154));
+TRANS X153 <-> (envbroken & next(X154));
+TRANS X154 <-> ((envbroken & next(X155)) | (envworks & next(X156)));
+TRANS X155 <-> (envworks & next(X157));
+TRANS X156 <-> (envbroken & next(X157));
+TRANS X157 <-> ((envbroken & next(X158)) | (envworks & next(X159)));
+TRANS X158 <-> (envworks & next(X160));
+TRANS X159 <-> (envbroken & next(X160));
+TRANS X160 <-> ((envbroken & next(X161)) | (envworks & next(X162)));
+TRANS X161 <-> (envworks & next(X163));
+TRANS X162 <-> (envbroken & next(X163));
+TRANS X163 <-> ((envbroken & next(X164)) | (envworks & next(X165)));
+TRANS X164 <-> (envworks & next(X166));
+TRANS X165 <-> (envbroken & next(X166));
+TRANS X166 <-> ((envbroken & next(X167)) | (envworks & next(X168)));
+TRANS X167 <-> (envworks & next(X169));
+TRANS X168 <-> (envbroken & next(X169));
+TRANS X169 <-> ((envbroken & next(X170)) | (envworks & next(X171)));
+TRANS X170 <-> (envworks & next(X172));
+TRANS X171 <-> (envbroken & next(X172));
+TRANS X172 <-> ((envbroken & next(X173)) | (envworks & next(X174)));
+TRANS X173 <-> (envworks & next(X175));
+TRANS X174 <-> (envbroken & next(X175));
+TRANS X175 <-> ((envbroken & next(X176)) | (envworks & next(X177)));
+TRANS X176 <-> (envworks & next(X178));
+TRANS X177 <-> (envbroken & next(X178));
+TRANS X178 <-> ((envbroken & next(X179)) | (envworks & next(X180)));
+TRANS X179 <-> (envworks & next(X181));
+TRANS X180 <-> (envbroken & next(X181));
+TRANS X181 <-> ((envbroken & next(X182)) | (envworks & next(X183)));
+TRANS X182 <-> (envworks & next(X184));
+TRANS X183 <-> (envbroken & next(X184));
+TRANS X184 <-> ((envbroken & next(X185)) | (envworks & next(X186)));
+TRANS X185 <-> (envworks & next(X187));
+TRANS X186 <-> (envbroken & next(X187));
+TRANS X187 <-> ((envbroken & next(X188)) | (envworks & next(X189)));
+TRANS X188 <-> (envworks & next(X190));
+TRANS X189 <-> (envbroken & next(X190));
+TRANS X190 <-> ((envbroken & next(X191)) | (envworks & next(X192)));
+TRANS X191 <-> (envworks & next(X193));
+TRANS X192 <-> (envbroken & next(X193));
+TRANS X193 <-> ((envbroken & next(X194)) | (envworks & next(X195)));
+TRANS X194 <-> (envworks & next(X196));
+TRANS X195 <-> (envbroken & next(X196));
+TRANS X196 <-> ((envbroken & next(X197)) | (envworks & next(X198)));
+TRANS X197 <-> (envworks & next(X199));
+TRANS X198 <-> (envbroken & next(X199));
+TRANS X199 <-> ((envbroken & next(X200)) | (envworks & next(X201)));
+TRANS X200 <-> (envworks & next(X202));
+TRANS X201 <-> (envbroken & next(X202));
+TRANS X202 <-> ((envbroken & next(X203)) | (envworks & next(X204)));
+TRANS X203 <-> (envworks & next(X205));
+TRANS X204 <-> (envbroken & next(X205));
+TRANS X205 <-> ((envbroken & next(X206)) | (envworks & next(X207)));
+TRANS X206 <-> (envworks & next(X208));
+TRANS X207 <-> (envbroken & next(X208));
+TRANS X208 <-> ((envbroken & next(X209)) | (envworks & next(X210)));
+TRANS X209 <-> (envworks & next(X211));
+TRANS X210 <-> (envbroken & next(X211));
+TRANS X211 <-> ((envbroken & next(X212)) | (envworks & next(X213)));
+TRANS X212 <-> (envworks & next(X214));
+TRANS X213 <-> (envbroken & next(X214));
+TRANS X214 <-> ((envbroken & next(X215)) | (envworks & next(X216)));
+TRANS X215 <-> (envworks & next(X217));
+TRANS X216 <-> (envbroken & next(X217));
+TRANS X217 <-> ((envbroken & next(X218)) | (envworks & next(X219)));
+TRANS X218 <-> (envworks & next(X220));
+TRANS X219 <-> (envbroken & next(X220));
+TRANS X220 <-> ((envbroken & next(X221)) | (envworks & next(X222)));
+TRANS X221 <-> (envworks & next(X223));
+TRANS X222 <-> (envbroken & next(X223));
+TRANS X223 <-> ((envbroken & next(X224)) | (envworks & next(X225)));
+TRANS X224 <-> (envworks & next(X226));
+TRANS X225 <-> (envbroken & next(X226));
+TRANS X226 <-> ((envbroken & next(X227)) | (envworks & next(X228)));
+TRANS X227 <-> (envworks & next(X229));
+TRANS X228 <-> (envbroken & next(X229));
+TRANS X229 <-> ((envbroken & next(X230)) | (envworks & next(X231)));
+TRANS X230 <-> (envworks & next(X232));
+TRANS X231 <-> (envbroken & next(X232));
+TRANS X232 <-> ((envbroken & next(X233)) | (envworks & next(X234)));
+TRANS X233 <-> (envworks & next(X235));
+TRANS X234 <-> (envbroken & next(X235));
+TRANS X235 <-> ((envbroken & next(X236)) | (envworks & next(X237)));
+TRANS X236 <-> (envworks & next(X238));
+TRANS X237 <-> (envbroken & next(X238));
+TRANS X238 <-> ((envbroken & next(X239)) | (envworks & next(X240)));
+TRANS X239 <-> (envworks & next(X241));
+TRANS X240 <-> (envbroken & next(X241));
+TRANS X241 <-> ((envbroken & next(X242)) | (envworks & next(X243)));
+TRANS X242 <-> (envworks & next(X244));
+TRANS X243 <-> (envbroken & next(X244));
+TRANS X244 <-> ((envbroken & next(X245)) | (envworks & next(X246)));
+TRANS X245 <-> (envworks & next(X247));
+TRANS X246 <-> (envbroken & next(X247));
+TRANS X247 <-> ((envbroken & next(X248)) | (envworks & next(X249)));
+TRANS X248 <-> (envworks & next(X250));
+TRANS X249 <-> (envbroken & next(X250));
+TRANS X250 <-> ((envbroken & next(X251)) | (envworks & next(X252)));
+TRANS X251 <-> (envworks & next(X253));
+TRANS X252 <-> (envbroken & next(X253));
+TRANS X253 <-> ((envbroken & next(X254)) | (envworks & next(X255)));
+TRANS X254 <-> (envworks & next(X256));
+TRANS X255 <-> (envbroken & next(X256));
+TRANS X256 <-> ((envbroken & next(X257)) | (envworks & next(X258)));
+TRANS X257 <-> (envworks & next(X259));
+TRANS X258 <-> (envbroken & next(X259));
+TRANS X259 <-> ((envbroken & next(X260)) | (envworks & next(X261)));
+TRANS X260 <-> (envworks & next(X262));
+TRANS X261 <-> (envbroken & next(X262));
+TRANS X262 <-> ((envbroken & next(X263)) | (envworks & next(X264)));
+TRANS X263 <-> (envworks & next(X265));
+TRANS X264 <-> (envbroken & next(X265));
+TRANS X265 <-> ((envbroken & next(X266)) | (envworks & next(X267)));
+TRANS X266 <-> (envworks & next(X268));
+TRANS X267 <-> (envbroken & next(X268));
+TRANS X268 <-> ((envbroken & next(X269)) | (envworks & next(X270)));
+TRANS X269 <-> (envworks & next(X271));
+TRANS X270 <-> (envbroken & next(X271));
+TRANS X271 <-> ((envbroken & next(X272)) | (envworks & next(X273)));
+TRANS X272 <-> (envworks & next(X274));
+TRANS X273 <-> (envbroken & next(X274));
+TRANS X274 <-> ((envbroken & next(X275)) | (envworks & next(X276)));
+TRANS X275 <-> (envworks & next(X277));
+TRANS X276 <-> (envbroken & next(X277));
+TRANS X277 <-> ((envbroken & next(X278)) | (envworks & next(X279)));
+TRANS X278 <-> (envworks & next(X280));
+TRANS X279 <-> (envbroken & next(X280));
+TRANS X280 <-> ((envbroken & next(X281)) | (envworks & next(X282)));
+TRANS X281 <-> (envworks & next(X283));
+TRANS X282 <-> (envbroken & next(X283));
+TRANS X283 <-> ((envbroken & next(X284)) | (envworks & next(X285)));
+TRANS X284 <-> (envworks & next(X286));
+TRANS X285 <-> (envbroken & next(X286));
+TRANS X286 <-> ((envbroken & next(X287)) | (envworks & next(X288)));
+TRANS X287 <-> (envworks & next(X289));
+TRANS X288 <-> (envbroken & next(X289));
+TRANS X289 <-> ((envbroken & next(X290)) | (envworks & next(X291)));
+TRANS X290 <-> (envworks & next(X292));
+TRANS X291 <-> (envbroken & next(X292));
+TRANS X292 <-> ((envbroken & next(X293)) | (envworks & next(X294)));
+TRANS X293 <-> (envworks & next(X295));
+TRANS X294 <-> (envbroken & next(X295));
+TRANS X295 <-> ((envbroken & next(X296)) | (envworks & next(X297)));
+TRANS X296 <-> (envworks & next(X298));
+TRANS X297 <-> (envbroken & next(X298));
+TRANS X298 <-> ((envbroken & next(X299)) | (envworks & next(X300)));
+TRANS X299 <-> ((envworks & next(!TRUE)) | (envworks & next(X1)));
+TRANS X300 <-> ((envbroken & next(!TRUE)) | (envbroken & next(X1)));
+TRANS Y1 -> ((!TRUE | (envbroken & next(Y2))) | (envworks & next(Y3)));
+TRANS Y2 -> (envworks & next(Y4));
+TRANS Y3 -> (envbroken & next(Y4));
+TRANS Y4 -> ((envbroken & next(Y5)) | (envworks & next(Y6)));
+TRANS Y5 -> (envworks & next(Y7));
+TRANS Y6 -> (envbroken & next(Y7));
+TRANS Y7 -> ((envbroken & next(Y8)) | (envworks & next(Y9)));
+TRANS Y8 -> (envworks & next(Y10));
+TRANS Y9 -> (envbroken & next(Y10));
+TRANS Y10 -> ((envbroken & next(Y11)) | (envworks & next(Y12)));
+TRANS Y11 -> (envworks & next(Y13));
+TRANS Y12 -> (envbroken & next(Y13));
+TRANS Y13 -> ((envbroken & next(Y14)) | (envworks & next(Y15)));
+TRANS Y14 -> (envworks & next(Y16));
+TRANS Y15 -> (envbroken & next(Y16));
+TRANS Y16 -> ((envbroken & next(Y17)) | (envworks & next(Y18)));
+TRANS Y17 -> (envworks & next(Y19));
+TRANS Y18 -> (envbroken & next(Y19));
+TRANS Y19 -> ((envbroken & next(Y20)) | (envworks & next(Y21)));
+TRANS Y20 -> (envworks & next(Y22));
+TRANS Y21 -> (envbroken & next(Y22));
+TRANS Y22 -> ((envbroken & next(Y23)) | (envworks & next(Y24)));
+TRANS Y23 -> (envworks & next(Y25));
+TRANS Y24 -> (envbroken & next(Y25));
+TRANS Y25 -> ((envbroken & next(Y26)) | (envworks & next(Y27)));
+TRANS Y26 -> (envworks & next(Y28));
+TRANS Y27 -> (envbroken & next(Y28));
+TRANS Y28 -> ((envbroken & next(Y29)) | (envworks & next(Y30)));
+TRANS Y29 -> (envworks & next(Y31));
+TRANS Y30 -> (envbroken & next(Y31));
+TRANS Y31 -> ((envbroken & next(Y32)) | (envworks & next(Y33)));
+TRANS Y32 -> (envworks & next(Y34));
+TRANS Y33 -> (envbroken & next(Y34));
+TRANS Y34 -> ((envbroken & next(Y35)) | (envworks & next(Y36)));
+TRANS Y35 -> (envworks & next(Y37));
+TRANS Y36 -> (envbroken & next(Y37));
+TRANS Y37 -> ((envbroken & next(Y38)) | (envworks & next(Y39)));
+TRANS Y38 -> (envworks & next(Y40));
+TRANS Y39 -> (envbroken & next(Y40));
+TRANS Y40 -> ((envbroken & next(Y41)) | (envworks & next(Y42)));
+TRANS Y41 -> (envworks & next(Y43));
+TRANS Y42 -> (envbroken & next(Y43));
+TRANS Y43 -> ((envbroken & next(Y44)) | (envworks & next(Y45)));
+TRANS Y44 -> (envworks & next(Y46));
+TRANS Y45 -> (envbroken & next(Y46));
+TRANS Y46 -> ((envbroken & next(Y47)) | (envworks & next(Y48)));
+TRANS Y47 -> (envworks & next(Y49));
+TRANS Y48 -> (envbroken & next(Y49));
+TRANS Y49 -> ((envbroken & next(Y50)) | (envworks & next(Y51)));
+TRANS Y50 -> (envworks & next(Y52));
+TRANS Y51 -> (envbroken & next(Y52));
+TRANS Y52 -> ((envbroken & next(Y53)) | (envworks & next(Y54)));
+TRANS Y53 -> (envworks & next(Y55));
+TRANS Y54 -> (envbroken & next(Y55));
+TRANS Y55 -> ((envbroken & next(Y56)) | (envworks & next(Y57)));
+TRANS Y56 -> (envworks & next(Y58));
+TRANS Y57 -> (envbroken & next(Y58));
+TRANS Y58 -> ((envbroken & next(Y59)) | (envworks & next(Y60)));
+TRANS Y59 -> (envworks & next(Y61));
+TRANS Y60 -> (envbroken & next(Y61));
+TRANS Y61 -> ((envbroken & next(Y62)) | (envworks & next(Y63)));
+TRANS Y62 -> (envworks & next(Y64));
+TRANS Y63 -> (envbroken & next(Y64));
+TRANS Y64 -> ((envbroken & next(Y65)) | (envworks & next(Y66)));
+TRANS Y65 -> (envworks & next(Y67));
+TRANS Y66 -> (envbroken & next(Y67));
+TRANS Y67 -> ((envbroken & next(Y68)) | (envworks & next(Y69)));
+TRANS Y68 -> (envworks & next(Y70));
+TRANS Y69 -> (envbroken & next(Y70));
+TRANS Y70 -> ((envbroken & next(Y71)) | (envworks & next(Y72)));
+TRANS Y71 -> (envworks & next(Y73));
+TRANS Y72 -> (envbroken & next(Y73));
+TRANS Y73 -> ((envbroken & next(Y74)) | (envworks & next(Y75)));
+TRANS Y74 -> (envworks & next(Y76));
+TRANS Y75 -> (envbroken & next(Y76));
+TRANS Y76 -> ((envbroken & next(Y77)) | (envworks & next(Y78)));
+TRANS Y77 -> (envworks & next(Y79));
+TRANS Y78 -> (envbroken & next(Y79));
+TRANS Y79 -> ((envbroken & next(Y80)) | (envworks & next(Y81)));
+TRANS Y80 -> (envworks & next(Y82));
+TRANS Y81 -> (envbroken & next(Y82));
+TRANS Y82 -> ((envbroken & next(Y83)) | (envworks & next(Y84)));
+TRANS Y83 -> (envworks & next(Y85));
+TRANS Y84 -> (envbroken & next(Y85));
+TRANS Y85 -> ((envbroken & next(Y86)) | (envworks & next(Y87)));
+TRANS Y86 -> (envworks & next(Y88));
+TRANS Y87 -> (envbroken & next(Y88));
+TRANS Y88 -> ((envbroken & next(Y89)) | (envworks & next(Y90)));
+TRANS Y89 -> (envworks & next(Y91));
+TRANS Y90 -> (envbroken & next(Y91));
+TRANS Y91 -> ((envbroken & next(Y92)) | (envworks & next(Y93)));
+TRANS Y92 -> (envworks & next(Y94));
+TRANS Y93 -> (envbroken & next(Y94));
+TRANS Y94 -> ((envbroken & next(Y95)) | (envworks & next(Y96)));
+TRANS Y95 -> (envworks & next(Y97));
+TRANS Y96 -> (envbroken & next(Y97));
+TRANS Y97 -> ((envbroken & next(Y98)) | (envworks & next(Y99)));
+TRANS Y98 -> (envworks & next(Y100));
+TRANS Y99 -> (envbroken & next(Y100));
+TRANS Y100 -> ((envbroken & next(Y101)) | (envworks & next(Y102)));
+TRANS Y101 -> (envworks & next(Y103));
+TRANS Y102 -> (envbroken & next(Y103));
+TRANS Y103 -> ((envbroken & next(Y104)) | (envworks & next(Y105)));
+TRANS Y104 -> (envworks & next(Y106));
+TRANS Y105 -> (envbroken & next(Y106));
+TRANS Y106 -> ((envbroken & next(Y107)) | (envworks & next(Y108)));
+TRANS Y107 -> (envworks & next(Y109));
+TRANS Y108 -> (envbroken & next(Y109));
+TRANS Y109 -> ((envbroken & next(Y110)) | (envworks & next(Y111)));
+TRANS Y110 -> (envworks & next(Y112));
+TRANS Y111 -> (envbroken & next(Y112));
+TRANS Y112 -> ((envbroken & next(Y113)) | (envworks & next(Y114)));
+TRANS Y113 -> (envworks & next(Y115));
+TRANS Y114 -> (envbroken & next(Y115));
+TRANS Y115 -> ((envbroken & next(Y116)) | (envworks & next(Y117)));
+TRANS Y116 -> (envworks & next(Y118));
+TRANS Y117 -> (envbroken & next(Y118));
+TRANS Y118 -> ((envbroken & next(Y119)) | (envworks & next(Y120)));
+TRANS Y119 -> (envworks & next(Y121));
+TRANS Y120 -> (envbroken & next(Y121));
+TRANS Y121 -> ((envbroken & next(Y122)) | (envworks & next(Y123)));
+TRANS Y122 -> (envworks & next(Y124));
+TRANS Y123 -> (envbroken & next(Y124));
+TRANS Y124 -> ((envbroken & next(Y125)) | (envworks & next(Y126)));
+TRANS Y125 -> (envworks & next(Y127));
+TRANS Y126 -> (envbroken & next(Y127));
+TRANS Y127 -> ((envbroken & next(Y128)) | (envworks & next(Y129)));
+TRANS Y128 -> (envworks & next(Y130));
+TRANS Y129 -> (envbroken & next(Y130));
+TRANS Y130 -> ((envbroken & next(Y131)) | (envworks & next(Y132)));
+TRANS Y131 -> (envworks & next(Y133));
+TRANS Y132 -> (envbroken & next(Y133));
+TRANS Y133 -> ((envbroken & next(Y134)) | (envworks & next(Y135)));
+TRANS Y134 -> (envworks & next(Y136));
+TRANS Y135 -> (envbroken & next(Y136));
+TRANS Y136 -> ((envbroken & next(Y137)) | (envworks & next(Y138)));
+TRANS Y137 -> (envworks & next(Y139));
+TRANS Y138 -> (envbroken & next(Y139));
+TRANS Y139 -> ((envbroken & next(Y140)) | (envworks & next(Y141)));
+TRANS Y140 -> (envworks & next(Y142));
+TRANS Y141 -> (envbroken & next(Y142));
+TRANS Y142 -> ((envbroken & next(Y143)) | (envworks & next(Y144)));
+TRANS Y143 -> (envworks & next(Y145));
+TRANS Y144 -> (envbroken & next(Y145));
+TRANS Y145 -> ((envbroken & next(Y146)) | (envworks & next(Y147)));
+TRANS Y146 -> (envworks & next(Y148));
+TRANS Y147 -> (envbroken & next(Y148));
+TRANS Y148 -> ((envbroken & next(Y149)) | (envworks & next(Y150)));
+TRANS Y149 -> (envworks & next(Y151));
+TRANS Y150 -> (envbroken & next(Y151));
+TRANS Y151 -> ((envbroken & next(Y152)) | (envworks & next(Y153)));
+TRANS Y152 -> (envworks & next(Y154));
+TRANS Y153 -> (envbroken & next(Y154));
+TRANS Y154 -> ((envbroken & next(Y155)) | (envworks & next(Y156)));
+TRANS Y155 -> (envworks & next(Y157));
+TRANS Y156 -> (envbroken & next(Y157));
+TRANS Y157 -> ((envbroken & next(Y158)) | (envworks & next(Y159)));
+TRANS Y158 -> (envworks & next(Y160));
+TRANS Y159 -> (envbroken & next(Y160));
+TRANS Y160 -> ((envbroken & next(Y161)) | (envworks & next(Y162)));
+TRANS Y161 -> (envworks & next(Y163));
+TRANS Y162 -> (envbroken & next(Y163));
+TRANS Y163 -> ((envbroken & next(Y164)) | (envworks & next(Y165)));
+TRANS Y164 -> (envworks & next(Y166));
+TRANS Y165 -> (envbroken & next(Y166));
+TRANS Y166 -> ((envbroken & next(Y167)) | (envworks & next(Y168)));
+TRANS Y167 -> (envworks & next(Y169));
+TRANS Y168 -> (envbroken & next(Y169));
+TRANS Y169 -> ((envbroken & next(Y170)) | (envworks & next(Y171)));
+TRANS Y170 -> (envworks & next(Y172));
+TRANS Y171 -> (envbroken & next(Y172));
+TRANS Y172 -> ((envbroken & next(Y173)) | (envworks & next(Y174)));
+TRANS Y173 -> (envworks & next(Y175));
+TRANS Y174 -> (envbroken & next(Y175));
+TRANS Y175 -> ((envbroken & next(Y176)) | (envworks & next(Y177)));
+TRANS Y176 -> (envworks & next(Y178));
+TRANS Y177 -> (envbroken & next(Y178));
+TRANS Y178 -> ((envbroken & next(Y179)) | (envworks & next(Y180)));
+TRANS Y179 -> (envworks & next(Y181));
+TRANS Y180 -> (envbroken & next(Y181));
+TRANS Y181 -> ((envbroken & next(Y182)) | (envworks & next(Y183)));
+TRANS Y182 -> (envworks & next(Y184));
+TRANS Y183 -> (envbroken & next(Y184));
+TRANS Y184 -> ((envbroken & next(Y185)) | (envworks & next(Y186)));
+TRANS Y185 -> (envworks & next(Y187));
+TRANS Y186 -> (envbroken & next(Y187));
+TRANS Y187 -> ((envbroken & next(Y188)) | (envworks & next(Y189)));
+TRANS Y188 -> (envworks & next(Y190));
+TRANS Y189 -> (envbroken & next(Y190));
+TRANS Y190 -> ((envbroken & next(Y191)) | (envworks & next(Y192)));
+TRANS Y191 -> (envworks & next(Y193));
+TRANS Y192 -> (envbroken & next(Y193));
+TRANS Y193 -> ((envbroken & next(Y194)) | (envworks & next(Y195)));
+TRANS Y194 -> (envworks & next(Y196));
+TRANS Y195 -> (envbroken & next(Y196));
+TRANS Y196 -> ((envbroken & next(Y197)) | (envworks & next(Y198)));
+TRANS Y197 -> (envworks & next(Y199));
+TRANS Y198 -> (envbroken & next(Y199));
+TRANS Y199 -> ((envbroken & next(Y200)) | (envworks & next(Y201)));
+TRANS Y200 -> (envworks & next(Y202));
+TRANS Y201 -> (envbroken & next(Y202));
+TRANS Y202 -> ((envbroken & next(Y203)) | (envworks & next(Y204)));
+TRANS Y203 -> (envworks & next(Y205));
+TRANS Y204 -> (envbroken & next(Y205));
+TRANS Y205 -> ((envbroken & next(Y206)) | (envworks & next(Y207)));
+TRANS Y206 -> (envworks & next(Y208));
+TRANS Y207 -> (envbroken & next(Y208));
+TRANS Y208 -> ((envbroken & next(Y209)) | (envworks & next(Y210)));
+TRANS Y209 -> (envworks & next(Y211));
+TRANS Y210 -> (envbroken & next(Y211));
+TRANS Y211 -> ((envbroken & next(Y212)) | (envworks & next(Y213)));
+TRANS Y212 -> (envworks & next(Y214));
+TRANS Y213 -> (envbroken & next(Y214));
+TRANS Y214 -> ((envbroken & next(Y215)) | (envworks & next(Y216)));
+TRANS Y215 -> (envworks & next(Y217));
+TRANS Y216 -> (envbroken & next(Y217));
+TRANS Y217 -> ((envbroken & next(Y218)) | (envworks & next(Y219)));
+TRANS Y218 -> (envworks & next(Y220));
+TRANS Y219 -> (envbroken & next(Y220));
+TRANS Y220 -> ((envbroken & next(Y221)) | (envworks & next(Y222)));
+TRANS Y221 -> (envworks & next(Y223));
+TRANS Y222 -> (envbroken & next(Y223));
+TRANS Y223 -> ((envbroken & next(Y224)) | (envworks & next(Y225)));
+TRANS Y224 -> (envworks & next(Y226));
+TRANS Y225 -> (envbroken & next(Y226));
+TRANS Y226 -> ((envbroken & next(Y227)) | (envworks & next(Y228)));
+TRANS Y227 -> (envworks & next(Y229));
+TRANS Y228 -> (envbroken & next(Y229));
+TRANS Y229 -> ((envbroken & next(Y230)) | (envworks & next(Y231)));
+TRANS Y230 -> (envworks & next(Y232));
+TRANS Y231 -> (envbroken & next(Y232));
+TRANS Y232 -> ((envbroken & next(Y233)) | (envworks & next(Y234)));
+TRANS Y233 -> (envworks & next(Y235));
+TRANS Y234 -> (envbroken & next(Y235));
+TRANS Y235 -> ((envbroken & next(Y236)) | (envworks & next(Y237)));
+TRANS Y236 -> (envworks & next(Y238));
+TRANS Y237 -> (envbroken & next(Y238));
+TRANS Y238 -> ((envbroken & next(Y239)) | (envworks & next(Y240)));
+TRANS Y239 -> (envworks & next(Y241));
+TRANS Y240 -> (envbroken & next(Y241));
+TRANS Y241 -> ((envbroken & next(Y242)) | (envworks & next(Y243)));
+TRANS Y242 -> (envworks & next(Y244));
+TRANS Y243 -> (envbroken & next(Y244));
+TRANS Y244 -> ((envbroken & next(Y245)) | (envworks & next(Y246)));
+TRANS Y245 -> (envworks & next(Y247));
+TRANS Y246 -> (envbroken & next(Y247));
+TRANS Y247 -> ((envbroken & next(Y248)) | (envworks & next(Y249)));
+TRANS Y248 -> (envworks & next(Y250));
+TRANS Y249 -> (envbroken & next(Y250));
+TRANS Y250 -> ((envbroken & next(Y251)) | (envworks & next(Y252)));
+TRANS Y251 -> (envworks & next(Y253));
+TRANS Y252 -> (envbroken & next(Y253));
+TRANS Y253 -> ((envbroken & next(Y254)) | (envworks & next(Y255)));
+TRANS Y254 -> (envworks & next(Y256));
+TRANS Y255 -> (envbroken & next(Y256));
+TRANS Y256 -> ((envbroken & next(Y257)) | (envworks & next(Y258)));
+TRANS Y257 -> (envworks & next(Y259));
+TRANS Y258 -> (envbroken & next(Y259));
+TRANS Y259 -> ((envbroken & next(Y260)) | (envworks & next(Y261)));
+TRANS Y260 -> (envworks & next(Y262));
+TRANS Y261 -> (envbroken & next(Y262));
+TRANS Y262 -> ((envbroken & next(Y263)) | (envworks & next(Y264)));
+TRANS Y263 -> (envworks & next(Y265));
+TRANS Y264 -> (envbroken & next(Y265));
+TRANS Y265 -> ((envbroken & next(Y266)) | (envworks & next(Y267)));
+TRANS Y266 -> (envworks & next(Y268));
+TRANS Y267 -> (envbroken & next(Y268));
+TRANS Y268 -> ((envbroken & next(Y269)) | (envworks & next(Y270)));
+TRANS Y269 -> (envworks & next(Y271));
+TRANS Y270 -> (envbroken & next(Y271));
+TRANS Y271 -> ((envbroken & next(Y272)) | (envworks & next(Y273)));
+TRANS Y272 -> (envworks & next(Y274));
+TRANS Y273 -> (envbroken & next(Y274));
+TRANS Y274 -> ((envbroken & next(Y275)) | (envworks & next(Y276)));
+TRANS Y275 -> (envworks & next(Y277));
+TRANS Y276 -> (envbroken & next(Y277));
+TRANS Y277 -> ((envbroken & next(Y278)) | (envworks & next(Y279)));
+TRANS Y278 -> (envworks & next(Y280));
+TRANS Y279 -> (envbroken & next(Y280));
+TRANS Y280 -> ((envbroken & next(Y281)) | (envworks & next(Y282)));
+TRANS Y281 -> (envworks & next(Y283));
+TRANS Y282 -> (envbroken & next(Y283));
+TRANS Y283 -> ((envbroken & next(Y284)) | (envworks & next(Y285)));
+TRANS Y284 -> (envworks & next(Y286));
+TRANS Y285 -> (envbroken & next(Y286));
+TRANS Y286 -> ((envbroken & next(Y287)) | (envworks & next(Y288)));
+TRANS Y287 -> (envworks & next(Y289));
+TRANS Y288 -> (envbroken & next(Y289));
+TRANS Y289 -> ((envbroken & next(Y290)) | (envworks & next(Y291)));
+TRANS Y290 -> (envworks & next(Y292));
+TRANS Y291 -> (envbroken & next(Y292));
+TRANS Y292 -> ((envbroken & next(Y293)) | (envworks & next(Y294)));
+TRANS Y293 -> (envworks & next(Y295));
+TRANS Y294 -> (envbroken & next(Y295));
+TRANS Y295 -> ((envbroken & next(Y296)) | (envworks & next(Y297)));
+TRANS Y296 -> (envworks & next(Y298));
+TRANS Y297 -> (envbroken & next(Y298));
+TRANS Y298 -> ((envbroken & next(Y299)) | (envworks & next(Y300)));
+TRANS Y299 -> ((envworks & next(!TRUE)) | (envworks & next(Y1)));
+TRANS Y300 -> ((envbroken & next(!TRUE)) | (envbroken & next(Y1)));
+JUSTICE ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((X1=Y1 & X2=Y2) & X3=Y3) & X4=Y4) & X5=Y5) & X6=Y6) & X7=Y7) & X8=Y8) & X9=Y9) & X10=Y10) & X11=Y11) & X12=Y12) & X13=Y13) & X14=Y14) & X15=Y15) & X16=Y16) & X17=Y17) & X18=Y18) & X19=Y19) & X20=Y20) & X21=Y21) & X22=Y22) & X23=Y23) & X24=Y24) & X25=Y25) & X26=Y26) & X27=Y27) & X28=Y28) & X29=Y29) & X30=Y30) & X31=Y31) & X32=Y32) & X33=Y33) & X34=Y34) & X35=Y35) & X36=Y36) & X37=Y37) & X38=Y38) & X39=Y39) & X40=Y40) & X41=Y41) & X42=Y42) & X43=Y43) & X44=Y44) & X45=Y45) & X46=Y46) & X47=Y47) & X48=Y48) & X49=Y49) & X50=Y50) & X51=Y51) & X52=Y52) & X53=Y53) & X54=Y54) & X55=Y55) & X56=Y56) & X57=Y57) & X58=Y58) & X59=Y59) & X60=Y60) & X61=Y61) & X62=Y62) & X63=Y63) & X64=Y64) & X65=Y65) & X66=Y66) & X67=Y67) & X68=Y68) & X69=Y69) & X70=Y70) & X71=Y71) & X72=Y72) & X73=Y73) & X74=Y74) & X75=Y75) & X76=Y76) & X77=Y77) & X78=Y78) & X79=Y79) & X80=Y80) & X81=Y81) & X82=Y82) & X83=Y83) & X84=Y84) & X85=Y85) & X86=Y86) & X87=Y87) & X88=Y88) & X89=Y89) & X90=Y90) & X91=Y91) & X92=Y92) & X93=Y93) & X94=Y94) & X95=Y95) & X96=Y96) & X97=Y97) & X98=Y98) & X99=Y99) & X100=Y100) & X101=Y101) & X102=Y102) & X103=Y103) & X104=Y104) & X105=Y105) & X106=Y106) & X107=Y107) & X108=Y108) & X109=Y109) & X110=Y110) & X111=Y111) & X112=Y112) & X113=Y113) & X114=Y114) & X115=Y115) & X116=Y116) & X117=Y117) & X118=Y118) & X119=Y119) & X120=Y120) & X121=Y121) & X122=Y122) & X123=Y123) & X124=Y124) & X125=Y125) & X126=Y126) & X127=Y127) & X128=Y128) & X129=Y129) & X130=Y130) & X131=Y131) & X132=Y132) & X133=Y133) & X134=Y134) & X135=Y135) & X136=Y136) & X137=Y137) & X138=Y138) & X139=Y139) & X140=Y140) & X141=Y141) & X142=Y142) & X143=Y143) & X144=Y144) & X145=Y145) & X146=Y146) & X147=Y147) & X148=Y148) & X149=Y149) & X150=Y150) & X151=Y151) & X152=Y152) & X153=Y153) & X154=Y154) & X155=Y155) & X156=Y156) & X157=Y157) & X158=Y158) & X159=Y159) & X160=Y160) & X161=Y161) & X162=Y162) & X163=Y163) & X164=Y164) & X165=Y165) & X166=Y166) & X167=Y167) & X168=Y168) & X169=Y169) & X170=Y170) & X171=Y171) & X172=Y172) & X173=Y173) & X174=Y174) & X175=Y175) & X176=Y176) & X177=Y177) & X178=Y178) & X179=Y179) & X180=Y180) & X181=Y181) & X182=Y182) & X183=Y183) & X184=Y184) & X185=Y185) & X186=Y186) & X187=Y187) & X188=Y188) & X189=Y189) & X190=Y190) & X191=Y191) & X192=Y192) & X193=Y193) & X194=Y194) & X195=Y195) & X196=Y196) & X197=Y197) & X198=Y198) & X199=Y199) & X200=Y200) & X201=Y201) & X202=Y202) & X203=Y203) & X204=Y204) & X205=Y205) & X206=Y206) & X207=Y207) & X208=Y208) & X209=Y209) & X210=Y210) & X211=Y211) & X212=Y212) & X213=Y213) & X214=Y214) & X215=Y215) & X216=Y216) & X217=Y217) & X218=Y218) & X219=Y219) & X220=Y220) & X221=Y221) & X222=Y222) & X223=Y223) & X224=Y224) & X225=Y225) & X226=Y226) & X227=Y227) & X228=Y228) & X229=Y229) & X230=Y230) & X231=Y231) & X232=Y232) & X233=Y233) & X234=Y234) & X235=Y235) & X236=Y236) & X237=Y237) & X238=Y238) & X239=Y239) & X240=Y240) & X241=Y241) & X242=Y242) & X243=Y243) & X244=Y244) & X245=Y245) & X246=Y246) & X247=Y247) & X248=Y248) & X249=Y249) & X250=Y250) & X251=Y251) & X252=Y252) & X253=Y253) & X254=Y254) & X255=Y255) & X256=Y256) & X257=Y257) & X258=Y258) & X259=Y259) & X260=Y260) & X261=Y261) & X262=Y262) & X263=Y263) & X264=Y264) & X265=Y265) & X266=Y266) & X267=Y267) & X268=Y268) & X269=Y269) & X270=Y270) & X271=Y271) & X272=Y272) & X273=Y273) & X274=Y274) & X275=Y275) & X276=Y276) & X277=Y277) & X278=Y278) & X279=Y279) & X280=Y280) & X281=Y281) & X282=Y282) & X283=Y283) & X284=Y284) & X285=Y285) & X286=Y286) & X287=Y287) & X288=Y288) & X289=Y289) & X290=Y290) & X291=Y291) & X292=Y292) & X293=Y293) & X294=Y294) & X295=Y295) & X296=Y296) & X297=Y297) & X298=Y298) & X299=Y299) & X300=Y300;
+JUSTICE ((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((!Y1 & !Y2) & !Y3) & !Y4) & !Y5) & !Y6) & !Y7) & !Y8) & !Y9) & !Y10) & !Y11) & !Y12) & !Y13) & !Y14) & !Y15) & !Y16) & !Y17) & !Y18) & !Y19) & !Y20) & !Y21) & !Y22) & !Y23) & !Y24) & !Y25) & !Y26) & !Y27) & !Y28) & !Y29) & !Y30) & !Y31) & !Y32) & !Y33) & !Y34) & !Y35) & !Y36) & !Y37) & !Y38) & !Y39) & !Y40) & !Y41) & !Y42) & !Y43) & !Y44) & !Y45) & !Y46) & !Y47) & !Y48) & !Y49) & !Y50) & !Y51) & !Y52) & !Y53) & !Y54) & !Y55) & !Y56) & !Y57) & !Y58) & !Y59) & !Y60) & !Y61) & !Y62) & !Y63) & !Y64) & !Y65) & !Y66) & !Y67) & !Y68) & !Y69) & !Y70) & !Y71) & !Y72) & !Y73) & !Y74) & !Y75) & !Y76) & !Y77) & !Y78) & !Y79) & !Y80) & !Y81) & !Y82) & !Y83) & !Y84) & !Y85) & !Y86) & !Y87) & !Y88) & !Y89) & !Y90) & !Y91) & !Y92) & !Y93) & !Y94) & !Y95) & !Y96) & !Y97) & !Y98) & !Y99) & !Y100) & !Y101) & !Y102) & !Y103) & !Y104) & !Y105) & !Y106) & !Y107) & !Y108) & !Y109) & !Y110) & !Y111) & !Y112) & !Y113) & !Y114) & !Y115) & !Y116) & !Y117) & !Y118) & !Y119) & !Y120) & !Y121) & !Y122) & !Y123) & !Y124) & !Y125) & !Y126) & !Y127) & !Y128) & !Y129) & !Y130) & !Y131) & !Y132) & !Y133) & !Y134) & !Y135) & !Y136) & !Y137) & !Y138) & !Y139) & !Y140) & !Y141) & !Y142) & !Y143) & !Y144) & !Y145) & !Y146) & !Y147) & !Y148) & !Y149) & !Y150) & !Y151) & !Y152) & !Y153) & !Y154) & !Y155) & !Y156) & !Y157) & !Y158) & !Y159) & !Y160) & !Y161) & !Y162) & !Y163) & !Y164) & !Y165) & !Y166) & !Y167) & !Y168) & !Y169) & !Y170) & !Y171) & !Y172) & !Y173) & !Y174) & !Y175) & !Y176) & !Y177) & !Y178) & !Y179) & !Y180) & !Y181) & !Y182) & !Y183) & !Y184) & !Y185) & !Y186) & !Y187) & !Y188) & !Y189) & !Y190) & !Y191) & !Y192) & !Y193) & !Y194) & !Y195) & !Y196) & !Y197) & !Y198) & !Y199) & !Y200) & !Y201) & !Y202) & !Y203) & !Y204) & !Y205) & !Y206) & !Y207) & !Y208) & !Y209) & !Y210) & !Y211) & !Y212) & !Y213) & !Y214) & !Y215) & !Y216) & !Y217) & !Y218) & !Y219) & !Y220) & !Y221) & !Y222) & !Y223) & !Y224) & !Y225) & !Y226) & !Y227) & !Y228) & !Y229) & !Y230) & !Y231) & !Y232) & !Y233) & !Y234) & !Y235) & !Y236) & !Y237) & !Y238) & !Y239) & !Y240) & !Y241) & !Y242) & !Y243) & !Y244) & !Y245) & !Y246) & !Y247) & !Y248) & !Y249) & !Y250) & !Y251) & !Y252) & !Y253) & !Y254) & !Y255) & !Y256) & !Y257) & !Y258) & !Y259) & !Y260) & !Y261) & !Y262) & !Y263) & !Y264) & !Y265) & !Y266) & !Y267) & !Y268) & !Y269) & !Y270) & !Y271) & !Y272) & !Y273) & !Y274) & !Y275) & !Y276) & !Y277) & !Y278) & !Y279) & !Y280) & !Y281) & !Y282) & !Y283) & !Y284) & !Y285) & !Y286) & !Y287) & !Y288) & !Y289) & !Y290) & !Y291) & !Y292) & !Y293) & !Y294) & !Y295) & !Y296) & !Y297) & !Y298) & !Y299) & !Y300;
+
+--------- No.2 sub-tester for F senderDone ---------
+VAR W1 : boolean;
+TRANS W1 <-> (senderDone | next(W1));
+JUSTICE W1 -> senderDone;
+
+
+------------------------------------------------------------------
+MODULE Sender(main_r_s_3)
+VAR
+  done:boolean;
+  recack: 0..3;
+  dispatch: 0..3;
+  value1: {b0, b1};
+  value2: {b0, b1};
+  value3: {b0, b1};
+
+  act: { b10, b11, b20, b21, b30, b31, none};
+
+ASSIGN
+--the protocol
+act := case
+  done=TRUE : {none};
+  dispatch=1 & value1=b0 : {b10};
+  dispatch=1 & value1=b1 : {b11};
+  dispatch=2 & value2=b0 : {b20};
+  dispatch=2 & value2=b1 : {b21};
+  dispatch=3 & value3=b0 & done=FALSE : {b30};
+  dispatch=3 & value3=b1 & done=FALSE : {b31};
+  TRUE : {none};
+esac;
+
+--the evolution
+next(done) := case
+  (done=FALSE) & 
+       ( ( (main_r_s_3=3) ) 
+        |
+       ( (main_r_s_3=3) )
+       ) : TRUE;
+  TRUE : done;
+esac;
+
+next(recack) := case
+  (main_r_s_3=1) : 1;
+  (main_r_s_3=2) : 2;
+  (main_r_s_3=3) : 3;
+  TRUE: recack;
+esac;
+
+next(dispatch) := case
+  (done=FALSE) & (recack + 2 > dispatch) & (dispatch < 3) : dispatch+1;
+  (((done=FALSE) & (main_r_s_3 = recack)) | !((done=FALSE) & (recack + 2 > dispatch) & (dispatch < 3))) & (recack<3) : recack+1; -- the conjunct recack<3 is added by LXY
+  (done=TRUE) : dispatch;
+  TRUE: dispatch;
+esac;
+
+------------------------------------------------------------------
+MODULE Receiver(main_s_r_3, main_s_r_3_seq)
+VAR
+  recv1 : { empty, r0, r1 };
+  recv2 : { empty, r0, r1 };
+  recv3 : { empty, r0, r1 };
+
+  act: {null, r1, r2, r3};
+
+ASSIGN
+--the protocol
+act := case
+  recv1=empty : {null};
+  (recv1 != empty & recv2 = empty): {r1};
+  (recv2 != empty & recv3 = empty): {r2};
+  (recv3 != empty): {r3};
+esac;
+
+--the evolution
+next(recv1) := case
+  ( ( (main_s_r_3=b0) & (recv1=empty) & 
+                    (main_s_r_3_seq=1) ) ) : r0;
+  ( ( (main_s_r_3=b1) & (recv1=empty) & 
+                    (main_s_r_3_seq=1) ) ) : r1;
+  TRUE: recv1;
+esac;
+
+next(recv2) := case
+  ( ( (main_s_r_3=b0) & (recv2=empty) & (recv1!=empty) &
+                    (main_s_r_3_seq=2) ) ) : r0;
+  ( ( (main_s_r_3=b1) & (recv2=empty) & (recv1!=empty) &
+                    (main_s_r_3_seq=2) ) ) : r1;
+  TRUE: recv2;
+esac;
+
+next(recv3) := case
+  ( ( (main_s_r_3=b0) & (recv3=empty) & (recv2!=empty) &
+                    (main_s_r_3_seq=3) ) ) : r0;
+  ( ( (main_s_r_3=b1) & (recv3=empty) & (recv2!=empty) &
+                    (main_s_r_3_seq=3) ) ) : r1;
+  TRUE: recv3;
+esac;
+
+

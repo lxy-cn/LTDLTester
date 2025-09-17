@@ -1,0 +1,256 @@
+MODULE main
+VAR s : {snd,rcv,sr,none}; 
+    -- s=snd: transfer message from sender to receiver; 
+    -- s=rcv: transfer message from receiver to sender; 
+    -- s=sr: transfer message bidirectionally between sender and receiver
+    -- s=none: no message being transfered between sender and receiver
+
+    sndr : sender(s, rcvr.act);
+    rcvr : receiver(s, sndr.act);
+DEFINE
+    bit0:=(sndr.bit=0);
+    recack:=sndr.ack;
+    envworks:=(s=sr);
+
+INIT s=none;
+
+FAIRNESS envworks;
+
+LTLSPEC bit0 -> X1;
+
+--------------------------------- No.1 formula ---------------------------------
+--The original LTDL formula: bit0 -> (<(((((((((((((((((((((((((((((((((((((((bit0 ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0)*>recack)
+--The LTL formula to be verified: LTLSPEC bit0 -> X1;
+--The following SMV code is the tester for the LTDL formula without [] operator: bit0 -> (<(((((((((((((((((((((((((((((((((((((((bit0 ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0)*>recack)
+
+--The output variables for 1 principally temporal sub-formula(s):
+--  (1) X1: <(((((((((((((((((((((((((((((((((((((((bit0 ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0)*>recack
+
+--------- No.1 sub-tester for <(((((((((((((((((((((((((((((((((((((((bit0 ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0)*>recack ---------
+VAR X1 : boolean;   Y1 : boolean; -- X1 is the output variable
+    X2 : boolean;   Y2 : boolean;
+    X3 : boolean;   Y3 : boolean;
+    X4 : boolean;   Y4 : boolean;
+    X5 : boolean;   Y5 : boolean;
+    X6 : boolean;   Y6 : boolean;
+    X7 : boolean;   Y7 : boolean;
+    X8 : boolean;   Y8 : boolean;
+    X9 : boolean;   Y9 : boolean;
+    X10 : boolean;  Y10 : boolean;
+    X11 : boolean;  Y11 : boolean;
+    X12 : boolean;  Y12 : boolean;
+    X13 : boolean;  Y13 : boolean;
+    X14 : boolean;  Y14 : boolean;
+    X15 : boolean;  Y15 : boolean;
+    X16 : boolean;  Y16 : boolean;
+    X17 : boolean;  Y17 : boolean;
+    X18 : boolean;  Y18 : boolean;
+    X19 : boolean;  Y19 : boolean;
+    X20 : boolean;  Y20 : boolean;
+    X21 : boolean;  Y21 : boolean;
+    X22 : boolean;  Y22 : boolean;
+    X23 : boolean;  Y23 : boolean;
+    X24 : boolean;  Y24 : boolean;
+    X25 : boolean;  Y25 : boolean;
+    X26 : boolean;  Y26 : boolean;
+    X27 : boolean;  Y27 : boolean;
+    X28 : boolean;  Y28 : boolean;
+    X29 : boolean;  Y29 : boolean;
+    X30 : boolean;  Y30 : boolean;
+    X31 : boolean;  Y31 : boolean;
+    X32 : boolean;  Y32 : boolean;
+    X33 : boolean;  Y33 : boolean;
+    X34 : boolean;  Y34 : boolean;
+    X35 : boolean;  Y35 : boolean;
+    X36 : boolean;  Y36 : boolean;
+    X37 : boolean;  Y37 : boolean;
+    X38 : boolean;  Y38 : boolean;
+    X39 : boolean;  Y39 : boolean;
+    X40 : boolean;  Y40 : boolean;
+
+--After optimized and renamed:
+--The Path Grammar of (((((((((((((((((((((((((((((((((((((((bit0 ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0) ; bit0)*:
+--  Start variable: 1
+--  Variables: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]
+--  Productions:
+--    (1) 1 --> ¦Å
+--    (2) 1 --> bit0 2
+--    (3) 2 --> bit0 3
+--    (4) 3 --> bit0 4
+--    (5) 4 --> bit0 5
+--    (6) 5 --> bit0 6
+--    (7) 6 --> bit0 7
+--    (8) 7 --> bit0 8
+--    (9) 8 --> bit0 9
+--    (10) 9 --> bit0 10
+--    (11) 10 --> bit0 11
+--    (12) 11 --> bit0 12
+--    (13) 12 --> bit0 13
+--    (14) 13 --> bit0 14
+--    (15) 14 --> bit0 15
+--    (16) 15 --> bit0 16
+--    (17) 16 --> bit0 17
+--    (18) 17 --> bit0 18
+--    (19) 18 --> bit0 19
+--    (20) 19 --> bit0 20
+--    (21) 20 --> bit0 21
+--    (22) 21 --> bit0 22
+--    (23) 22 --> bit0 23
+--    (24) 23 --> bit0 24
+--    (25) 24 --> bit0 25
+--    (26) 25 --> bit0 26
+--    (27) 26 --> bit0 27
+--    (28) 27 --> bit0 28
+--    (29) 28 --> bit0 29
+--    (30) 29 --> bit0 30
+--    (31) 30 --> bit0 31
+--    (32) 31 --> bit0 32
+--    (33) 32 --> bit0 33
+--    (34) 33 --> bit0 34
+--    (35) 34 --> bit0 35
+--    (36) 35 --> bit0 36
+--    (37) 36 --> bit0 37
+--    (38) 37 --> bit0 38
+--    (39) 38 --> bit0 39
+--    (40) 39 --> bit0 40
+--    (41) 40 --> bit0
+--    (42) 40 --> bit0 1
+
+TRANS X1 <-> (recack | (bit0 & next(X2)));
+TRANS X2 <-> (bit0 & next(X3));
+TRANS X3 <-> (bit0 & next(X4));
+TRANS X4 <-> (bit0 & next(X5));
+TRANS X5 <-> (bit0 & next(X6));
+TRANS X6 <-> (bit0 & next(X7));
+TRANS X7 <-> (bit0 & next(X8));
+TRANS X8 <-> (bit0 & next(X9));
+TRANS X9 <-> (bit0 & next(X10));
+TRANS X10 <-> (bit0 & next(X11));
+TRANS X11 <-> (bit0 & next(X12));
+TRANS X12 <-> (bit0 & next(X13));
+TRANS X13 <-> (bit0 & next(X14));
+TRANS X14 <-> (bit0 & next(X15));
+TRANS X15 <-> (bit0 & next(X16));
+TRANS X16 <-> (bit0 & next(X17));
+TRANS X17 <-> (bit0 & next(X18));
+TRANS X18 <-> (bit0 & next(X19));
+TRANS X19 <-> (bit0 & next(X20));
+TRANS X20 <-> (bit0 & next(X21));
+TRANS X21 <-> (bit0 & next(X22));
+TRANS X22 <-> (bit0 & next(X23));
+TRANS X23 <-> (bit0 & next(X24));
+TRANS X24 <-> (bit0 & next(X25));
+TRANS X25 <-> (bit0 & next(X26));
+TRANS X26 <-> (bit0 & next(X27));
+TRANS X27 <-> (bit0 & next(X28));
+TRANS X28 <-> (bit0 & next(X29));
+TRANS X29 <-> (bit0 & next(X30));
+TRANS X30 <-> (bit0 & next(X31));
+TRANS X31 <-> (bit0 & next(X32));
+TRANS X32 <-> (bit0 & next(X33));
+TRANS X33 <-> (bit0 & next(X34));
+TRANS X34 <-> (bit0 & next(X35));
+TRANS X35 <-> (bit0 & next(X36));
+TRANS X36 <-> (bit0 & next(X37));
+TRANS X37 <-> (bit0 & next(X38));
+TRANS X38 <-> (bit0 & next(X39));
+TRANS X39 <-> (bit0 & next(X40));
+TRANS X40 <-> ((bit0 & next(recack)) | (bit0 & next(X1)));
+TRANS Y1 -> (recack | (bit0 & next(Y2)));
+TRANS Y2 -> (bit0 & next(Y3));
+TRANS Y3 -> (bit0 & next(Y4));
+TRANS Y4 -> (bit0 & next(Y5));
+TRANS Y5 -> (bit0 & next(Y6));
+TRANS Y6 -> (bit0 & next(Y7));
+TRANS Y7 -> (bit0 & next(Y8));
+TRANS Y8 -> (bit0 & next(Y9));
+TRANS Y9 -> (bit0 & next(Y10));
+TRANS Y10 -> (bit0 & next(Y11));
+TRANS Y11 -> (bit0 & next(Y12));
+TRANS Y12 -> (bit0 & next(Y13));
+TRANS Y13 -> (bit0 & next(Y14));
+TRANS Y14 -> (bit0 & next(Y15));
+TRANS Y15 -> (bit0 & next(Y16));
+TRANS Y16 -> (bit0 & next(Y17));
+TRANS Y17 -> (bit0 & next(Y18));
+TRANS Y18 -> (bit0 & next(Y19));
+TRANS Y19 -> (bit0 & next(Y20));
+TRANS Y20 -> (bit0 & next(Y21));
+TRANS Y21 -> (bit0 & next(Y22));
+TRANS Y22 -> (bit0 & next(Y23));
+TRANS Y23 -> (bit0 & next(Y24));
+TRANS Y24 -> (bit0 & next(Y25));
+TRANS Y25 -> (bit0 & next(Y26));
+TRANS Y26 -> (bit0 & next(Y27));
+TRANS Y27 -> (bit0 & next(Y28));
+TRANS Y28 -> (bit0 & next(Y29));
+TRANS Y29 -> (bit0 & next(Y30));
+TRANS Y30 -> (bit0 & next(Y31));
+TRANS Y31 -> (bit0 & next(Y32));
+TRANS Y32 -> (bit0 & next(Y33));
+TRANS Y33 -> (bit0 & next(Y34));
+TRANS Y34 -> (bit0 & next(Y35));
+TRANS Y35 -> (bit0 & next(Y36));
+TRANS Y36 -> (bit0 & next(Y37));
+TRANS Y37 -> (bit0 & next(Y38));
+TRANS Y38 -> (bit0 & next(Y39));
+TRANS Y39 -> (bit0 & next(Y40));
+TRANS Y40 -> ((bit0 & next(recack)) | (bit0 & next(Y1)));
+JUSTICE ((((((((((((((((((((((((((((((((((((((X1=Y1 & X2=Y2) & X3=Y3) & X4=Y4) & X5=Y5) & X6=Y6) & X7=Y7) & X8=Y8) & X9=Y9) & X10=Y10) & X11=Y11) & X12=Y12) & X13=Y13) & X14=Y14) & X15=Y15) & X16=Y16) & X17=Y17) & X18=Y18) & X19=Y19) & X20=Y20) & X21=Y21) & X22=Y22) & X23=Y23) & X24=Y24) & X25=Y25) & X26=Y26) & X27=Y27) & X28=Y28) & X29=Y29) & X30=Y30) & X31=Y31) & X32=Y32) & X33=Y33) & X34=Y34) & X35=Y35) & X36=Y36) & X37=Y37) & X38=Y38) & X39=Y39) & X40=Y40;
+JUSTICE ((((((((((((((((((((((((((((((((((((((!Y1 & !Y2) & !Y3) & !Y4) & !Y5) & !Y6) & !Y7) & !Y8) & !Y9) & !Y10) & !Y11) & !Y12) & !Y13) & !Y14) & !Y15) & !Y16) & !Y17) & !Y18) & !Y19) & !Y20) & !Y21) & !Y22) & !Y23) & !Y24) & !Y25) & !Y26) & !Y27) & !Y28) & !Y29) & !Y30) & !Y31) & !Y32) & !Y33) & !Y34) & !Y35) & !Y36) & !Y37) & !Y38) & !Y39) & !Y40;
+
+-------------------------------------------------------------------------------
+-- the sender module
+-- env_state is the state of the main module (the environment)
+-- rcvr_act is the action of the receiver
+MODULE sender(env_state, rcvr_act)
+VAR bit : {0,1}; 
+    ack : boolean;
+    act : {sb0, sb1, nothing}; -- the set of actions
+
+ASSIGN
+-- the action protocol
+act := case     
+    bit=0 & ack=FALSE : sb0; 
+    bit=1 & ack=FALSE : sb1; 
+    ack=TRUE : nothing; 
+esac;
+
+-- the evolution of variables (i.e., the transitions between states)
+init(ack):=FALSE;
+next(bit):=bit;
+next(ack) := case
+    ack=FALSE & (rcvr_act=sndack & (env_state=rcv | env_state=sr)) : TRUE;
+    TRUE : ack;
+esac;
+
+
+-------------------------------------------------------------------------------
+-- the receiver module
+-- env_state is the state of the main module (the environment)
+-- sndr_act is the action of the sender
+MODULE receiver(env_state, sndr_act)
+VAR s : {empty, r0, r1};
+    act : {nothing, sndack}; -- the set of actions
+
+ASSIGN
+-- the action protocol
+act := case
+    s=empty : nothing;
+    s=r0 | s=r1 : sndack;
+esac;
+
+-- the evolution of variables (i.e., the transitions between states)
+init(s):=empty;
+next(s) := case
+    s=empty & sndr_act=sb0 & (env_state=snd | env_state=sr) : r0;
+    s=empty & sndr_act=sb1 & (env_state=snd | env_state=sr) : r1;
+    TRUE : s;
+esac;
+
+
+
+
+
+
+

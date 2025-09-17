@@ -1,0 +1,376 @@
+-- The Go-Back-N ARQ protocol.
+-- Three bits, using N = 2.
+-- this model is refered from go_back_n_4bits.ispl in the MCMAS-LDLK package
+
+MODULE main
+VAR
+  state : {s,r,sr,none};
+  s_r_1: {b0, b1, empty};
+  s_r_1_seq: 0..3;
+  s_r_2: {b0, b1, empty};
+  s_r_2_seq: 0..3;
+  s_r_3: {b0, b1, empty};
+  s_r_3_seq: 0..3;
+  r_s_1: 0..3;
+  r_s_2: 0..3;
+  r_s_3: 0..3;
+
+  act: {s,sr,r,none};
+
+  sender : Sender(r_s_3);
+  receiver : Receiver(s_r_3, s_r_3_seq);
+
+DEFINE
+  envworks := (state=sr);
+  envbroken := (state=none);
+  receiverDone := (receiver.recv1 != empty & receiver.recv2 != empty & receiver.recv3 != empty);
+  senderDone := (sender.done = TRUE);
+
+INIT
+    s_r_1=empty &
+    s_r_2=empty &
+    s_r_3=empty &
+    r_s_1=0 &
+    r_s_2=0 &
+    r_s_3=0 &
+    sender.done=FALSE &
+    sender.recack=0 &
+    sender.dispatch=1 &
+    receiver.recv1=empty &
+    receiver.recv2=empty &
+    receiver.recv3=empty;
+
+ASSIGN
+--the protocol
+act := case 
+  state=s: {s,sr,r,none};
+  state=r: {s,sr,r,none};
+  state=sr: {s,sr,r,none};
+  state=none: {s,sr,r,none};
+esac;
+
+--the evolution
+next(state) := case
+  act=s: s;
+  act=r: r;
+  act=sr: sr;
+  act=none: none;
+esac;                                                                                                                                        
+next(s_r_1) := case
+  ((sender.act=b10 | sender.act=b20 | sender.act=b30)) : b0;
+  (sender.act=none) : empty;
+  (sender.act=b11 | sender.act=b21 | sender.act=b31) : b1;
+  (sender.act=none) : empty;
+  TRUE: s_r_1;
+esac;
+
+next(s_r_2) := case
+  (s_r_1=b0 & (act=sr | act=s)) : b0;
+  (s_r_1=b1 & (act=sr | act=s)) : b1;
+  (act=r | act=none) | (s_r_1=empty) : empty;
+  TRUE: s_r_2;
+esac;
+
+next(s_r_3) := case
+  (s_r_2=b0) & (act=sr | act=s) : b0;
+  (s_r_2=b1) & (act=sr | act=s) : b1;
+  (act=r | act=none) | (s_r_2=empty) : empty;
+  (s_r_2=empty) : empty;
+  TRUE: s_r_3;
+esac;
+
+next(s_r_1_seq) := case
+  (sender.act=b10 | sender.act=b11) : 1;
+  (sender.act=b20 | sender.act=b21) : 2;
+  (sender.act=b30 | sender.act=b31) : 3;
+  (sender.act=none) : 3;
+  TRUE : s_r_1_seq;
+esac;
+
+next(s_r_2_seq) := case
+  (act=none) | !(act=none) : s_r_1_seq;
+  TRUE : s_r_2_seq;
+esac;
+
+next(s_r_3_seq) := case
+  (act=none) | !(act=none) : s_r_2_seq;
+  TRUE : s_r_3_seq;
+esac;
+
+next(r_s_1) := case
+  (receiver.act=null) : 0;
+  (receiver.act=r1) : 1;
+  (receiver.act=r2) : 2;
+  (receiver.act=r3) : 3;
+  TRUE : r_s_1;
+esac;
+
+next(r_s_2) := case
+  (act=s | act=sr) : r_s_1; 
+  (act=r | act=none) : 0;
+  TRUE : r_s_2;
+esac;
+
+next(r_s_3) := case
+  (act=s | act=sr) : r_s_2; 
+  (act=r | act=none) : 0;
+  TRUE : r_s_3;
+esac;
+
+
+FAIRNESS envworks;
+
+LTLSPEC !X1 -> W1;
+
+--------------------------------- No.1 formula ---------------------------------
+--The original LTDL formula: ([(((((((((((envworks ; envbroken) + (envbroken ; envworks)) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks))) ; ((envworks ; envbroken) + (envbroken ; envworks)))*]TRUE) -> F senderDone
+--The LTL formula to be verified: LTLSPEC !X1 -> W1;
+--The following SMV code is the tester for the LTDL formula without [] operator: !(<(((((((((((envbroken ; envworks) + (envworks ; envbroken)) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken)))*>!TRUE) -> F senderDone
+
+--The output variables for 2 principally temporal sub-formula(s):
+--  (1) X1: <(((((((((((envbroken ; envworks) + (envworks ; envbroken)) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken)))*>!TRUE
+--  (2) W1: F senderDone
+
+--------- No.1 sub-tester for <(((((((((((envbroken ; envworks) + (envworks ; envbroken)) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken)))*>!TRUE ---------
+VAR X1 : boolean; Y1 : boolean; -- X1 is the output variable
+    X2 : boolean; Y2 : boolean;
+    X3 : boolean; Y3 : boolean;
+    X4 : boolean; Y4 : boolean;
+    X5 : boolean; Y5 : boolean;
+    X6 : boolean; Y6 : boolean;
+    X7 : boolean; Y7 : boolean;
+    X8 : boolean; Y8 : boolean;
+    X9 : boolean; Y9 : boolean;
+    X10 : boolean;  Y10 : boolean;
+    X11 : boolean;  Y11 : boolean;
+    X12 : boolean;  Y12 : boolean;
+    X13 : boolean;  Y13 : boolean;
+    X14 : boolean;  Y14 : boolean;
+    X15 : boolean;  Y15 : boolean;
+    X16 : boolean;  Y16 : boolean;
+    X17 : boolean;  Y17 : boolean;
+    X18 : boolean;  Y18 : boolean;
+    X19 : boolean;  Y19 : boolean;
+    X20 : boolean;  Y20 : boolean;
+    X21 : boolean;  Y21 : boolean;
+    X22 : boolean;  Y22 : boolean;
+    X23 : boolean;  Y23 : boolean;
+    X24 : boolean;  Y24 : boolean;
+    X25 : boolean;  Y25 : boolean;
+    X26 : boolean;  Y26 : boolean;
+    X27 : boolean;  Y27 : boolean;
+    X28 : boolean;  Y28 : boolean;
+    X29 : boolean;  Y29 : boolean;
+    X30 : boolean;  Y30 : boolean;
+
+--After optimized and renamed:
+--The Path Grammar of (((((((((((envbroken ; envworks) + (envworks ; envbroken)) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken))) ; ((envbroken ; envworks) + (envworks ; envbroken)))*:
+--  Start variable: 1
+--  Variables: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+--  Productions:
+--    (1) 1 --> ¦Å
+--    (2) 1 --> envbroken 2
+--    (3) 1 --> envworks 3
+--    (4) 2 --> envworks 4
+--    (5) 3 --> envbroken 4
+--    (6) 4 --> envbroken 5
+--    (7) 4 --> envworks 6
+--    (8) 5 --> envworks 7
+--    (9) 6 --> envbroken 7
+--    (10) 7 --> envbroken 8
+--    (11) 7 --> envworks 9
+--    (12) 8 --> envworks 10
+--    (13) 9 --> envbroken 10
+--    (14) 10 --> envbroken 11
+--    (15) 10 --> envworks 12
+--    (16) 11 --> envworks 13
+--    (17) 12 --> envbroken 13
+--    (18) 13 --> envbroken 14
+--    (19) 13 --> envworks 15
+--    (20) 14 --> envworks 16
+--    (21) 15 --> envbroken 16
+--    (22) 16 --> envbroken 17
+--    (23) 16 --> envworks 18
+--    (24) 17 --> envworks 19
+--    (25) 18 --> envbroken 19
+--    (26) 19 --> envbroken 20
+--    (27) 19 --> envworks 21
+--    (28) 20 --> envworks 22
+--    (29) 21 --> envbroken 22
+--    (30) 22 --> envbroken 23
+--    (31) 22 --> envworks 24
+--    (32) 23 --> envworks 25
+--    (33) 24 --> envbroken 25
+--    (34) 25 --> envbroken 26
+--    (35) 25 --> envworks 27
+--    (36) 26 --> envworks 28
+--    (37) 27 --> envbroken 28
+--    (38) 28 --> envbroken 29
+--    (39) 28 --> envworks 30
+--    (40) 29 --> envworks
+--    (41) 29 --> envworks 1
+--    (42) 30 --> envbroken
+--    (43) 30 --> envbroken 1
+
+TRANS X1 <-> ((!TRUE | (envbroken & next(X2))) | (envworks & next(X3)));
+TRANS X2 <-> (envworks & next(X4));
+TRANS X3 <-> (envbroken & next(X4));
+TRANS X4 <-> ((envbroken & next(X5)) | (envworks & next(X6)));
+TRANS X5 <-> (envworks & next(X7));
+TRANS X6 <-> (envbroken & next(X7));
+TRANS X7 <-> ((envbroken & next(X8)) | (envworks & next(X9)));
+TRANS X8 <-> (envworks & next(X10));
+TRANS X9 <-> (envbroken & next(X10));
+TRANS X10 <-> ((envbroken & next(X11)) | (envworks & next(X12)));
+TRANS X11 <-> (envworks & next(X13));
+TRANS X12 <-> (envbroken & next(X13));
+TRANS X13 <-> ((envbroken & next(X14)) | (envworks & next(X15)));
+TRANS X14 <-> (envworks & next(X16));
+TRANS X15 <-> (envbroken & next(X16));
+TRANS X16 <-> ((envbroken & next(X17)) | (envworks & next(X18)));
+TRANS X17 <-> (envworks & next(X19));
+TRANS X18 <-> (envbroken & next(X19));
+TRANS X19 <-> ((envbroken & next(X20)) | (envworks & next(X21)));
+TRANS X20 <-> (envworks & next(X22));
+TRANS X21 <-> (envbroken & next(X22));
+TRANS X22 <-> ((envbroken & next(X23)) | (envworks & next(X24)));
+TRANS X23 <-> (envworks & next(X25));
+TRANS X24 <-> (envbroken & next(X25));
+TRANS X25 <-> ((envbroken & next(X26)) | (envworks & next(X27)));
+TRANS X26 <-> (envworks & next(X28));
+TRANS X27 <-> (envbroken & next(X28));
+TRANS X28 <-> ((envbroken & next(X29)) | (envworks & next(X30)));
+TRANS X29 <-> ((envworks & next(!TRUE)) | (envworks & next(X1)));
+TRANS X30 <-> ((envbroken & next(!TRUE)) | (envbroken & next(X1)));
+TRANS Y1 -> ((!TRUE | (envbroken & next(Y2))) | (envworks & next(Y3)));
+TRANS Y2 -> (envworks & next(Y4));
+TRANS Y3 -> (envbroken & next(Y4));
+TRANS Y4 -> ((envbroken & next(Y5)) | (envworks & next(Y6)));
+TRANS Y5 -> (envworks & next(Y7));
+TRANS Y6 -> (envbroken & next(Y7));
+TRANS Y7 -> ((envbroken & next(Y8)) | (envworks & next(Y9)));
+TRANS Y8 -> (envworks & next(Y10));
+TRANS Y9 -> (envbroken & next(Y10));
+TRANS Y10 -> ((envbroken & next(Y11)) | (envworks & next(Y12)));
+TRANS Y11 -> (envworks & next(Y13));
+TRANS Y12 -> (envbroken & next(Y13));
+TRANS Y13 -> ((envbroken & next(Y14)) | (envworks & next(Y15)));
+TRANS Y14 -> (envworks & next(Y16));
+TRANS Y15 -> (envbroken & next(Y16));
+TRANS Y16 -> ((envbroken & next(Y17)) | (envworks & next(Y18)));
+TRANS Y17 -> (envworks & next(Y19));
+TRANS Y18 -> (envbroken & next(Y19));
+TRANS Y19 -> ((envbroken & next(Y20)) | (envworks & next(Y21)));
+TRANS Y20 -> (envworks & next(Y22));
+TRANS Y21 -> (envbroken & next(Y22));
+TRANS Y22 -> ((envbroken & next(Y23)) | (envworks & next(Y24)));
+TRANS Y23 -> (envworks & next(Y25));
+TRANS Y24 -> (envbroken & next(Y25));
+TRANS Y25 -> ((envbroken & next(Y26)) | (envworks & next(Y27)));
+TRANS Y26 -> (envworks & next(Y28));
+TRANS Y27 -> (envbroken & next(Y28));
+TRANS Y28 -> ((envbroken & next(Y29)) | (envworks & next(Y30)));
+TRANS Y29 -> ((envworks & next(!TRUE)) | (envworks & next(Y1)));
+TRANS Y30 -> ((envbroken & next(!TRUE)) | (envbroken & next(Y1)));
+JUSTICE ((((((((((((((((((((((((((((X1=Y1 & X2=Y2) & X3=Y3) & X4=Y4) & X5=Y5) & X6=Y6) & X7=Y7) & X8=Y8) & X9=Y9) & X10=Y10) & X11=Y11) & X12=Y12) & X13=Y13) & X14=Y14) & X15=Y15) & X16=Y16) & X17=Y17) & X18=Y18) & X19=Y19) & X20=Y20) & X21=Y21) & X22=Y22) & X23=Y23) & X24=Y24) & X25=Y25) & X26=Y26) & X27=Y27) & X28=Y28) & X29=Y29) & X30=Y30;
+JUSTICE ((((((((((((((((((((((((((((!Y1 & !Y2) & !Y3) & !Y4) & !Y5) & !Y6) & !Y7) & !Y8) & !Y9) & !Y10) & !Y11) & !Y12) & !Y13) & !Y14) & !Y15) & !Y16) & !Y17) & !Y18) & !Y19) & !Y20) & !Y21) & !Y22) & !Y23) & !Y24) & !Y25) & !Y26) & !Y27) & !Y28) & !Y29) & !Y30;
+
+--------- No.2 sub-tester for F senderDone ---------
+VAR W1 : boolean;
+TRANS W1 <-> (senderDone | next(W1));
+JUSTICE W1 -> senderDone;
+
+
+------------------------------------------------------------------
+MODULE Sender(main_r_s_3)
+VAR
+  done:boolean;
+  recack: 0..3;
+  dispatch: 0..3;
+  value1: {b0, b1};
+  value2: {b0, b1};
+  value3: {b0, b1};
+
+  act: { b10, b11, b20, b21, b30, b31, none};
+
+ASSIGN
+--the protocol
+act := case
+  done=TRUE : {none};
+  dispatch=1 & value1=b0 : {b10};
+  dispatch=1 & value1=b1 : {b11};
+  dispatch=2 & value2=b0 : {b20};
+  dispatch=2 & value2=b1 : {b21};
+  dispatch=3 & value3=b0 & done=FALSE : {b30};
+  dispatch=3 & value3=b1 & done=FALSE : {b31};
+  TRUE : {none};
+esac;
+
+--the evolution
+next(done) := case
+  (done=FALSE) & 
+       ( ( (main_r_s_3=3) ) 
+        |
+       ( (main_r_s_3=3) )
+       ) : TRUE;
+  TRUE : done;
+esac;
+
+next(recack) := case
+  (main_r_s_3=1) : 1;
+  (main_r_s_3=2) : 2;
+  (main_r_s_3=3) : 3;
+  TRUE: recack;
+esac;
+
+next(dispatch) := case
+  (done=FALSE) & (recack + 2 > dispatch) & (dispatch < 3) : dispatch+1;
+  (((done=FALSE) & (main_r_s_3 = recack)) | !((done=FALSE) & (recack + 2 > dispatch) & (dispatch < 3))) & (recack<3) : recack+1; -- the conjunct recack<3 is added by LXY
+  (done=TRUE) : dispatch;
+  TRUE: dispatch;
+esac;
+
+------------------------------------------------------------------
+MODULE Receiver(main_s_r_3, main_s_r_3_seq)
+VAR
+  recv1 : { empty, r0, r1 };
+  recv2 : { empty, r0, r1 };
+  recv3 : { empty, r0, r1 };
+
+  act: {null, r1, r2, r3};
+
+ASSIGN
+--the protocol
+act := case
+  recv1=empty : {null};
+  (recv1 != empty & recv2 = empty): {r1};
+  (recv2 != empty & recv3 = empty): {r2};
+  (recv3 != empty): {r3};
+esac;
+
+--the evolution
+next(recv1) := case
+  ( ( (main_s_r_3=b0) & (recv1=empty) & 
+                    (main_s_r_3_seq=1) ) ) : r0;
+  ( ( (main_s_r_3=b1) & (recv1=empty) & 
+                    (main_s_r_3_seq=1) ) ) : r1;
+  TRUE: recv1;
+esac;
+
+next(recv2) := case
+  ( ( (main_s_r_3=b0) & (recv2=empty) & (recv1!=empty) &
+                    (main_s_r_3_seq=2) ) ) : r0;
+  ( ( (main_s_r_3=b1) & (recv2=empty) & (recv1!=empty) &
+                    (main_s_r_3_seq=2) ) ) : r1;
+  TRUE: recv2;
+esac;
+
+next(recv3) := case
+  ( ( (main_s_r_3=b0) & (recv3=empty) & (recv2!=empty) &
+                    (main_s_r_3_seq=3) ) ) : r0;
+  ( ( (main_s_r_3=b1) & (recv3=empty) & (recv2!=empty) &
+                    (main_s_r_3_seq=3) ) ) : r1;
+  TRUE: recv3;
+esac;
+
+
