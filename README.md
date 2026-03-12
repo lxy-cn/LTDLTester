@@ -130,11 +130,6 @@ The following SMV code is outputted by LTDLTester for the above LTDL formula.
 --------- No.1 sub-tester for !error S working ---------
 VAR W1 : boolean;
 INIT W1 <-> working;
-
---No Change in the First Optimization.
---No Change in the Zero-delay Cycles Elimination.
---No Change in the Second Optimization.
-
 TRANS next(W1) <-> (next(working) | (next(!error) & W1));
 
 --------- No.2 sub-tester for <(((!req)? ; TRUE) + ((((req? ; working) ; Serve) ; !working) ; ((!error S working)? + ((!(!error S working))? ; Rec))))*>!error ---------
