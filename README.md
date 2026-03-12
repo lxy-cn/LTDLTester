@@ -1,16 +1,3 @@
-<div align="center">
-	<h3>markdown-transform-html</h3>
-	<p align="center">
-	    <a href="https://github.com/Acmenlei/markdown-to-html/tree/master" target="_blank">
-	        <img src="https://img.shields.io/badge/markdown--transform--html-%3E1.3-ff69b4" alt="markdown-transform-html">
-	    </a>
-		<a href="https://www.tslang.cn/" target="_blank">
-	        <img src="https://img.shields.io/badge/typescript-%3E4.0.0-blue" alt="typescript">
-	    </a>
-	</p>
-	<p>&nbsp;</p>
-</div>
-
 # LTDLTester
 
 **LTDLTester** is a temporal tester generator for Linear Temporal Dynamic Logic (LTDL), which is a combination of Linear Dynamic Logic (LDL) and Future and Past Linear Temporal Logic (LTL). The generated tester is written in SMV language that is used by NuSMV and nuXmv.
