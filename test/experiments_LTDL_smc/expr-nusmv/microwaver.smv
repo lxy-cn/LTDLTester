@@ -1,0 +1,116 @@
+-- the SMV model for the Microwave oven example in the book "Model Checking"
+-- by Xiangyu Luo
+
+MODULE main 
+VAR
+   start : boolean;
+   close : boolean;
+   heat : boolean;
+   error : boolean;
+
+DEFINE
+   s1:=(!start & !close & !heat & !error);
+   s2:=(start & !close & !heat & error);
+   s3:=(!start & close & !heat & !error);
+   s4:=(!start & close & heat & !error);
+   s5:=(start & close & !heat & error);
+   s6:=(start & close & !heat & !error);
+   s7:=(start & close & heat & !error);
+
+INIT s3;
+
+DEFINE N := 4;
+VAR c : 1..N;
+
+TRANS 
+   (s1 & next(s2)) |
+   (s1 & next(s3)) |
+   (s2 & next(s5)) |
+   (s3 & next(s1)) |
+   (s3 & next(s6)) |
+   (s4 & c=N & next(s1)) |
+   (s4 & c=N & next(s3)) |
+   (s4 & c<N & next(s4) & next(c)=c+1) |
+   (s5 & next(s2)) |
+   (s5 & next(s3)) |
+   (s6 & next(s7)) |
+   (s7 & next(s4 & c=1)) 
+   ;  
+
+JUSTICE start & close & !error;
+
+--
+--
+--
+
+
+--------------------------------- No.1 formula ---------------------------------
+--The original LTDL formula: [TRUE*](start -> (<(TRUE;TRUE)*>heat))
+--The LTL formula to be verified: 
+--The following SMV code is the tester for the LTDL formula without [] operator: !(<TRUE*>!(start -> (<TRUE*>heat)))
+
+--The output variables for 2 principally temporal sub-formula(s):
+--  (1) V1: <(TRUE;TRUE)*>heat
+--  (2) V3: <TRUE*>!(start -> (<(TRUE;TRUE)*>heat))
+
+--------- No.1 sub-tester for <(TRUE;TRUE)*>heat ---------
+--After optimized and renamed:
+--The Path Grammar of TRUE*:
+--  Start variable: 1
+--  Variables: [1,2]
+--  Productions:
+--    (1) 1 --> ε
+--    (2) 1 --> TRUE 2
+--    (3) 2 --> TRUE 1
+
+VAR V1 : boolean; 
+   V2 : boolean;
+   NextSubFml1 : boolean;
+
+DEFINE SubFml1 := heat; -- the output assertion of the subformula of this formula
+TRANS NextSubFml1 <-> next(SubFml1);
+
+DEFINE V1Fin := (SubFml1 | (TRUE & NextSubFml1)); -- the transition of the terminal production for V1
+DEFINE V1NoFin := (TRUE & next(V1)); -- the transition of the not-terminal production for V1
+TRANS V1 <-> (V1Fin | V1NoFin);
+
+DEFINE V2NoFin := (TRUE & next(V1)); -- the transition of the not-terminal production for V2
+TRANS V2 <-> V2NoFin;
+
+DEFINE Fin1 := V1Fin;
+
+DEFINE Act1 := V1 | V2; -- the activated condition of the tester
+VAR U1 : boolean; -- the output assertion of Act1 U (Act1 & FinProd1)
+TRANS U1 <-> ((Act1 & Fin1) | (Act1 & next(U1))); -- Act1 U (Act1 & FinProd1)
+JUSTICE U1 -> (Act1 & Fin1);
+TRANS V1 <-> U1; -- the implimentation of G(S <-> (Act1 U (Act1 & FinProd1)))
+INIT V1 <-> U1;
+
+--------- No.2 sub-tester for <TRUE*>(!start & !<(TRUE;TRUE)*>heat) ---------
+--After optimized and renamed:
+--The Path Grammar of TRUE*:
+--  Start variable: 3
+--  Variables: [3]
+--  Productions:
+--    (1) 3 --> ε
+--    (2) 3 --> TRUE
+--    (3) 3 --> TRUE 3
+
+VAR V3 : boolean; NextSubFml3 : boolean;
+
+DEFINE SubFml3 := (!(start -> V1)); -- the output assertion of the subformula of this formula
+TRANS NextSubFml3 <-> next(SubFml3);
+DEFINE V3Fin := (SubFml3 | (TRUE & NextSubFml3)); -- the transition of the terminal production for V3
+DEFINE V3NoFin := (TRUE & next(V3)); -- the transition of the not-terminal production for V3
+
+TRANS V3 <-> (V3Fin | V3NoFin);
+
+DEFINE Act3 := V3; -- the activated condition of V3
+VAR U3 : boolean; -- the output assertion of Act3 U (Act3 & FinProd3)
+TRANS U3 <-> ((Act3 & V3Fin) | (Act3 & next(U3))); -- Act3 U (Act3 & FinProd3)
+JUSTICE U3 -> (Act3 & V3Fin);
+TRANS V3 <-> U3; -- the implimentation of G(S <-> (Act3 U (Act3 & FinProd3)))
+INIT V3 <-> U3;
+LTLSPEC G(start -> F heat);
+LTLSPEC F heat;
+LTLSPEC !(V3 & G TRUE);

@@ -185,7 +185,6 @@ bit0 -> <(
     ((envworks;envbroken)+(envbroken;envworks));
     ((envworks;envbroken)+(envbroken;envworks))
   )*]TRUE) -> (F senderDone) # --n=10
-*/
 
 ([(
     ((envworks;envbroken)+(envbroken;envworks));
@@ -298,8 +297,12 @@ bit0 -> <(
     ((envworks;envbroken)+(envbroken;envworks));
     ((envworks;envbroken)+(envbroken;envworks))
   )*]TRUE) -> (F senderDone) # --n=100
+*/
 
 /* other LTDL formulas:*/
+--<(p;q)*>b #
+
+<p**>FALSE #
 
 -- (<((a));(!!!!!['b[6]<3';b]a?+!('c>5'->d<->c)*)*>b) #
 -- <((a+b+c)*+d)>c #

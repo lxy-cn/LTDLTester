@@ -4,20 +4,23 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/* The class for testers constructed via DOUBLE-variables representation */
 public class Tester {
     LDL fmla; // any LDL formula
     LDL out; // the output assertion of T(fmla)
     //对于fmla的每一个不同的主时态子公式f，构造T(f)，并存储(f, T(f).out)
     StackMap<LDL, SubTesterContainer> principalTemporalSubTesters;
 
-    String NusmvTesterInstanceName = "T1";
+    String NusmvTesterInstanceName = ""; // for example "T1"
     int SubTesterNumber = 0; // record the total number of LTL and LDL sub-testers
+    String GrammarVariableNamePrefix = "X";
     int GrammarVariableNumber = 0; // used for recording the number of diamond or box testers
 
     //for LTL
     String LtlVariableNamePrefix = "W";
     int LtlVariableNumber = 0; // only used for the output variables of LTL sub-testers
 
+    // the transition of a sub-tester
     public class SubTesterTransition {
         LDL trans;
         PathGrammarProduction prod;
@@ -40,13 +43,17 @@ public class Tester {
         LDL out; // the output assertion of
         PathGrammar fmla_pathGrammar = null;
 
-        String str_pathGrammar_before_optimization = "";
-        String str_pathGrammar_after_optimization_before_renaming = "";
+        String str_pathGrammar_step1_initial = "";
+        String str_pathGrammar_step2_first_optimized = "";
+        String str_pathGrammar_step3_zero_delay_cycles_eliminated = "";
+        String str_pathGrammar_step4_second_optimized = "";
+        boolean pathGrammar_variable_renamed = false;
 
         //Set<String> vars; // the new variables created only for this tester, not for the sub testers
         LDL initCond;
         List<SubTesterTransition> trans; // the whole transition relation is the conjunction of all elements in the list
         List<LDL> justices;
+        LDL finalCond;
 
         public SubTesterContainer(Tester parentTester) {
             this.parentTester = parentTester;
@@ -59,6 +66,7 @@ public class Tester {
             this.initCond = null;
             this.trans = new LinkedList<>();
             this.justices = new LinkedList<>();
+            this.finalCond = null;
         }
 /*
         public void print() {
@@ -119,7 +127,12 @@ public class Tester {
             return strWriter.toString();
         }
 
-        public String toSMV(boolean printPathGrammarBeforeOptimization, boolean printPathGrammarBeforeRenaming) {
+        public String toSMV(
+                boolean printInitialGrammar,
+                boolean printFirstOptimizedGrammar,
+                boolean printZeroDelayCyclesEliminatedGrammar,
+                boolean printSecondOptimizedGrammar)
+        {
             String s="";
             s+="--------- No." + this.ID + " sub-tester for " + this.fmla.getText(true) + " ---------\r\n";
             //s+="--Output variable: " + this.out.getText() + "\r\n";
@@ -157,27 +170,52 @@ public class Tester {
             if(initCond!=null) s+="INIT " + initCond.getText(true) + ";\r\n";
 //            s+="\r\n";
 
-            // print non-optimized grammar
-            if(!this.str_pathGrammar_before_optimization.equals("") && printPathGrammarBeforeOptimization){
-                s+="\r\n--Before optimizing and renaming:\r\n";
-                s+=this.str_pathGrammar_before_optimization.replaceAll("(?m)^", "--");
+            // print original grammar
+            if(!this.str_pathGrammar_step1_initial.equals("") && printInitialGrammar) {
+                s+="\r\n--Initial Path Grammar:\r\n";
+                s+=this.str_pathGrammar_step1_initial.replaceAll("(?m)^", "--");
             }
 
-            // print optimized but non-renamed grammar
-            if(!this.str_pathGrammar_after_optimization_before_renaming.equals("") && printPathGrammarBeforeRenaming){
-                s+="\r\n--After optimized and before renaming:\r\n";
-                s+=this.str_pathGrammar_after_optimization_before_renaming.replaceAll("(?m)^", "--");
+            // print first optimized grammar
+            if(printFirstOptimizedGrammar) {
+                if (!this.str_pathGrammar_step2_first_optimized.equals("")) {
+                    s += "\r\n--First Optimized Path Grammar:\r\n";
+                    s += this.str_pathGrammar_step2_first_optimized.replaceAll("(?m)^", "--");
+                }else {
+                    s+="\r\n--No Change in the First Optimization.";
+                }
             }
 
-            // print optimized and renamed grammar
-            if(this.fmla_pathGrammar!=null) {
+            // print zero-delay-cycles-eliminated path grammar
+            if(printZeroDelayCyclesEliminatedGrammar) {
+                if (!this.str_pathGrammar_step3_zero_delay_cycles_eliminated.equals("")) {
+                    s += "\r\n--Zero-delay Cycles Eliminated Path Grammar:\r\n";
+                    s += this.str_pathGrammar_step3_zero_delay_cycles_eliminated.replaceAll("(?m)^", "--");
+                }else {
+                    s += "\r\n--No Change in the Zero-delay Cycles Elimination.";
+                }
+            }
+
+            // print second optimized path grammar
+            if(printSecondOptimizedGrammar) {
+                if (!this.str_pathGrammar_step4_second_optimized.equals("")) {
+                    s += "\r\n--Second Optimized Path Grammar:\r\n";
+                    s += this.str_pathGrammar_step4_second_optimized.replaceAll("(?m)^", "--");
+                }else {
+                    s += "\r\n--No Change in the Second Optimization.";
+                }
+            }
+
+            // print renamed grammar
+            if(this.fmla_pathGrammar!=null && (pathGrammar_variable_renamed | !printInitialGrammar)) {
                 String strPG = this.fmla_pathGrammar.toString();
-                s+="\r\n--After optimized and renamed:\r\n";
+                s+="\r\n--Variable Renamed Path Grammar:\r\n";
                 // 在所有行首（包括第一行）添加注释前缀prefix
                 String prefix = "--";
                 s += strPG.replaceAll("(?m)^", prefix);
                 s+="\r\n";
-            }
+            }else s+="\r\n\r\n";
+
 
             // print the SMV model
             SubTesterTransition t=null;
@@ -215,7 +253,7 @@ public class Tester {
 
     // return the output assertion of the tester of f
     // all sub testers of f are cached
-    public LDL buildSubTesterRecur(LDL f) throws CloneNotSupportedException {
+    LDL buildSubTesterRecur(LDL f) throws CloneNotSupportedException {
         if(f==null) return null;
         LDL f1out=null,f2out=null;
         switch (f.operator) {
@@ -277,7 +315,7 @@ public class Tester {
         return null;
     }
 
-    public LDL ldlVarX2Y(LDL f) throws CloneNotSupportedException {
+    LDL ldlVarX2Y(LDL f) throws CloneNotSupportedException {
         if (f==null) return null;
         LDL f2 = f.clone();
         ldlVarX2Yrecur(f2);
@@ -315,14 +353,37 @@ public class Tester {
         try {
             pg = new PathGrammar(pathExpr); // pg is the path grammar before optimization
 
-            T.str_pathGrammar_before_optimization = pg.toString();
+            //System.out.println("\n--- 消除循环前的原始文法 ---");
+            T.str_pathGrammar_step1_initial = pg.toString();
 
-//            pg.optimization();
-            pg.new_optimization();
+            // 1. 【预优化】：压缩线性链，合并并行边，极大地减少后续 BDD-DFS 的状态探索空间
+            boolean firstOptimized = pg.new_optimization();
+            if(firstOptimized)
+                T.str_pathGrammar_step2_first_optimized = pg.toString();
+            else
+                T.str_pathGrammar_step2_first_optimized = "";
 
-            T.str_pathGrammar_after_optimization_before_renaming = pg.toString();
+            //System.out.println("\n--- 消除循环后的等价 DAG 文法 ---");
+            // 2. 【核心消环】：处理死循环代数环（由于预优化过了，这里速度会极快）
+            boolean cycleChanged = PathGrammarZeroDelayCycleEliminator.eliminateCycles(pg);
+            if(cycleChanged)
+                T.str_pathGrammar_step3_zero_delay_cycles_eliminated = pg.toString();
+            else
+                T.str_pathGrammar_step3_zero_delay_cycles_eliminated = "";
 
-            pg.renameProductions(GrammarVariableNumber+1);
+            // 3. 【后优化】：如果消环过程中打断了回边并旁路了新节点，必然产生新的冗余，需要再次清理
+            if (firstOptimized || cycleChanged) {
+                boolean secondOptimized = pg.new_optimization();
+                if(secondOptimized)
+                    T.str_pathGrammar_step4_second_optimized = pg.toString();
+                else
+                    T.str_pathGrammar_step4_second_optimized = "";
+            }else
+                T.str_pathGrammar_step4_second_optimized = "";
+
+            // 4. 变量重命名
+            T.pathGrammar_variable_renamed = pg.renameProductions(GrammarVariableNumber+1);
+
             GrammarVariableNumber+=pg.getVariables().size();
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
@@ -988,7 +1049,7 @@ public class Tester {
                 LDL f = it.next();
                 SubTesterContainer T = this.principalTemporalSubTesters.get(f);
                 s += "--  (" + (i++) + ") " + T.out.getText(true) + ": " + f.getText(true) + "\r\n";
-                smvCode += "\r\n"+T.toSMV(false, false);
+                smvCode += "\r\n"+T.toSMV(true,true, true, true);
             }
             s += smvCode;
         }

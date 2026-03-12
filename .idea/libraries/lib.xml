@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="lib">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Documents/Doc-LXY-iMac/RecentDoc/Development/LTDLTester/lib/javabdd-2.0.jar!/" />
+      <root url="jar://$USER_HOME$/Documents/Doc-LXY-iMac/RecentDoc/Development/LTDLTester/lib/antlr-4.13.2-complete.jar!/" />
+      <root url="jar://$USER_HOME$/Documents/Doc-LXY-iMac/RecentDoc/Development/LTDLTester/lib/junit-4.1.jar!/" />
+      <root url="jar://$USER_HOME$/Documents/Doc-LXY-iMac/RecentDoc/Development/LTDLTester/lib/jdd.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

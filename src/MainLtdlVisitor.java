@@ -317,35 +317,26 @@ public class MainLtdlVisitor {
         ldlTree = ldlTree.box2diamond().reduceRedundantNotOperator();  // eliminate box and redundant not operators
 
         Tester tester = new Tester("", ldlTree);
+
         String smvOutput = tester.toSMV();
         System.out.println(smvOutput);
     }
 
     public static void showUsage(){
-        System.out.println("Usage: 'java -jar LTDLTester.jar -ldl formula' or 'java -jar LTDLTester.jar -file filename'");
+//        System.out.println("Usage: 'java -jar LTDLTester.jar -ltdl formula' or 'java -jar LTDLTester.jar -file filename'");
+        System.out.println("Usage: 'java -jar LTDLTester.jar filename'");
     }
 
     public static void showVersion(){
-        System.out.println("*** LTDLTester 1.2.0 is a temporal tester generator for Linear Temporal Dynamic Logic (LTDL), which is a combination ofLinear Dynamic Logic (LDL) and Future and Past Linear Temporal Logic (LTL). The generated tester is written in SMV language that is used by NuSMV and nuXmv.");
-        System.out.println("*** Copyright (c) 2025");
+        System.out.println("*** LTDLTester 1.3.0 is a temporal tester generator for Linear Temporal Dynamic Logic (LTDL), which is a combination ofLinear Dynamic Logic (LDL) and Future and Past Linear Temporal Logic (LTL). The generated tester is written in SMV language that is used by NuSMV and nuXmv.");
+        System.out.println("*** Copyright (c) 2026");
     }
 
     public static void main(String[] args) throws Exception {
         showVersion();
+
         if (args.length > 0) {
-            if(args[0].equals("-ldl")){
-                if(args.length<2){
-                    System.out.println("Warning: an LTDL formula must be inputted after '-ldl'.");
-                    return;
-                }
-                oneFormulaTesterConstruction(args[1]);
-                return;
-            }else if(args[0].equals("-file")){
-                if(args.length<2){
-                    System.out.println("Warning: a file name must be inputted after '-file'.");
-                    return;
-                }
-                String inputFile = args[1];
+                String inputFile = args[0];
                 try {
                     // 读取所有行到List中
                     byte[] bytes = Files.readAllBytes(Paths.get(inputFile));
@@ -385,9 +376,6 @@ public class MainLtdlVisitor {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }else{
-                showUsage();
-            }
         }else{ // no any argument
             /*Scanner scanner = new Scanner(System.in);
             System.out.print("Input an LTDL formula: ");

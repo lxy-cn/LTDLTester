@@ -1,0 +1,42 @@
+--Writing Format--
+--(1) Every LTDL formula can occupy multi lines and must end with '#'
+--(2) Every line starting with '--' is commented out.
+--(3) Multiline text can be commented out by enclosing it within '/*' and '*/'
+
+--LTL formulas
+--G(start -> F heat) #
+--F(start & G !heat) #
+--G !heat #
+
+
+
+--LTDL formulas
+--[TRUE*] !heat #
+
+
+--[TRUE*](start -> <TRUE*>heat) #
+--<TRUE*>(start & [TRUE*]!heat) #
+
+--<(a?;b?)*>c #
+--<(a?;b?)*>c #
+--<(a?)*>c #
+--<(a+b?)*>c #
+--<(a?+b)*>c #
+--<(a?+b?)*>c #
+<(a?+(b+c?)*)*>d #
+--<((a?+b?)*;(c?+d?)*)*>e #
+
+--<((a+b)*;c)*>d #
+
+/*
+<( (    req?;
+        working;
+        Serve;
+        !working;
+        (   ((!(!error S working))? ; Rec) +
+            (!error S working)?
+        )
+    )
+    + ( !req? ; TRUE)
+ )*>!error #
+*/

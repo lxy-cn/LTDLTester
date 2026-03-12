@@ -1,0 +1,3 @@
+--!G(start -> F heat)
+F heat
+--G heat
