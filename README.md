@@ -7,10 +7,10 @@
 - **Current version 1.3 (March 12, 2026)**
   - Support the elimination of zero-delay cycles within regular grammars.
   - Support BDD-based simplification of the formulas in grammar productions.
-- **Current version 1.2 (August 25, 2025)**
+- **Version 1.2 (August 25, 2025)**
     - Support tester construction for LTDL, an extension of LDL with future and past LTL temporal operators.
     - The path grammar optimization algorithm is upgraded via backward and forward reduction rules, such that more productions and related variables can be reduced.
-- **version 1.1 (June 22, 2025)**
+- **Version 1.1 (June 22, 2025)**
   - Support tester construction for an extension of LDL with LTL temporal operators. The constructed tester is expressed in the SMV language used by nuXmv and NuSMV. One boolean output variable is built for each LTL temporal operator.
 - **Version 1.0 (June 15, 2025)**
   - Support tester construction for full LDL. The constructed tester is expressed in the SMV language used by nuXmv and NuSMV.
