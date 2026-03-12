@@ -170,51 +170,53 @@ public class Tester {
             if(initCond!=null) s+="INIT " + initCond.getText(true) + ";\r\n";
 //            s+="\r\n";
 
-            // print original grammar
-            if(!this.str_pathGrammar_step1_initial.equals("") && printInitialGrammar) {
-                s+="\r\n--Initial Path Grammar:\r\n";
-                s+=this.str_pathGrammar_step1_initial.replaceAll("(?m)^", "--");
-            }
-
-            // print first optimized grammar
-            if(printFirstOptimizedGrammar) {
-                if (!this.str_pathGrammar_step2_first_optimized.equals("")) {
-                    s += "\r\n--First Optimized Path Grammar:\r\n";
-                    s += this.str_pathGrammar_step2_first_optimized.replaceAll("(?m)^", "--");
-                }else {
-                    s+="\r\n--No Change in the First Optimization.";
+            if(this.fmla_pathGrammar!=null) {
+                // print original grammar
+                if (!this.str_pathGrammar_step1_initial.equals("") && printInitialGrammar) {
+                    s += "\r\n--Initial Path Grammar:\r\n";
+                    s += this.str_pathGrammar_step1_initial.replaceAll("(?m)^", "--");
                 }
-            }
 
-            // print zero-delay-cycles-eliminated path grammar
-            if(printZeroDelayCyclesEliminatedGrammar) {
-                if (!this.str_pathGrammar_step3_zero_delay_cycles_eliminated.equals("")) {
-                    s += "\r\n--Zero-delay Cycles Eliminated Path Grammar:\r\n";
-                    s += this.str_pathGrammar_step3_zero_delay_cycles_eliminated.replaceAll("(?m)^", "--");
-                }else {
-                    s += "\r\n--No Change in the Zero-delay Cycles Elimination.";
+                // print first optimized grammar
+                if (printFirstOptimizedGrammar) {
+                    if (!this.str_pathGrammar_step2_first_optimized.equals("")) {
+                        s += "\r\n--First Optimized Path Grammar:\r\n";
+                        s += this.str_pathGrammar_step2_first_optimized.replaceAll("(?m)^", "--");
+                    } else {
+                        s += "\r\n--No Change in the First Optimization.";
+                    }
                 }
-            }
 
-            // print second optimized path grammar
-            if(printSecondOptimizedGrammar) {
-                if (!this.str_pathGrammar_step4_second_optimized.equals("")) {
-                    s += "\r\n--Second Optimized Path Grammar:\r\n";
-                    s += this.str_pathGrammar_step4_second_optimized.replaceAll("(?m)^", "--");
-                }else {
-                    s += "\r\n--No Change in the Second Optimization.";
+                // print zero-delay-cycles-eliminated path grammar
+                if (printZeroDelayCyclesEliminatedGrammar) {
+                    if (!this.str_pathGrammar_step3_zero_delay_cycles_eliminated.equals("")) {
+                        s += "\r\n--Zero-delay Cycles Eliminated Path Grammar:\r\n";
+                        s += this.str_pathGrammar_step3_zero_delay_cycles_eliminated.replaceAll("(?m)^", "--");
+                    } else {
+                        s += "\r\n--No Change in the Zero-delay Cycles Elimination.";
+                    }
                 }
-            }
 
-            // print renamed grammar
-            if(this.fmla_pathGrammar!=null && (pathGrammar_variable_renamed | !printInitialGrammar)) {
-                String strPG = this.fmla_pathGrammar.toString();
-                s+="\r\n--Variable Renamed Path Grammar:\r\n";
-                // 在所有行首（包括第一行）添加注释前缀prefix
-                String prefix = "--";
-                s += strPG.replaceAll("(?m)^", prefix);
-                s+="\r\n";
-            }else s+="\r\n\r\n";
+                // print second optimized path grammar
+                if (printSecondOptimizedGrammar) {
+                    if (!this.str_pathGrammar_step4_second_optimized.equals("")) {
+                        s += "\r\n--Second Optimized Path Grammar:\r\n";
+                        s += this.str_pathGrammar_step4_second_optimized.replaceAll("(?m)^", "--");
+                    } else {
+                        s += "\r\n--No Change in the Second Optimization.";
+                    }
+                }
+
+                // print renamed grammar
+                if (pathGrammar_variable_renamed | !printInitialGrammar) {
+                    String strPG = this.fmla_pathGrammar.toString();
+                    s += "\r\n--Variable Renamed Path Grammar:\r\n";
+                    // 在所有行首（包括第一行）添加注释前缀prefix
+                    String prefix = "--";
+                    s += strPG.replaceAll("(?m)^", prefix);
+                    s += "\r\n";
+                } else s += "\r\n\r\n";
+            }
 
 
             // print the SMV model
