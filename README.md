@@ -28,7 +28,7 @@
 One can refer to the file `LTDLs.txt` in the `test` directory for the writing format of this file.
 
 #### (2) The following SMV code will be outputted
-```smv
+```
 --The original LTDL formula: <((a + b)* ; c)*>d
 --The LTL formula to be verified: LTLSPEC X1;
 --The following SMV code is the tester for the LTDL formula without [] operator: <((a + b)* ; c)*>d
