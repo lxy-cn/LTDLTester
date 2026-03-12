@@ -1235,17 +1235,7 @@ public class PathGrammar {
 
     // --- 重点集成区域：引入全局化简与 BDD 共享上下文 ---
 
-    public void optimization() {
-        boolean res1=true,res2=true;
-        // 使用来自 PathGrammarZeroDelayCycleEliminatorBDD 的 BDD 上下文
-        PathGrammarZeroDelayCycleEliminator.BddContext ctx = new PathGrammarZeroDelayCycleEliminator.BddContext();
-        while(res1 || res2) {
-            res1 = mergeProductions(ctx);
-            res2 = reduceProductions(ctx);
-        }
-    }
-
-    public boolean new_optimization() {
+    public boolean optimization() {
         boolean changed=false;
         boolean res1=true,res2=true,res3=true,res4=true;
         // 使用来自 PathGrammarZeroDelayCycleEliminatorBDD 的 BDD 上下文

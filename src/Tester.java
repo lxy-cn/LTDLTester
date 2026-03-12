@@ -357,7 +357,7 @@ public class Tester {
             T.str_pathGrammar_step1_initial = pg.toString();
 
             // 1. 【预优化】：压缩线性链，合并并行边，极大地减少后续 BDD-DFS 的状态探索空间
-            boolean firstOptimized = pg.new_optimization();
+            boolean firstOptimized = pg.optimization();
             if(firstOptimized)
                 T.str_pathGrammar_step2_first_optimized = pg.toString();
             else
@@ -373,7 +373,7 @@ public class Tester {
 
             // 3. 【后优化】：如果消环过程中打断了回边并旁路了新节点，必然产生新的冗余，需要再次清理
             if (firstOptimized || cycleChanged) {
-                boolean secondOptimized = pg.new_optimization();
+                boolean secondOptimized = pg.optimization();
                 if(secondOptimized)
                     T.str_pathGrammar_step4_second_optimized = pg.toString();
                 else
