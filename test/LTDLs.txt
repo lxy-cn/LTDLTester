@@ -29,7 +29,7 @@
 
 --<(a?+(b+c?)*)*>d #
 
-
+/*
 <( (    req?;
         working;
         Serve;
@@ -40,4 +40,24 @@
     )
     + ( !req? ; TRUE)
  )*>!error #
+*/
 
+
+<( (    req?;
+        wrk;
+        Srv;
+        !wrk;
+        (   ((!(!err S wrk))? ; Rec) +
+            (!err S wrk)?
+        )
+    )
+    + ( !req? ; diag?)
+ )*>err #
+
+
+--<(a?+b?)*>c
+
+--<(f?)*;g>TRUE #
+
+
+--<((Wk+Mnv)*;Clr?)*;Arr>TRUE #

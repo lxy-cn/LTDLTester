@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="jar" build-on-make="true" name="LTDLTester:jar">
-    <output-path>$USER_HOME$/Documents/Doc-LXY-iMac/RecentDoc/Development/LTDLTester/test</output-path>
+    <output-path>$USER_HOME$/Documents/Doc-LXY-iMac/RecentDoc/Development/LTDLTester/test/tase2026_experiments</output-path>
     <root id="archive" name="LTDLTester.jar">
       <element id="module-output" name="LTDLTester" />
       <element id="extracted-dir" path="$USER_HOME$/Documents/Doc-LXY-iMac/RecentDoc/Development/LTDLTester/lib/javabdd-2.0.jar" path-in-jar="/" />

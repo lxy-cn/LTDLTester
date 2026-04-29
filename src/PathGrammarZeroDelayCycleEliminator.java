@@ -118,7 +118,7 @@ public class PathGrammarZeroDelayCycleEliminator {
         BDD psiBackBdd = ctx.toBdd(psiBackAst);
 
         // 使用 BDD 存储累计到达的条件
-        Map<String, BDD> C = new HashMap<>();
+        Map<String, BDD> C = new HashMap<>(); // LXY: ReachCond
         Set<String> visited = new HashSet<>();
 
         // DFS结合 BDD 寻找简单路径，计算可达闭包
@@ -134,11 +134,15 @@ public class PathGrammarZeroDelayCycleEliminator {
 
             // BDD 级的 And 操作
             BDD bypassCondBdd = psiBackBdd.and(C_uw);
+
+            // LXY: 如果bypassCondBdd=FALSE，则跳过此轮处理（continue）
+            if (bypassCondBdd.isZero()) continue;
+
             // 将绝对化简后的 BDD 还原为 LDL AST
             LDL bypassCondAst = ctx.toLdl(bypassCondBdd);
 
             for (PathGrammarProduction p : pg.productions) {
-                if (p.leftVariable.equals(w) && isLoadOrTermination(p)) {
+                if (p.leftVariable.equals(w) && isLoadOrTermination(p)) { // LXY: p是从w开始的耗时或终端产生式，即不是瞬时产生式
                     List<PathGrammarProduction> bypassProds = buildBypassProductions(v, bypassCondAst, p, ctx);
                     newBypassProductions.addAll(bypassProds);
                 }
@@ -395,29 +399,40 @@ public class PathGrammarZeroDelayCycleEliminator {
                 break;
             case Test:
                 LDL f2 = ((LDL) p.rightItem1).children.get(0);
-                // 每次 AST 拼接，都会深入 C 底层 BDD 执行极简化简
-                LDL combinedTest = new LDL(false, LDL.Operators.TEST, LDLAnd(bypassCond, f2, ctx));
-                res.add(new PathGrammarProduction(v, combinedTest));
-                break;
-            case PropFormula:
-                LDL a = (LDL) p.rightItem1;
-                if (bypassCond.isPropFormula()) {
-                    res.add(new PathGrammarProduction(v, LDLAnd(bypassCond, a, ctx)));
-                } else {
-                    String tmp = "bypass_tmp_" + (++tmpCounter);
-                    res.add(new PathGrammarProduction(v, bypassTest, tmp));
-                    res.add(new PathGrammarProduction(tmp, a));
+                LDL bypassCond_f2 = LDLAnd(bypassCond, f2, ctx);
+                if(!isLDLFalse(bypassCond_f2, ctx)) {
+                    // 每次 AST 拼接，都会深入 C 底层 BDD 执行极简化简
+                    LDL combinedTest = new LDL(false, LDL.Operators.TEST, bypassCond_f2);
+                    res.add(new PathGrammarProduction(v, combinedTest));
                 }
                 break;
-            case PropFormula_Variable:
+            case PropFormula: // p: w -> a
+                LDL a = (LDL) p.rightItem1;
+                if(!isLDLFalse(a, ctx)) {
+                    if (bypassCond.isPropFormula()) {
+                        LDL bypassCond_a = LDLAnd(bypassCond, a, ctx);
+                        if (!isLDLFalse(bypassCond_a, ctx))
+                            res.add(new PathGrammarProduction(v, bypassCond_a));
+                    } else {
+                        String tmp = "bypass_tmp_" + (++tmpCounter);
+                        res.add(new PathGrammarProduction(v, bypassTest, tmp));
+                        res.add(new PathGrammarProduction(tmp, a));
+                    }
+                }
+                break;
+            case PropFormula_Variable: // p: w -> a2 x2
                 LDL a2 = (LDL) p.rightItem1;
                 String x2 = (String) p.rightItem2;
-                if (bypassCond.isPropFormula()) {
-                    res.add(new PathGrammarProduction(v, LDLAnd(bypassCond, a2, ctx), x2));
-                } else {
-                    String tmp = "bypass_tmp_" + (++tmpCounter);
-                    res.add(new PathGrammarProduction(v, bypassTest, tmp));
-                    res.add(new PathGrammarProduction(tmp, a2, x2));
+                if(!isLDLFalse(a2, ctx)) {
+                    if (bypassCond.isPropFormula()) {
+                        LDL bypassCond_a2 = LDLAnd(bypassCond, a2, ctx);
+                        if(!isLDLFalse(bypassCond_a2, ctx))
+                            res.add(new PathGrammarProduction(v, bypassCond_a2, x2));
+                    } else {
+                        String tmp = "bypass_tmp_" + (++tmpCounter);
+                        res.add(new PathGrammarProduction(v, bypassTest, tmp));
+                        res.add(new PathGrammarProduction(tmp, a2, x2));
+                    }
                 }
                 break;
             case Test_PropFormula:
