@@ -2,6 +2,8 @@
 -- about knowledge, 1995).
 -- Basic case, no faulty behaviour for Receiver.
 
+Semantics=SingleAssignment;
+
 Agent Environment
   Vars:
     state : {S,R,SR,none};
@@ -95,7 +97,7 @@ Formulae
 --LDL bit0 -> <(bit0;bit0;bit0;bit0)*> recack;
 
 --n=6
---LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
+LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
 
 --n=8
 --LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
@@ -107,7 +109,7 @@ Formulae
 --LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0     ;bit0;bit0)*> recack;
 
 --n=14
-LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0       ;bit0;bit0;bit0;bit0)*> recack;
+--LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0       ;bit0;bit0;bit0;bit0)*> recack;
 
 --n=20
  -- LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0)*> recack;

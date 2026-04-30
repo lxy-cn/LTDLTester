@@ -20,7 +20,7 @@
 ## 2. Examples
 ### 2.1 The first example for LTDL without test
 #### (1) Run the following command:  
-`java -jar LTDLTester.jar -file filename` where `filename` is the name of a text file that contains the LTDL formulas to be handled. The writing format of this file is as follows:
+`java -jar LTDLTester.jar filename` where `filename` is the name of a text file that contains the LTDL formulas to be handled. The writing format of this file is as follows:
 - Every LTDL formula can occupy multi lines and must end with '#'.
 - Every line starting with '--' is commented out.
 - Multiline text can be commented out by enclosing it within '/\*' and '\*/'.
