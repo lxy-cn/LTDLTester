@@ -97,7 +97,7 @@ Formulae
 --LDL bit0 -> <(bit0;bit0;bit0;bit0)*> recack;
 
 --n=6
-LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
+--LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
 
 --n=8
 --LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
@@ -124,7 +124,16 @@ LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
 --LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
 
 --n=100
---  LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
+--LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
+
+--n=110
+--LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
+
+--n=115
+--LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0 ;bit0;bit0;bit0;bit0;bit0)*> recack;
+
+--n=118
+LDL bit0 -> <(bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0  ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0 ;bit0;bit0;bit0;bit0;bit0;bit0;bit0;bit0)*> recack;
 
 
 --n=120
