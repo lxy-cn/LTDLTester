@@ -111,48 +111,60 @@ public class PathGrammarZeroDelayCycleEliminator {
         return changed;
     }
 
+    /**
+     * 在有条件的瞬时转移（Zero-Delay）中，通过计算“可达闭包”来构建旁路（Bypass），从而安全地打破并移除导致死循环的回边（Back Edge）。我们可以把这个过程想象成“修建高架桥来绕过环岛死胡同”：如果一条路（回边）会把你带入一个瞬间就能跑完但可能永远绕不出来的环岛（零延迟环），这个函数会计算出从这个环岛所有可能的“真实出口”（耗时操作），然后直接从入口修一条直达这些出口的高架桥（旁路），并把原先那条通往死胡同的路拆掉。
+     * @param backEdge
+     * @param pg
+     * @param ctx
+     */
     private static void bypassAndRemoveBackEdge(PathGrammarProduction backEdge, PathGrammar pg, BddContext ctx) {
+        //回边backEdge：v -> psiBack? u
         String v = backEdge.leftVariable;
         String u = getTargetVariableOfInstantEdge(backEdge);
         LDL psiBackAst = getConditionOfInstantEdge(backEdge);
         BDD psiBackBdd = ctx.toBdd(psiBackAst);
 
         // 使用 BDD 存储累计到达的条件
-        Map<String, BDD> C = new HashMap<>(); // LXY: ReachCond
+        Map<String, BDD> C = new HashMap<>(); // LXY: // 记录到达各个节点的累计条件ReachCond
         Set<String> visited = new HashSet<>();
 
         // DFS结合 BDD 寻找简单路径，计算可达闭包
-        BDD startCond = ctx.factory.one();
-        computeClosureDFS(u, startCond, visited, C, pg, backEdge, ctx);
+        BDD startCond = ctx.factory.one(); // 初始条件为 TRUE
+        computeClosureDFS(u, startCond, visited, C, pg, backEdge, ctx); // 从目标节点 u 开始，只沿着瞬时边（不需要消耗时间的边）进行深度优先搜索。在搜索过程中，它会把沿途所有的条件通过逻辑 AND 累加起来，并将到达每个节点 w 的最终组合条件存储在字典 C 中（即代码里的 C_uw）。
         startCond.free();
 
         List<PathGrammarProduction> newBypassProductions = new ArrayList<>();
 
+        // 遍历语法图中的所有节点 w，查看从 u 到 w 是否存在瞬时路径。
         for (String w : pg.getVariables()) {
             BDD C_uw = C.get(w);
             if (C_uw == null || C_uw.isZero()) continue;
 
-            // BDD 级的 And 操作
+            // BDD 级的 And 操作: 如果存在从 u 到 w 的瞬时路径，它会将回边本身的条件 (psiBackBdd) 与到达 w 的路径条件 (C_uw) 进行逻辑 AND 组合，得到 bypassCondBdd。
             BDD bypassCondBdd = psiBackBdd.and(C_uw);
 
-            // LXY: 如果bypassCondBdd=FALSE，则跳过此轮处理（continue）
+            // LXY: 如果这个组合后的条件在逻辑上是绝对不可能发生的（bypassCondBdd.isZero() 返回 true），那就说明这条路径是一条死路，直接跳过（continue），不为它生成任何多余的代码。
             if (bypassCondBdd.isZero()) continue;
 
-            // 将绝对化简后的 BDD 还原为 LDL AST
+            // 把经过极简化简的 BDD 条件重新翻译回系统能认识的 AST 树结构 (LDL)。
             LDL bypassCondAst = ctx.toLdl(bypassCondBdd);
 
             for (PathGrammarProduction p : pg.productions) {
-                if (p.leftVariable.equals(w) && isLoadOrTermination(p)) { // LXY: p是从w开始的耗时或终端产生式，即不是瞬时产生式
-                    List<PathGrammarProduction> bypassProds = buildBypassProductions(v, bypassCondAst, p, ctx);
+                if (p.leftVariable.equals(w) && isLoadOrTermination(p)) {
+                    // LXY: 寻找出口产生式p：在节点 w 处，寻找所有非瞬时的产生式p（即 isLoadOrTermination(p) 返回 true 的边，比如真正消耗时间的操作或终止符）。这些边就是“环岛的真实出口”。
+                    // p: w->ax || w->empty || w->f? || w->a
+                    List<PathGrammarProduction> bypassProds = buildBypassProductions(v, bypassCondAst, p, ctx); // 修高架桥：调用 buildBypassProductions，创建一个新的产生式：从起始点 v 直接跳转到这个产生式 p 的目标，并以刚才计算出的 bypassCondAst 作为触发条件。将这些新产生的“捷径”收集起来。
                     newBypassProductions.addAll(bypassProds);
                 }
             }
             bypassCondBdd.free();
         }
 
+        // 将新生成的旁路规则正式加入文法，并无情地删掉那条导致死循环的回边 (backEdge)。循环就此被打破。
         pg.productions.addAll(newBypassProductions);
         pg.productions.remove(backEdge);
 
+        // 因为删掉了一条边，可能会导致某些中间节点再也无法被访问到，所以调用 removeUnreachableProductions 进行死代码清理。
         removeUnreachableProductions(pg);
 
         // 安全释放 BDD 内存
@@ -162,6 +174,16 @@ public class PathGrammarZeroDelayCycleEliminator {
         }
     }
 
+    /**
+     * 计算瞬时可达闭包 (DFS)
+     * @param curr
+     * @param currentCond
+     * @param visited
+     * @param C
+     * @param pg
+     * @param backEdge
+     * @param ctx
+     */
     private static void computeClosureDFS(String curr, BDD currentCond, Set<String> visited,
                                           Map<String, BDD> C, PathGrammar pg, PathGrammarProduction backEdge, BddContext ctx) {
         if (currentCond.isZero()) return;
@@ -171,7 +193,7 @@ public class PathGrammarZeroDelayCycleEliminator {
         if (existing == null) {
             C.put(curr, currentCond.id());
         } else {
-            BDD updated = existing.or(currentCond);
+            BDD updated = existing.or(currentCond); // BDD 的优势：如果在搜索中通过不同的路径到达了同一个节点，底层的 BDD 会自动对这些条件进行 OR 操作并进行极简合并，避免了条件表达式的无限膨胀。
             C.put(curr, updated);
             existing.free();
         }
@@ -385,34 +407,44 @@ public class PathGrammarZeroDelayCycleEliminator {
 
     // ====================================================================================
     // --- 构建旁路的新产生式 (引入 BDD Context 严格把关逻辑) ---
+    // 根据给定的起点、通行条件和具体的出口类型，精准地生成一条或多条新的语法产生式（也就是“捷径”）。
     // ====================================================================================
 
+    /**
+     * 构建旁路的新产生式 (引入 BDD Context 严格把关逻辑)
+     * 根据给定的起点、通行条件和具体的出口类型，精准地生成一条或多条新的语法产生式（也就是“捷径”）。
+     * @param v (String)：旁路的起点，也就是那条被删掉的死循环回边的出发点。
+     * @param bypassCond (LDL)：节点v到节点w的瞬时通行条件。只有满足这个组合条件，系统才能走这条捷径。
+     * @param p (PathGrammarProduction)：环岛的真实出口（耗时产生式或终端产生式）。
+     * @param ctx (BddContext)：底层的 BDD 引擎上下文，用来做严谨的逻辑数学运算。
+     * @return
+     */
     private static List<PathGrammarProduction> buildBypassProductions(String v, LDL bypassCond, PathGrammarProduction p, BddContext ctx) {
         List<PathGrammarProduction> res = new ArrayList<>();
-        if (isLDLFalse(bypassCond, ctx)) return res; // 交由底层的 BDD 做权威验证
+        if (isLDLFalse(bypassCond, ctx)) return res; // 如果 BDD 判断这个条件在逻辑上是绝对不可能发生的（恒假），那就说明这条捷径没人能走，直接返回空列表，拒绝施工。
 
-        LDL bypassTest = new LDL(false, LDL.Operators.TEST, bypassCond);
+        LDL bypassTest = new LDL(false, LDL.Operators.TEST, bypassCond); // bypassTest是节点v到节点w的瞬时通行条件
 
         switch (p.type) {
-            case Empty:
-                res.add(new PathGrammarProduction(v, bypassTest));
+            case Empty: // p: w->empty
+                res.add(new PathGrammarProduction(v, bypassTest)); // 新建捷径：v -> bypassCond?
                 break;
-            case Test:
+            case Test: // p: w->f2?
                 LDL f2 = ((LDL) p.rightItem1).children.get(0);
                 LDL bypassCond_f2 = LDLAnd(bypassCond, f2, ctx);
                 if(!isLDLFalse(bypassCond_f2, ctx)) {
                     // 每次 AST 拼接，都会深入 C 底层 BDD 执行极简化简
                     LDL combinedTest = new LDL(false, LDL.Operators.TEST, bypassCond_f2);
-                    res.add(new PathGrammarProduction(v, combinedTest));
+                    res.add(new PathGrammarProduction(v, combinedTest)); // 新建捷径：v -> (bypassCond AND f2)?
                 }
                 break;
             case PropFormula: // p: w -> a
                 LDL a = (LDL) p.rightItem1;
                 if(!isLDLFalse(a, ctx)) {
-                    if (bypassCond.isPropFormula()) {
+                    if (bypassCond.isPropFormula()) { // bypassCond是纯命题公式（断言）
                         LDL bypassCond_a = LDLAnd(bypassCond, a, ctx);
                         if (!isLDLFalse(bypassCond_a, ctx))
-                            res.add(new PathGrammarProduction(v, bypassCond_a));
+                            res.add(new PathGrammarProduction(v, bypassCond_a)); // 新建捷径： v -> (bypassCond AND a)
                     } else {
                         String tmp = "bypass_tmp_" + (++tmpCounter);
                         res.add(new PathGrammarProduction(v, bypassTest, tmp));
@@ -424,10 +456,10 @@ public class PathGrammarZeroDelayCycleEliminator {
                 LDL a2 = (LDL) p.rightItem1;
                 String x2 = (String) p.rightItem2;
                 if(!isLDLFalse(a2, ctx)) {
-                    if (bypassCond.isPropFormula()) {
+                    if (bypassCond.isPropFormula()) { // bypassCond是纯命题公式（断言）
                         LDL bypassCond_a2 = LDLAnd(bypassCond, a2, ctx);
                         if(!isLDLFalse(bypassCond_a2, ctx))
-                            res.add(new PathGrammarProduction(v, bypassCond_a2, x2));
+                            res.add(new PathGrammarProduction(v, bypassCond_a2, x2)); // 新建捷径：v -> (bypassCond AND a2) x2
                     } else {
                         String tmp = "bypass_tmp_" + (++tmpCounter);
                         res.add(new PathGrammarProduction(v, bypassTest, tmp));
@@ -471,6 +503,11 @@ public class PathGrammarZeroDelayCycleEliminator {
         return LDLTrue();
     }
 
+    /**
+     * 判断产生式p是否是耗时(consuming)产生式v->ax、或终端(terminal)产生式v->empty, v->f?, v->a
+     * @param p:
+     * @return
+     */
     private static boolean isLoadOrTermination(PathGrammarProduction p) {
         checkDeprecatedType(p);
         return p.type == PathGrammarProduction.Type.Empty ||
@@ -558,6 +595,11 @@ public class PathGrammarZeroDelayCycleEliminator {
         }
     }
 
+    /**
+     * 找到文法pg中的一条零延迟环回边
+     * @param pg
+     * @return
+     */
     private static PathGrammarProduction findOneBackEdge(PathGrammar pg) {
         Set<String> visited = new HashSet<>();
         Set<String> recStack = new HashSet<>();
@@ -573,11 +615,11 @@ public class PathGrammarZeroDelayCycleEliminator {
 
     private static PathGrammarProduction dfsForBackEdge(String at, Set<PathGrammarProduction> prods,
                                                         Set<String> visited, Set<String> recStack) {
-        visited.add(at);
-        recStack.add(at);
+        visited.add(at); // LXY: 记录在整个 DFS 遍历过程中，所有已经被访问过的节点。目的：避免重复计算和无限递归。如果遍历到一个已经在 visited 中的节点，说明该节点及其后续路径已经被完全探索过或正在探索中，DFS 不需要再从该节点重新开始搜索。
+        recStack.add(at); // LXY: 记录当前深度优先搜索路径（即当前活动调用栈）上的所有节点。目的：标识当前节点的直接祖先（从起点到当前节点的路径）。
 
         for (PathGrammarProduction p : prods) {
-            if (p.leftVariable.equals(at) && isInstantaneousEdge(p)) {
+            if (p.leftVariable.equals(at) && isInstantaneousEdge(p)) { // LXY: p: at -> to || at -> f? to
                 String to = getTargetVariableOfInstantEdge(p);
                 if (!visited.contains(to)) {
                     PathGrammarProduction res = dfsForBackEdge(to, prods, visited, recStack);
