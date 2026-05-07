@@ -175,14 +175,14 @@ public class PathGrammarZeroDelayCycleEliminator {
     }
 
     /**
-     * 计算瞬时可达闭包 (DFS)
-     * @param curr
-     * @param currentCond
-     * @param visited
-     * @param C
-     * @param pg
-     * @param backEdge
-     * @param ctx
+     * 通过深度优先搜索走遍所有的瞬时路网，利用 BDD 的 AND 操作累加沿途条件，利用 BDD 的 OR 操作合并不同路线的条件。当它运行结束时，字典 C 里就装满了一份完美的“寻路指南”：只要查阅 C.get(目标)，就能立刻知道从起点瞬间移动到目标点，到底需要满足什么最精简的前提条件。
+     * @param curr 当前所处位置（起点），表示 DFS 探险队目前到达了语法图中的哪一个节点（Variable）。
+     * @param currentCond 累积的通行条件，表示从“起点”走到当前的 curr 节点，一路上累积必须要满足的逻辑条件。
+     * @param visited 当前探索路线的脚印)，记录着探险队当前所在的这条路径上，已经走过了哪些节点。
+     * @param C 全局的寻路指南/ReachCond，这是一个字典，记录了从最开始的起点到达每一个可能到达的节点，汇总后所需的通行条件。作用：如果探险队通过路线 A 到达了节点 X，又通过路线 B 到达了节点 X，那么节点 X 对应的条件就会变成 (路线A的条件) OR (路线B的条件)。这是探险队最终要交付的成果报告。
+     * @param pg 完整的路网地图，整个语法系统的数据结构，包含了所有的节点和边（产生式）。
+     * @param backEdge 被封锁的危险道路，就是导致最初死循环的那条“回边”。
+     * @param ctx 封装了底层 BDD（二元决策图）引擎的上下文对象。
      */
     private static void computeClosureDFS(String curr, BDD currentCond, Set<String> visited,
                                           Map<String, BDD> C, PathGrammar pg, PathGrammarProduction backEdge, BddContext ctx) {
