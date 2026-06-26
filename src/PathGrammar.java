@@ -84,16 +84,20 @@ public class PathGrammar {
                     break;
                 case Variable: // v->w in P1
                     this.productions.add(p1); // v->w
+/*
                     eProd1 = new PathGrammarProduction((String) p1.rightItem1); // eProd1 = w->empty
                     if(pg1.productions.contains(eProd1))
                         this.productions.add(new PathGrammarProduction(p1.leftVariable, pg2.start)); // v->S2
+*/
                     break;
                 case Test_Variable: // v->LDL?.w in P1
                 case PropFormula_Variable: // v->propLDL.w in P1
                     this.productions.add(p1); // v->LDL?.w | v->propLDL.w
+/*
                     eProd1 = new PathGrammarProduction((String) p1.rightItem2); // w->empty
                     if(pg1.productions.contains(eProd1))
                         this.productions.add(new PathGrammarProduction(p1.leftVariable, (LDL) p1.rightItem1, pg2.start)); // v->LDL?.S2 | v->propLDL.S2
+*/
                     break;
                 case Test_PropFormula:
                     break;
