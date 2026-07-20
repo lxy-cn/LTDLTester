@@ -30,6 +30,7 @@ public class PathGrammarZeroDelayCycleEliminator {
     private static boolean phase1_mergeUnconditionalSCCs(PathGrammar pg) {
         boolean changed = false;
 
+        //收集无条件瞬时转移边
         List<PathGrammarProduction> uncondEdges = new ArrayList<>();
         for (PathGrammarProduction p : pg.productions) {
             checkDeprecatedType(p);
@@ -45,22 +46,22 @@ public class PathGrammarZeroDelayCycleEliminator {
 
         for (List<String> scc : sccs) {
             if (scc.size() > 1) {
-                String rep = scc.contains(pg.start) ? pg.start : scc.get(0);
+                String rep = scc.contains(pg.start) ? pg.start : scc.get(0); // 保留下的代表性结点
 
                 for (String node : scc) {
-                    if (!node.equals(rep)) {
+                    if (!node.equals(rep)) { //当前结点node不是代表结点
                         for (PathGrammarProduction p : pg.productions) {
                             boolean isModified = false;
                             String newLeft = p.leftVariable;
 
                             if (newLeft.equals(node)) {
-                                newLeft = rep;
-                                isModified = true;
+                                newLeft = rep;  //指向代表结点
+                                isModified = true; //表示p的左变量是node
                             }
 
-                            if (isModified || referencesVariable(p, node)) {
+                            if (isModified || referencesVariable(p, node)) { // p定义node，或者p引用node
                                 toRemove.add(p);
-                                PathGrammarProduction newP = createReplacedProduction(p, node, rep, newLeft);
+                                PathGrammarProduction newP = createReplacedProduction(p, node, rep, newLeft); //将原来指向node的产生式重定向到rep，将原来从node出发的产生式改为从rep出发
                                 if (newP != null) {
                                     toAdd.add(newP);
                                 }
@@ -112,7 +113,7 @@ public class PathGrammarZeroDelayCycleEliminator {
     }
 
     /**
-     * 在有条件的瞬时转移（Zero-Delay）中，通过计算“可达闭包”来构建旁路（Bypass），从而安全地打破并移除导致死循环的回边（Back Edge）。我们可以把这个过程想象成“修建高架桥来绕过环岛死胡同”：如果一条路（回边）会把你带入一个瞬间就能跑完但可能永远绕不出来的环岛（零延迟环），这个函数会计算出从这个环岛所有可能的“真实出口”（耗时操作），然后直接从入口修一条直达这些出口的高架桥（旁路），并把原先那条通往死胡同的路拆掉。
+     * 在有条件的瞬时转移（Zero-Delay）中，通过计算“可达闭包”来构建旁路（Bypass），从而安全地打破并移除导致死循环的回边（Back Edge）。我们可以把这个过程想象成“修建高架桥来绕过环岛死胡同”：如果一条路（回边）会把你带入一个瞬间就能跑完但可能永远绕不出来的环岛（零延迟环），这个函数会计算出从这个环岛所有可能的“真实出口”（耗时产生式或零延迟终端产生式），然后直接从入口修一条直达这些出口的高架桥（旁路），并把原先那条通往死胡同的路拆掉。
      * @param backEdge
      * @param pg
      * @param ctx
@@ -184,8 +185,15 @@ public class PathGrammarZeroDelayCycleEliminator {
      * @param backEdge 被封锁的危险道路，就是导致最初死循环的那条“回边”。
      * @param ctx 封装了底层 BDD（二元决策图）引擎的上下文对象。
      */
-    private static void computeClosureDFS(String curr, BDD currentCond, Set<String> visited,
-                                          Map<String, BDD> C, PathGrammar pg, PathGrammarProduction backEdge, BddContext ctx) {
+    private static void computeClosureDFS(
+            String curr,
+            BDD currentCond,
+            Set<String> visited,
+            Map<String, BDD> C,
+            PathGrammar pg,
+            PathGrammarProduction backEdge,
+            BddContext ctx
+    ) {
         if (currentCond.isZero()) return;
 
         // BDD 等价状态合并
@@ -445,10 +453,10 @@ public class PathGrammarZeroDelayCycleEliminator {
                         LDL bypassCond_a = LDLAnd(bypassCond, a, ctx);
                         if (!isLDLFalse(bypassCond_a, ctx))
                             res.add(new PathGrammarProduction(v, bypassCond_a)); // 新建捷径： v -> (bypassCond AND a)
-                    } else {
+                    } else { // bypassCond不是断言
                         String tmp = "bypass_tmp_" + (++tmpCounter);
-                        res.add(new PathGrammarProduction(v, bypassTest, tmp));
-                        res.add(new PathGrammarProduction(tmp, a));
+                        res.add(new PathGrammarProduction(v, bypassTest, tmp)); // 新建捷径： v -> bypassTest tmp
+                        res.add(new PathGrammarProduction(tmp, a));  // 新建捷径： tmp -> a
                     }
                 }
                 break;
@@ -462,8 +470,8 @@ public class PathGrammarZeroDelayCycleEliminator {
                             res.add(new PathGrammarProduction(v, bypassCond_a2, x2)); // 新建捷径：v -> (bypassCond AND a2) x2
                     } else {
                         String tmp = "bypass_tmp_" + (++tmpCounter);
-                        res.add(new PathGrammarProduction(v, bypassTest, tmp));
-                        res.add(new PathGrammarProduction(tmp, a2, x2));
+                        res.add(new PathGrammarProduction(v, bypassTest, tmp)); // 新建捷径： v -> bypassTest tmp
+                        res.add(new PathGrammarProduction(tmp, a2, x2)); // 新建捷径： tmp -> a2 x2
                     }
                 }
                 break;
@@ -521,6 +529,23 @@ public class PathGrammarZeroDelayCycleEliminator {
         return rightVar != null && rightVar.equals(varName);
     }
 
+    /**
+     * p:v->empty, return newLeft->empty
+     * p:v->f1?, return newLeft->f1?
+     * p:v->f1, return newLeft->f1
+     * p:v->w: if w==oldVar then return newLeft-> newVar,
+     *         else return newLeft->w
+     * p:v->f1?w: if w==oldVar then return newLeft-> f1?newVar,
+     *         else return newLeft->f1?w
+     * p:v->f1.w: if w==oldVar then return newLeft-> f1.newVar,
+     *         else return newLeft->f1.w
+     *
+     * @param p
+     * @param oldVar
+     * @param newVar
+     * @param newLeft
+     * @return
+     */
     private static PathGrammarProduction createReplacedProduction(PathGrammarProduction p, String oldVar, String newVar, String newLeft) {
         switch (p.type) {
             case Empty:
@@ -613,8 +638,20 @@ public class PathGrammarZeroDelayCycleEliminator {
         return null;
     }
 
-    private static PathGrammarProduction dfsForBackEdge(String at, Set<PathGrammarProduction> prods,
-                                                        Set<String> visited, Set<String> recStack) {
+    /**
+     *
+     * @param at
+     * @param prods
+     * @param visited
+     * @param recStack
+     * @return
+     */
+    private static PathGrammarProduction dfsForBackEdge(
+            String at,
+            Set<PathGrammarProduction> prods,
+            Set<String> visited,
+            Set<String> recStack
+    ) {
         visited.add(at); // LXY: 记录在整个 DFS 遍历过程中，所有已经被访问过的节点。目的：避免重复计算和无限递归。如果遍历到一个已经在 visited 中的节点，说明该节点及其后续路径已经被完全探索过或正在探索中，DFS 不需要再从该节点重新开始搜索。
         recStack.add(at); // LXY: 记录当前深度优先搜索路径（即当前活动调用栈）上的所有节点。目的：标识当前节点的直接祖先（从起点到当前节点的路径）。
 
